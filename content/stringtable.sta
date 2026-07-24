@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stringtable>
+    <info version="1.0" rgon_sta_version="0"/>
+    <languages>
+        <language id="21" index="0" name="Key"/>
+        <language id="0" index="1" name="English"/>
+        <language id="2" index="2" name="Japanese"/>
+        <language id="11" index="3" name="Korean"/>
+        <language id="13" index="4" name="Chinese (Simple)"/>
+        <language id="10" index="5" name="Russian"/>
+        <language id="5" index="6" name="German"/>
+        <language id="4" index="7" name="Spanish"/>
+        <language id="3" index="8" name="French"/>
+    </languages>
+    <category name="Items">
+        <key name="SALT_SHAKER_NAME">
+            <string>Salt Shaker</string>
+            <string>Salt Shaker</string>
+            <string>Salt Shaker</string>
+            <string>Salt Shaker</string>
+            <string>Salt Shaker</string>
+            <string>Salt Shaker</string>
+            <string>Salero</string>
+            <string>Salt Shaker</string>
+        </key>
+        <key name="SALT_SHAKER_DESCRIPTION">
+            <string>Stops the evil nearby</string>
+            <string>Stops the evil nearby</string>
+            <string>Stops the evil nearby</string>
+            <string>Stops the evil nearby</string>
+            <string>Stops the evil nearby</string>
+            <string>Stops the evil nearby</string>
+            <string>Detén el mal cercano</string>
+            <string>Stops the evil nearby</string>
+        </key>
+        <key name="PEPPER_GRINDER_NAME">
+            <string>Pepper Grinder</string>
+            <string>Pepper Grinder</string>
+            <string>Pepper Grinder</string>
+            <string>Pepper Grinder</string>
+            <string>Pepper Grinder</string>
+            <string>Pepper Grinder</string>
+            <string>Moledor de Pimienta</string>
+            <string>Pepper Grinder</string>
+        </key>
+        <key name="PEPPER_GRINDER_DESCRIPTION">
+            <string>To spice up the danger</string>
+            <string>To spice up the danger</string>
+            <string>To spice up the danger</string>
+            <string>To spice up the danger</string>
+            <string>To spice up the danger</string>
+            <string>To spice up the danger</string>
+            <string>Para darle "sazón" al peligro</string>
+            <string>To spice up the danger</string>
+        </key>
+        <key name="SULFURIC_FIRE_NAME">
+            <string>Sulfuric Fire</string>
+            <string>Sulfuric Fire</string>
+            <string>Sulfuric Fire</string>
+            <string>Sulfuric Fire</string>
+            <string>Sulfuric Fire</string>
+            <string>Sulfuric Fire</string>
+            <string>Fuego Sulfúrico</string>
+            <string>Sulfuric Fire</string>
+        </key>
+        <key name="SULFURIC_FIRE_DESCRIPTION">
+            <string>Sinful burns</string>
+            <string>Sinful burns</string>
+            <string>Sinful burns</string>
+            <string>Sinful burns</string>
+            <string>Sinful burns</string>
+            <string>Sinful burns</string>
+            <string>Quemaduras pecaminosas</string>
+            <string>Sinful burns</string>
+        </key>
+        <key name="SULFURIC_FIRE_NAME">
+            <string>Sulfuric Fire</string>
+            <string>Sulfuric Fire</string>
+            <string>Sulfuric Fire</string>
+            <string>Sulfuric Fire</string>
+            <string>Sulfuric Fire</string>
+            <string>Sulfuric Fire</string>
+            <string>Fuego Sulfúrico</string>
+            <string>Sulfuric Fire</string>
+        </key>
+        <key name="SULFURIC_FIRE_DESCRIPTION">
+            <string>Sinful burns</string>
+            <string>Sinful burns</string>
+            <string>Sinful burns</string>
+            <string>Sinful burns</string>
+            <string>Sinful burns</string>
+            <string>Sinful burns</string>
+            <string>Quemaduras pecaminosas</string>
+            <string>Sinful burns</string>
+        </key>
+        <key name="EDITHS_HOOD_NAME">
+            <string>Edith's Hood</string>
+            <string>Edith's Hood</string>
+            <string>Edith's Hood</string>
+            <string>Edith's Hood</string>
+            <string>Edith's Hood</string>
+            <string>Edith's Hood</string>
+            <string>Capucha de Edith</string>
+            <string>Edith's Hood</string>
+        </key>
+        <key name="EDITHS_HOOD_DESCRIPTION">
+            <string>Vestige of disobedience</string>
+            <string>Vestige of disobedience</string>
+            <string>Vestige of disobedience</string>
+            <string>Vestige of disobedience</string>
+            <string>Vestige of disobedience</string>
+            <string>Vestige of disobedience</string>
+            <string>Vestigio de desobedencia</string>
+            <string>Vestige of disobedience</string>
+        </key>
+        <key name="SAL_NAME">
+            <string>Sal</string>
+            <string>Sal</string>
+            <string>Sal</string>
+            <string>Sal</string>
+            <string>Sal</string>
+            <string>Sal</string>
+            <string>Sal</string>
+            <string>Sal</string>
+        </key>
+        <key name="SAL_DESCRIPTION">
+            <string>Salt shedding</string>
+            <string>Salt shedding</string>
+            <string>Salt shedding</string>
+            <string>Salt shedding</string>
+            <string>Salt shedding</string>
+            <string>Salt shedding</string>
+            <string>Desprendimiento de Sal</string>
+            <string>Salt shedding</string>
+        </key>
+        <key name="GILDED_STONE_NAME">
+            <string>Gilded Stone</string>
+            <string>Gilded Stone</string>
+            <string>Gilded Stone</string>
+            <string>Gilded Stone</string>
+            <string>Gilded Stone</string>
+            <string>Gilded Stone</string>
+            <string>Piedra dorada</string>
+            <string>Gilded Stone</string>
+        </key>
+        <key name="GILDED_STONE_DESCRIPTION">
+            <string>Luck up, Wealth amidst rubble</string>
+            <string>Luck up, Wealth amidst rubble</string>
+            <string>Luck up, Wealth amidst rubble</string>
+            <string>Luck up, Wealth amidst rubble</string>
+            <string>Luck up, Wealth amidst rubble</string>
+            <string>Luck up, Wealth amidst rubble</string>
+            <string>Más suerte, encuentra riqueza entre escombros</string>
+            <string>Luck up, Wealth amidst rubble</string>
+        </key>
+        <key name="MOLTEN_CORE_NAME">
+            <string>Molten Core</string>
+            <string>Molten Core</string>
+            <string>Molten Core</string>
+            <string>Molten Core</string>
+            <string>Molten Core</string>
+            <string>Molten Core</string>
+            <string>Nucleo Fundido</string>
+            <string>Molten Core</string>
+        </key>
+        <key name="MOLTEN_CORE_DESCRIPTION">
+            <string>Flaming instability</string>
+            <string>Flaming instability</string>
+            <string>Flaming instability</string>
+            <string>Flaming instability</string>
+            <string>Flaming instability</string>
+            <string>Flaming instability</string>
+            <string>Inestabilidad flameante</string>
+            <string>Flaming instability</string>
+        </key>
+        <key name="FATE_OF_THE_UNFAITHFUL_NAME">
+            <string>Fate of the unfaithful</string>
+            <string>Fate of the unfaithful</string>
+            <string>Fate of the unfaithful</string>
+            <string>Fate of the unfaithful</string>
+            <string>Fate of the unfaithful</string>
+            <string>Fate of the unfaithful</string>
+            <string>El destino de los infieles</string>
+            <string>Fate of the unfaithful</string>
+        </key>
+        <key name="FATE_OF_THE_UNFAITHFUL_DESCRIPTION">
+            <string>Making it burn</string>
+            <string>Making it burn</string>
+            <string>Making it burn</string>
+            <string>Making it burn</string>
+            <string>Making it burn</string>
+            <string>Making it burn</string>
+            <string>Haz que arda</string>
+            <string>Making it burn</string>
+        </key>
+            <key name="SALT_HEART_NAME">
+            <string>Salt Heart</string>
+            <string>Salt Heart</string>
+            <string>Salt Heart</string>
+            <string>Salt Heart</string>
+            <string>Salt Heart</string>
+            <string>Salt Heart</string>
+            <string>Corazón de Sal</string>
+            <string>Salt Heart</string>
+        </key>
+        <key name="SALT_HEART_DESCRIPTION">
+            <string>As weak as salt</string>
+            <string>As weak as salt</string>
+            <string>As weak as salt</string>
+            <string>As weak as salt</string>
+            <string>As weak as salt</string>
+            <string>As weak as salt</string>
+            <string>Frágil como la sal</string>
+            <string>As weak as salt</string>
+        </key>
+        <key name="DIVINE_RETRIBUTION_NAME">
+            <string>Divine Retribution</string>
+            <string>Divine Retribution</string>
+            <string>Divine Retribution</string>
+            <string>Divine Retribution</string>
+            <string>Divine Retribution</string>
+            <string>Divine Retribution</string>
+            <string>Retribución Divina</string>
+            <string>Divine Retribution</string>
+        </key>
+        <key name="DIVINE_RETRIBUTION_DESCRIPTION">
+            <string>Strike from heaven... but at what cost?</string>
+            <string>Strike from heaven... but at what cost?</string>
+            <string>Strike from heaven... but at what cost?</string>
+            <string>Strike from heaven... but at what cost?</string>
+            <string>Strike from heaven... but at what cost?</string>
+            <string>Strike from heaven... but at what cost?</string>
+            <string>Un golpe desde el cielo... ¿pero a qué precio?</string>
+            <string>Strike from heaven... but at what cost?</string>
+        </key>
+        <key name="SPICES_MIX_NAME">
+            <string>Spices Mix</string>
+            <string>Spices Mix</string>
+            <string>Spices Mix</string>
+            <string>Spices Mix</string>
+            <string>Spices Mix</string>
+            <string>Spices Mix</string>
+            <string>Mezcla de especias</string>
+            <string>Spices Mix</string>
+        </key>
+        <key name="SPICES_MIX_DESCRIPTION">
+            <string>Mmmmh, tasty!</string>
+            <string>Mmmmh, tasty!</string>
+            <string>Mmmmh, tasty!</string>
+            <string>Mmmmh, tasty!</string>
+            <string>Mmmmh, tasty!</string>
+            <string>Mmmmh, tasty!</string>
+            <string>Mmmmm, ¡delicioso!</string>
+            <string>Mmmmh, tasty!</string>
+        </key>
+        <key name="HYDRARGYRUM_NAME">
+            <string>Hydrargyrum</string>
+            <string>Hydrargyrum</string>
+            <string>Hydrargyrum</string>
+            <string>Hydrargyrum</string>
+            <string>Hydrargyrum</string>
+            <string>Hydrargyrum</string>
+            <string>Hydrargyrum</string>
+            <string>Hydrargyrum</string>
+        </key>
+        <key name="HYDRARGYRUM_DESCRIPTION">
+            <string>Volatile Liquidity</string>
+            <string>Volatile Liquidity</string>
+            <string>Volatile Liquidity</string>
+            <string>Volatile Liquidity</string>
+            <string>Volatile Liquidity</string>
+            <string>Volatile Liquidity</string>
+            <string>Liquidez Volátil</string>
+            <string>Volatile Liquidity</string>
+        </key>
+        <key name="DIVINE_WRATH_NAME">
+            <string>Divine Wrath</string>
+            <string>Divine Wrath</string>
+            <string>Divine Wrath</string>
+            <string>Divine Wrath</string>
+            <string>Divine Wrath</string>
+            <string>Divine Wrath</string>
+            <string>Ira Divina</string>
+            <string>Divine Wrath</string>
+        </key>
+        <key name="DIVINE_WRATH_DESCRIPTION">
+            <string>Purify the wicked</string>
+            <string>Purify the wicked</string>
+            <string>Purify the wicked</string>
+            <string>Purify the wicked</string>
+            <string>Purify the wicked</string>
+            <string>Purify the wicked</string>
+            <string>Purifica el mal</string>
+            <string>Purify the wicked</string>
+        </key>
+        <key name="BURNT_HOOD_NAME">
+            <string>Burnt Hood</string>
+            <string>Burnt Hood</string>
+            <string>Burnt Hood</string>
+            <string>Burnt Hood</string>
+            <string>Burnt Hood</string>
+            <string>Burnt Hood</string>
+            <string>Capucha Quemada</string>
+            <string>Burnt Hood</string>
+        </key>
+        <key name="BURNT_HOOD_DESCRIPTION">
+            <string>Deflect the destruction</string>
+            <string>Deflect the destruction</string>
+            <string>Deflect the destruction</string>
+            <string>Deflect the destruction</string>
+            <string>Deflect the destruction</string>
+            <string>Deflect the destruction</string>
+            <string>Refleja el peligro</string>
+            <string>Deflect the destruction</string>
+        </key>
+        <key name="EFFIGY_NAME">
+            <string>Effigy</string>
+            <string>Effigy</string>
+            <string>Effigy</string>
+            <string>Effigy</string>
+            <string>Effigy</string>
+            <string>Effigy</string>
+            <string>Efigie</string>
+            <string>Effigy</string>
+        </key>
+        <key name="EFFIGY_DESCRIPTION">
+            <string>A vestige of the past</string>
+            <string>A vestige of the past</string>
+            <string>A vestige of the past</string>
+            <string>A vestige of the past</string>
+            <string>A vestige of the past</string>
+            <string>A vestige of the past</string>
+            <string>Un vestigio de desobedencia</string>
+            <string>A vestige of the past</string>
+        </key>
+        <key name="CHUNK_OF_BASALT_NAME">
+            <string>Chunk of Basalt</string>
+            <string>Chunk of Basalt</string>
+            <string>Chunk of Basalt</string>
+            <string>Chunk of Basalt</string>
+            <string>Chunk of Basalt</string>
+            <string>Chunk of Basalt</string>
+            <string>Trozo de Basalto</string>
+            <string>Chunk of Basalt</string>
+        </key>
+        <key name="CHUNK_OF_BASALT_DESCRIPTION">
+            <string>Rocky grudge</string>
+            <string>Rocky grudge</string>
+            <string>Rocky grudge</string>
+            <string>Rocky grudge</string>
+            <string>Rocky grudge</string>
+            <string>Rocky grudge</string>
+            <string>Rencor rocoso</string>
+            <string>Rocky grudge</string>
+        </key>
+        <key name="GEODE_NAME">
+            <string>Geode</string>
+            <string>Geode</string>
+            <string>Geode</string>
+            <string>Geode</string>
+            <string>Geode</string>
+            <string>Geode</string>
+            <string>Geoda</string>
+            <string>Geode</string>
+        </key>
+        <key name="GEODE_DESCRIPTION">
+            <string>Crack it open</string>
+            <string>Crack it open</string>
+            <string>Crack it open</string>
+            <string>Crack it open</string>
+            <string>Crack it open</string>
+            <string>Crack it open</string>
+            <string>Ábrela</string>
+            <string>Crack it open</string>
+        </key>
+        <key name="RUMBLING_PEBBLE_NAME">
+            <string>Rumbling Pebble</string>
+            <string>Rumbling Pebble</string>
+            <string>Rumbling Pebble</string>
+            <string>Rumbling Pebble</string>
+            <string>Rumbling Pebble</string>
+            <string>Rumbling Pebble</string>
+            <string>Pedruzco Retumbante</string>
+            <string>Rumbling Pebble</string>
+        </key>
+        <key name="RUMBLING_PEBBLE_DESCRIPTION">
+            <string>Rock scattering</string>
+            <string>Rock scattering</string>
+            <string>Rock scattering</string>
+            <string>Rock scattering</string>
+            <string>Rock scattering</string>
+            <string>Rock scattering</string>
+            <string>Dispersión rocosa</string>
+            <string>Rock scattering</string>
+        </key>
+        <key name="PAPRIKA_NAME">
+            <string>Paprika</string>
+            <string>Paprika</string>
+            <string>Paprika</string>
+            <string>Paprika</string>
+            <string>Paprika</string>
+            <string>Paprika</string>
+            <string>Paprika</string>
+            <string>Paprika</string>
+        </key>
+        <key name="PAPRIKA_DESCRIPTION">
+            <string>Spicy death</string>
+            <string>Spicy death</string>
+            <string>Spicy death</string>
+            <string>Spicy death</string>
+            <string>Spicy death</string>
+            <string>Spicy death</string>
+            <string>Muerte picante</string>
+            <string>Spicy death</string>
+        </key>
+        <key name="BURNT_SALT_NAME">
+            <string>Burnt Salt</string>
+            <string>Burnt Salt</string>
+            <string>Burnt Salt</string>
+            <string>Burnt Salt</string>
+            <string>Burnt Salt</string>
+            <string>Burnt Salt</string>
+            <string>Sal Quemada</string>
+            <string>Burnt Salt</string>
+        </key>
+        <key name="BURNT_SALT_DESCRIPTION">
+            <string>Burns to death</string>
+            <string>Burns to death</string>
+            <string>Burns to death</string>
+            <string>Burns to death</string>
+            <string>Burns to death</string>
+            <string>Burns to death</string>
+            <string>Quemaduras a morir</string>
+            <string>Burns to death</string>
+        </key>
+    </category>
+</stringtable>
