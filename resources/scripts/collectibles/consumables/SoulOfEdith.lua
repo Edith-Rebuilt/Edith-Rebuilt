@@ -5,7 +5,6 @@ local sounds = enums.SoundEffect
 local utils = enums.Utils
 local sfx = utils.SFX
 local rng = utils.RNG
-local jumpFlags = enums.Tables.JumpFlags
 local modules = mod.Modules
 local Helpers = modules.HELPERS
 local Creep = modules.CREEPS
@@ -17,7 +16,6 @@ local SoulOfEdithJumpTag = enums.Tables.JumpTags.SoulOfEdith
 local damageBase = 13.5
 
 mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, function (_, _, player)
-	-- InitEdithJump(player)
 	modules.JUMP.InitEdithJump(player, SoulOfEdithJumpTag, false)
     sfx:Play(sounds.SOUND_SOUL_OF_EDITH)
 end, card.CARD_SOUL_EDITH)

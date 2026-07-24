@@ -23,7 +23,6 @@ local data = mod.DataHolder.GetEntityData
 local HOOD = {
     DAMAGE_BASE_MULT = 1.5,
     DAMAGE_FINAL_MULT = 3,
-    TEAR_SPEED_MULT = 10,
     TIMER_CLEAR_ROOM = 10,
     TIMER_COMBAT_ROOM = 240,
 }
