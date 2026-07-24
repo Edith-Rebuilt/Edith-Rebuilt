@@ -27,7 +27,7 @@ function Maths.Log(x, base)
 
     local logNatural = math.log(x)
     local logBase = math.log(base)
-    
+
     return logNatural / logBase
 end
 

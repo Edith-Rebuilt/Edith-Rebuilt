@@ -20,6 +20,7 @@ if not REPENTANCE_PLUS then
         font:DrawStringScaledUTF8(text, Isaac.GetScreenWidth()/1.1 - font:GetStringWidthUTF8(text)/2, Isaac.GetScreenHeight()/1.2, 1, 1, KColor(2,.5,.5,1), 1, true )
         font:DrawStringScaledUTF8(text2, Isaac.GetScreenWidth()/1.1 - font:GetStringWidthUTF8(text2)/2, Isaac.GetScreenHeight()/1.2 + 8, 1, 1, KColor(2,.5,.5,1), 1, true )
     end)
+	return
 end
 
 EdithRebuilt.DataHolder = include("resources.scripts.libs.DataHolder")
@@ -31,7 +32,7 @@ EdithRebuilt.Hsx = require("resources.scripts.libs.lhsx")
 local version = {
 	1,
 	8,
-	0,
+	1,
 }
 
 include("resources.scripts.misc.dss.dssmain")
@@ -67,7 +68,7 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function()
 	utils.RNG:SetSeed(utils.Game:GetSeeds():GetStartSeed())
 end)
 
-EdithRebuilt.Version = "v" .. version[1].. "." .. version[2] .. "." .. version[3]
+EdithRebuilt.Version = "v" .. version[1].. "." .. version[2] .. "." .. version[3] .. "Beta"
 
 Isaac.DebugString("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
 print("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
