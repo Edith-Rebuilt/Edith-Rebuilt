@@ -56,6 +56,12 @@ local ImGuiMod = {}
 ---@field CustomActionKey Keyboard
 ---@field EnableShakescreen boolean
 
+local function ResetUnlocks()
+	for k, achievement in pairs(achievements) do
+		Isaac.ExecuteCommand("lockachievement " .. tostring(achievement))
+	end
+end
+
 local function isEdithUnlocked(tainted)
 	local ach = tainted and achievements.ACHIEVEMENT_TAINTED_EDITH or achievements.ACHIEVEMENT_EDITH
 	return pgd:Unlocked(ach)
@@ -69,6 +75,7 @@ local Prefixes = {
 	Tab = MainPrefix .. "Tab_",
 	Separator = MainPrefix .. "Separator_",
 	ProgressBar = MainPrefix .. "ProgressBar_",
+	Button = MainPrefix .. "Button_",
 	Edith = {
 		Visuals = MainPrefix .. "Edith_" .. "Visuals_",
 		Sounds = MainPrefix .. "Edith_" .. "Sounds_" ,
@@ -177,6 +184,10 @@ local Elements = {
 			Edith = Prefixes.ProgressBar .. "Edith",
 			TEdith = Prefixes.ProgressBar .. "TEdith",
 			General = Prefixes.ProgressBar .. "General"
+		},
+		Buttons = {
+			ClearUnlocks = Prefixes.Button .. "ClearUnloocks",
+			UnlockAll = Prefixes.Button .. "UnlockAll"
 		}
 	},
 	Options = {
@@ -923,6 +934,16 @@ local function AddProgressBars()
 	if isEdithUnlocked(true) then
 		ImGui.AddProgressBar(Menu.Windows.Progress, Menu.ProgressBar.TEdith, "Tainted Edith unlocks progress", 0)
 	end
+
+	ImGui.AddButton(Menu.Windows.Progress, Menu.Buttons.ClearUnlocks, "Clear Unlocks", function ()
+		ResetUnlocks()
+	end)
+
+	ImGui.AddButton(Menu.Windows.Progress, Menu.Buttons.UnlockAll, "Unlock All", function ()
+		for _, achievement in ipairs(achievements) do
+			pgd:TryUnlock(achievement, true)
+		end
+	end)
 end
 
 local function AddChangelogs()
