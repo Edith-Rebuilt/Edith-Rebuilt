@@ -72,3 +72,16 @@ EdithRebuilt.Version = "v" .. version[1].. "." .. version[2] .. "." .. version[3
 
 Isaac.DebugString("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
 print("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
+
+local enums = mod.Enums
+
+---@param mark CompletionType
+function EdithRebuilt.SetCompletionMark(mark)
+	Isaac.SetCompletionMark(enums.PlayerType.PLAYER_EDITH, mark, 2)
+end
+
+function EdithRebuilt.ResetCompletionMarks()
+	for _, mark in pairs(CompletionType) do
+		Isaac.SetCompletionMark(enums.PlayerType.PLAYER_EDITH, mark, 0)
+	end
+end 
