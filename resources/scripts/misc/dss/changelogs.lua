@@ -1,3 +1,7 @@
+DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.1a", [[
+- Removed bugged costume manager
+]])
+
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.1", [[
 - General:
 -- Improved Repentance+ check

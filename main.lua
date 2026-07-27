@@ -69,7 +69,7 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function()
 	utils.RNG:SetSeed(utils.Game:GetSeeds():GetStartSeed())
 end)
 
-EdithRebuilt.Version = "v" .. version[1].. "." .. version[2] .. "." .. version[3] .. (beta and "Beta" or "")
+EdithRebuilt.Version = "v" .. version[1].. "." .. version[2] .. "." .. version[3] .. "a" .. (beta and "Beta" or "")
 
 Isaac.DebugString("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
 print("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
@@ -86,3 +86,4 @@ function EdithRebuilt.ResetCompletionMarks()
 		Isaac.SetCompletionMark(enums.PlayerType.PLAYER_EDITH, mark, 0)
 	end
 end 
+

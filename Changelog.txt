@@ -497,3 +497,6 @@ v1.8.1
 -- Fixed T. Edith being completely invulnerable while redirecting her hopdash
 -- Fixed Salt Heart being impossible to unlock
 -- Fixed Edith Ultra Greedier unlocks not being shown when unlocked
+
+v1.8.1a
+- Removed bugged costume manager
