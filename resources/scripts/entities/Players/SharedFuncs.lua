@@ -200,7 +200,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_RENDER, function(_, player)
     player:ClearEntityFlags(EntityFlag.FLAG_SLIPPERY_PHYSICS)
 end)
 
----@param player EntityPlayer
-mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, function (_, _, _, _, _, _, player)
-    Player.SetHoodSprite(player, "gfx/characters/costumes/characterTaintedEdithHoodEOTO.png")
-end, CollectibleType.COLLECTIBLE_EYE_OF_THE_OCCULT)
+-- ---@param player EntityPlayer
+-- mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, function (_, _, _, _, _, _, player)
+--     Player.SetHoodSprite(player, "gfx/characters/costumes/characterTaintedEdithHoodEOTO.png")
+-- end, CollectibleType.COLLECTIBLE_EYE_OF_THE_OCCULT)
