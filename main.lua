@@ -34,6 +34,7 @@ local version = {
 	8,
 	1,
 }
+local beta = false
 
 include("resources.scripts.misc.dss.dssmain")
 include("resources.scripts.misc.dss.changelogs")
@@ -68,7 +69,7 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function()
 	utils.RNG:SetSeed(utils.Game:GetSeeds():GetStartSeed())
 end)
 
-EdithRebuilt.Version = "v" .. version[1].. "." .. version[2] .. "." .. version[3] .. "Beta"
+EdithRebuilt.Version = "v" .. version[1].. "." .. version[2] .. "." .. version[3] .. (beta and "Beta" or "")
 
 Isaac.DebugString("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
 print("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")

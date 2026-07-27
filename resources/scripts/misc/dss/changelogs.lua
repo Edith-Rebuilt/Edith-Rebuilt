@@ -1,3 +1,16 @@
+DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.1", [[
+- General:
+-- Improved Repentance+ check
+-- Added Clear Unlocks and Unlock 
+All buttons to ImGui progress section
+-- Fixed T. Edith being completely 
+invulnerable while redirecting her hopdash
+-- Fixed Salt Heart being 
+impossible to unlock
+-- Fixed Edith Ultra Greedier unlocks 
+not being shown when unlocked
+]])
+
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.0", [[
 - General:
 -- Renamed achievements 
