@@ -373,6 +373,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function (_, player, _, fla
 
 	local HopParams = TEdithMod.GetHopParryParams(player)
 
+	if data(player).IsRedirectioningMove then return end
 	if not (HopParams.IsHoping == true and HopParams.HopMoveCharge >= 20) then return end
 	if BitMask.HasBitFlags(flags, DamageFlag.DAMAGE_RED_HEARTS --[[@as BitSet128]]) then return end
 	return false
