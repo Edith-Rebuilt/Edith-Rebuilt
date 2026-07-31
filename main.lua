@@ -29,12 +29,6 @@ EdithRebuilt.SaveManager = require("resources.scripts.libs.EdithRebuiltSaveManag
 EdithRebuilt.SaveManager.Init(mod)
 EdithRebuilt.Hsx = require("resources.scripts.libs.lhsx")
 
-local version = {
-	1,
-	8,
-	1,
-}
-local beta = false
 
 include("resources.scripts.misc.dss.dssmain")
 include("resources.scripts.misc.dss.changelogs")
@@ -69,21 +63,13 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function()
 	utils.RNG:SetSeed(utils.Game:GetSeeds():GetStartSeed())
 end)
 
+local version = {
+	1,
+	8,
+	1,
+}
+local beta = false
 EdithRebuilt.Version = "v" .. version[1].. "." .. version[2] .. "." .. version[3] .. "a" .. (beta and "Beta" or "")
 
 Isaac.DebugString("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
 print("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
-
-local enums = mod.Enums
-
----@param mark CompletionType
-function EdithRebuilt.SetCompletionMark(mark)
-	Isaac.SetCompletionMark(enums.PlayerType.PLAYER_EDITH, mark, 2)
-end
-
-function EdithRebuilt.ResetCompletionMarks()
-	for _, mark in pairs(CompletionType) do
-		Isaac.SetCompletionMark(enums.PlayerType.PLAYER_EDITH, mark, 0)
-	end
-end 
-

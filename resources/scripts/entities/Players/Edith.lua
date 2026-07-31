@@ -114,7 +114,7 @@ local function ManageStretchSquashScale(player, pData)
 	local VecScale = FrameScale.BeforeJump[pData.JumpCount]
 
 	if not VecScale then return end
-	player.SpriteScale = pData.BaseSpriteScale * VecScale
+	player.SpriteScale = pData.BaseSpriteScale * VecScale 
 end
 
 ---@param player EntityPlayer
