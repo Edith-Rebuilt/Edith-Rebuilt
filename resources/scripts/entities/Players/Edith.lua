@@ -48,6 +48,7 @@ end)
 local function SetInitJumpState(player)
 	if helpers.IsVestigeChallenge() then return end
 	if not helpers.IsKeyStompPressed(player) then return end
+	if not EdithMod.GetJumpStompParams(player).CanJump then return end
 	if Jump.IsJumping(player) then return end
 	data(player).InitJump = true
 end
@@ -128,6 +129,7 @@ local function ManageJumpStretchSquash(player)
 	local jumpParams = params(player)
 
 	if jumpParams.Cooldown ~= 0 then return end
+	if not jumpParams.CanJump then return end 
 
 	ManageStretchSquashCounter(pData)
 	TriggerEdithJump(player, pData, jumpParams)
@@ -299,7 +301,7 @@ end, JumpParams.EdithJump)
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
 	if not Player.IsEdith(player, false) then return end
-
+	
 	local jumpParams = params(player)
 
 	if jumpParams.RocketLaunch then return end

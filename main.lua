@@ -66,10 +66,11 @@ end)
 local version = {
 	1,
 	8,
-	1,
+	2,
+	""
 }
-local beta = false
-EdithRebuilt.Version = "v" .. version[1].. "." .. version[2] .. "." .. version[3] .. "a" .. (beta and "Beta" or "")
+local beta = true
+EdithRebuilt.Version = "v" .. version[1].. "." .. version[2] .. "." .. version[3] .. version[4] .. (beta and "Beta" or "")
 
 Isaac.DebugString("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
 print("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")

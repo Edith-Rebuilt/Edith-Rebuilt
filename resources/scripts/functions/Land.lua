@@ -184,7 +184,7 @@ local function TriggerPickupCollide(player, pickup, includeCol)
 	if pickup:GetSprite():IsPlaying("Collect") then return end
 	if (not includeCol and pickup.Variant == PickupVariant.PICKUP_COLLECTIBLE) then return end
 
-	player:ForceCollide(pickup, true)
+	player:ForceCollide(pickup, false)
 end
 
 ---@param player EntityPlayer
