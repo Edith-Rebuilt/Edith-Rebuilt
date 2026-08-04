@@ -14,7 +14,7 @@ local function EffigyIncreasedDamage(player, params)
     local damage = StompUtils.GetDamage(params)
 
     StompUtils.SetDamage(params, damage * 2.5)
-    player:SetActiveCharge(Helpers.GetEffigyCharge(player) - 8, Helpers.GetEffigySlot(player))
+    player:SetActiveCharge(Helpers.GetEffigyCharge(player) - 4, Helpers.GetEffigySlot(player))
 end
 
 ---@param player EntityPlayer
