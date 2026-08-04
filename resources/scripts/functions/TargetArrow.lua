@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-global
 local mod = EdithRebuilt
 local enums = mod.Enums
 local variants = enums.EffectVariant
@@ -115,6 +116,7 @@ local function IsTargetNearDoor(origin, target, maxDistanceSquared)
     return target ~= nil and origin:DistanceSquared(target) <= maxDistanceSquared*maxDistanceSquared
 end
 
+---@return {Sprite: Sprite, Mausoleum: boolean, Strange: boolean, StrangeOpened: boolean}?
 local function GetDoorFlags(door)
     local sprite = door:GetSprite()
     local layer = sprite:GetLayer(0)
@@ -170,6 +172,26 @@ local function MovePlayerThroughDoor(player, doorPos, isTainted)
 end
 
 ---@param effect EntityEffect
+---@param mirrorRoom boolean
+---@param triggerDistance number
+local function FallFromGraceManager(effect, mirrorRoom, triggerDistance)
+    if not FFGRACE then return end
+    if not FFGRACE.STAGE.Boiler:IsStage() then return end
+    if not mirrorRoom then return end
+
+    local mirrorDoor = Isaac.FindByType(EntityType.ENTITY_EFFECT, 12547)[1]
+
+    if not mirrorDoor then return end
+    if not IsTargetNearDoor(effect.Position, mirrorDoor.Position, triggerDistance) then return end
+
+    local player = effect.SpawnerEntity:ToPlayer()
+
+    if not player then return end
+
+    FFGRACE:MirrorDoorEnter(player)
+end
+
+---@param effect EntityEffect
 ---@param player EntityPlayer
 ---@param triggerDistance number
 function targetArrow.TargetDoorManager(effect, player, triggerDistance)
@@ -181,8 +203,11 @@ function targetArrow.TargetDoorManager(effect, player, triggerDistance)
     local effectPos = effect.Position
     local playerNearDoor = false
 
+    FallFromGraceManager(effect, mirrorRoom, triggerDistance)
+
     for slot = 0, DoorSlot.DOWN1 do
         local door = room:GetDoor(slot)
+
         if not door then goto continue end
 
         local flags = GetDoorFlags(door)
@@ -192,9 +217,13 @@ function targetArrow.TargetDoorManager(effect, player, triggerDistance)
 
         if not IsTargetNearDoor(effectPos, doorPos, triggerDistance) then goto continue end
 
+        print("trigger change")
+
         playerNearDoor = true
 
-        if door:IsOpen() or mirrorRoom or flags.StrangeOpened then
+        local spritePath = flags.Sprite:GetLayer(0):GetSpritesheetPath()
+
+        if door:IsOpen() or mirrorRoom or flags.StrangeOpened  then
             MovePlayerThroughDoor(player, doorPos, isTainted)
         else
             TryOpenDoor(door, flags, player, roomClear)

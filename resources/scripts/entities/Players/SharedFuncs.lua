@@ -15,7 +15,7 @@ local costumes = enums.NullItemID
 ---@param input InputHook
 ---@param action ButtonAction|KeySubType
 ---@return integer|boolean?
-mod:AddCallback(ModCallbacks.MC_INPUT_ACTION, function(_, entity, input, action)
+mod:AddPriorityCallback(ModCallbacks.MC_INPUT_ACTION, CallbackPriority.IMPORTANT, function(_, entity, input, action)
     if not entity then return end
 
     local player = entity:ToPlayer()

@@ -48,7 +48,8 @@ end
 ---@param resizer? number
 ---@return Vector
 function VecDir.GetMovementVector(input, resizer)
-    local mirrorMult = game:GetRoom():IsMirrorWorld() and -1 or 1
+---@diagnostic disable-next-line: undefined-global
+    local mirrorMult = (game:GetRoom():IsMirrorWorld() or FFGRACE and FFGRACE:IsBoilerMirrorWorld()) and -1 or 1
     local x = GetAxisValue(input.left, input.right) * mirrorMult
     local y = GetAxisValue(input.up, input.down)
 	local vec = Vector(x, y):Normalized()
