@@ -202,19 +202,6 @@ function Helpers.IsGrudgeChallenge()
 	return Isaac.GetChallenge() == enums.Challenge.CHALLENGE_GRUDGE or Helpers.GetConfigData(ConfigDataTypes.TEDITH).EnableGrudgeMode
 end
 
----The same as `Helpers.TriggerPush` but this accepts a `Vector` for positions instead
----@param pusher Entity
----@param pushed Entity
----@param pushedPos Vector
----@param pusherPos Vector
----@param strength number
----@param duration integer
----@param impactDamage? boolean
-function Helpers.TriggerPushPos(pusher, pushed, pushedPos, pusherPos, strength, duration, impactDamage)
-	local dir = ((pusherPos - pushedPos) * -1):Resized(strength)
-	pushed:AddKnockback(EntityRef(pusher), dir, duration, impactDamage or false)
-end
-
 ---@param ent Entity
 ---@return number
 function Helpers.GetPushFactor(ent)
@@ -226,8 +213,7 @@ end
 ---@param pusher Entity
 ---@param strength number
 function Helpers.TriggerPush(pushed, pusher, strength)
-	local dir = ((pusher.Position - pushed.Position) * -1):Resized(strength)
-	pushed.Velocity = dir
+	pushed:AddVelocity(((pusher.Position - pushed.Position) * -1):Resized(strength))	
 end
 
 ---Changes `Entity` velocity so now it goes to `Target`'s Position, `strenght` determines how fast it'll go
@@ -304,15 +290,6 @@ function Helpers.GetPlayerFromRef(EntityRef)
 	return ent:ToPlayer() or Helpers.GetPlayerFromTear(ent) or familiar and familiar.Player 
 end
 
----@param pushed Entity
----@param pusher Entity
----@param strength number
----@param duration integer
-function Helpers.TriggerJumpPush(pushed, pusher, strength, duration)
-	local dir = ((pusher.Position - pushed.Position) * -1):Resized(strength)-- * PushFactor
-	pushed:AddKnockback(EntityRef(pusher), dir, duration, false)
-end
-
 ---Helper function to directly change `entity`'s color
 ---@param entity Entity
 ---@param red? number
@@ -344,11 +321,7 @@ function Helpers.SetBloodEffectColor(effect)
 	local color = Color.Default
 	local switch = {
 		[EffectVariant.BIG_SPLASH] = function()
-			if IsMortis then
-				color = Colors.MortisColors[MortisBackdrop.MOIST]
-			else
-				color = Helpers.GetWaterEffectColor()
-			end
+			color = Helpers.GetWaterEffectColor()
 		end,
 		[EffectVariant.POOF02] = function()
 			if IsMortis then

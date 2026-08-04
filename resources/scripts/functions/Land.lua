@@ -705,7 +705,7 @@ function Land.TriggerLandenemyJump(player, enemyTable, knockback, height, speed)
 
 		local PushFactor = Helpers.GetPushFactor(ent)
 
-		Helpers.TriggerJumpPush(ent, player, knockback * 1.5, 5)
+		Helpers.TriggerPush(ent, player, knockback * 1.5)
 		JumpLib:TryJump(ent, {
 			Height = height * PushFactor,
 			Speed = speed * PushFactor,
