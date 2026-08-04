@@ -479,10 +479,18 @@ end
 ---@param fam EntityFamiliar
 mod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, function (_, fam)
 	if not IsWisp(fam) then return end
-	StopVel(fam.Player, fam)
+	local player = fam.Player
+
+	if not player then return end
+
+	StopVel(player, fam)
 end)
 
 ---@param npc EntityNPC
 mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, function (_, npc)
-	StopVel(npc:GetPlayerTarget():ToPlayer() --[[@as EntityPlayer]], npc)
+	local player = npc:GetPlayerTarget():ToPlayer()
+
+	if not player then return end
+
+	StopVel(player, npc)
 end, EntityType.ENTITY_WILLO)
