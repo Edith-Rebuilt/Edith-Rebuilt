@@ -26,6 +26,8 @@ end
 mod:AddCallback(callbacks.PERFECT_PARRY, function(_, player) SpawnGodTear(player, false) end)
 mod:AddCallback(callbacks.OFFENSIVE_STOMP, function(_, player) SpawnGodTear(player, true)  end)
 
+local count = 12
+
 ---@param tear EntityTear
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, function(_, tear)
     local tearData = data(tear)
@@ -34,7 +36,6 @@ mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, function(_, tear)
     tear.Height = -10
     tear.Position = (tear.Parent or tear.SpawnerEntity).Position
 
-    local count = 12
     if tearData.SynergyGodTear == "stomp" then
         local player = helpers.GetPlayerFromTear(tear) --[[@as EntityPlayer]]
         count = Player.PlayerHasBirthright(player) and 24 or 12
