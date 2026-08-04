@@ -1,14 +1,15 @@
 local mod = EdithRebuilt
 local callbacks = mod.Enums.Callbacks
+local Player = mod.Modules.PLAYER
 
 ---@param player EntityPlayer
 local function ParryRockwaves(player)
     if not player:HasCollectible(CollectibleType.COLLECTIBLE_TERRA) then return end
 
-    local hasBirthright = player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT)
+    local hasBirthright = Player.IsEdith(player, false) and Player.PlayerHasBirthright(player)
     local totalRocks = hasBirthright and 8 or 6
     local totalRings = hasBirthright and 2 or 1
-    local shockwaveDamage = (hasBirthright and player.Damage * 1.4 or player.Damage) / 2
+    local shockwaveDamage = (hasBirthright and player.Damage * 1.5 or player.Damage) / 2
 
     for ring = 1, totalRings do
         local dist = ring == 1 and 40 or 20
