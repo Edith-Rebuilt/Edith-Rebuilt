@@ -217,11 +217,7 @@ function targetArrow.TargetDoorManager(effect, player, triggerDistance)
 
         if not IsTargetNearDoor(effectPos, doorPos, triggerDistance) then goto continue end
 
-        print("trigger change")
-
         playerNearDoor = true
-
-        local spritePath = flags.Sprite:GetLayer(0):GetSpritesheetPath()
 
         if door:IsOpen() or mirrorRoom or flags.StrangeOpened  then
             MovePlayerThroughDoor(player, doorPos, isTainted)
