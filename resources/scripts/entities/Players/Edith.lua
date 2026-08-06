@@ -203,11 +203,13 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 		jumpParams = params(player),
 	} ---@cast state EdithUpdateState
 
-	SetInitJumpState(player)
-	ManageJumpStretchSquash(player)
-	HandleEdithInit(player)
-	HandleTargetSpawn(player, state)
-	TriggerEdithJumpAnim(player)
+	if not state.isPitfall then
+		SetInitJumpState(player)
+		ManageJumpStretchSquash(player)
+		HandleEdithInit(player)
+		HandleTargetSpawn(player, state)
+		TriggerEdithJumpAnim(player)
+	end
 	EdithTeleportManager(player)
 	EdithMod.CustomDropBehavior(player, state.jumpParams)
 	EdithMod.DashItemBehavior(player)
