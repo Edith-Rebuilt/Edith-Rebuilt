@@ -137,8 +137,11 @@ local NonTriggerAnimPickupVar = {
 	[PickupVariant.PICKUP_TROPHY] = true,
 }
 
+---@param pickup EntityPickup
+---@param player EntityPlayer
 local function ChestManager(pickup, player)
 	if not IsChest(pickup) then return end
+	if pickup:GetSprite():GetAnimation() == "Open" then return end
 	local openedBombChest = false
 	local var = pickup.Variant
 
@@ -181,7 +184,6 @@ end
 ---@param includeCol boolean
 local function TriggerPickupCollide(player, pickup, includeCol)
 	if pickup:IsDead() then return end
-	if pickup:GetSprite():IsPlaying("Collect") then return end
 	if (not includeCol and pickup.Variant == PickupVariant.PICKUP_COLLECTIBLE) then return end
 
 	player:ForceCollide(pickup, false)
