@@ -410,10 +410,13 @@ end
 ---@param params EdithJumpStompParams|TEdithHopParryParams
 local function TriggerBombExplosion(player, params)
     if params.RocketLaunch then return end
-    game:BombExplosionEffects(player.Position, 100, player:GetBombFlags(), Color.Default, player)
-    if mod.Modules.PLAYER.ShouldConsumeBomb(player) then
-        player:AddBombs(-1)
-    end
+
+	local bombDamage = player:HasCollectible(CollectibleType.COLLECTIBLE_MR_MEGA) and 185 or 100
+
+    game:BombExplosionEffects(player.Position, bombDamage, player:GetBombFlags(), Color.Default, player)
+
+	if not mod.Modules.PLAYER.ShouldConsumeBomb(player) then return end
+	player:AddBombs(-1)
 end
 
 ---@param player EntityPlayer
