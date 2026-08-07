@@ -3,8 +3,8 @@ local mod = EdithRebuilt
 local enums = mod.Enums
 local variants = enums.EffectVariant
 local utils = enums.Utils
-local game = utils.Game
 local level = utils.Level
+local room = utils.Room
 local targetArrow = {}
 
 ---@param player EntityPlayer
@@ -195,7 +195,6 @@ end
 ---@param player EntityPlayer
 ---@param triggerDistance number
 function targetArrow.TargetDoorManager(effect, player, triggerDistance)
-    local room = game:GetRoom()
     local roomClear = room:IsClear()
     local roomName = level:GetCurrentRoomDesc().Data.Name
     local isTainted = mod.Modules.PLAYER.IsEdith(player, true)

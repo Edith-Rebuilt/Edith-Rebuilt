@@ -5,6 +5,7 @@ local utils = enums.Utils
 local game = utils.Game
 local sfx = utils.SFX
 local pgd = utils.PGD
+local room = utils.Room
 local misc = enums.Misc
 local ConfigDataTypes = enums.ConfigDataTypes
 local tables = enums.Tables
@@ -145,7 +146,7 @@ local function ChestManager(pickup, player)
 	local openedBombChest = false
 	local var = pickup.Variant
 
-	if game:GetRoom():GetType() == RoomType.ROOM_CHALLENGE then
+	if room:GetType() == RoomType.ROOM_CHALLENGE then
 		player:StopExtraAnimation()
 		return
 	end
@@ -652,7 +653,6 @@ end
 ---@param landParams FeedbackLandParams
 ---@param IsChap4 boolean
 local function SpawnLandGFX(player, landParams, IsChap4)
-	local room = game:GetRoom()
     local hasWater = room:HasWater()
 	local Variant, SubType = GetEffectVariantAndSubType(hasWater, IsChap4)
 	local BackDrop = room:GetBackdropType()
@@ -677,7 +677,7 @@ function Land.LandFeedbackManager(player, soundTable, GibColor, jumpData, IsParr
 
     local Helpers = mod.Modules.HELPERS
     local IsChap4 = Helpers.IsChap4()
-	local hasWater = game:GetRoom():HasWater()
+	local hasWater = room:HasWater()
 
     local landParams = (
 		IsEdithJump(jumpData) and GetEdithLandParams(player) or

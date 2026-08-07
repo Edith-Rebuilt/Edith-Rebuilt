@@ -4,6 +4,7 @@ local tables = enums.Tables
 local utils = enums.Utils
 local game = utils.Game
 local pool = utils.ItemPool
+local room = utils.Room
 local modules = mod.Modules
 local Player = modules.PLAYER
 local Helpers = modules.HELPERS
@@ -84,7 +85,7 @@ end)
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function(_, player, _, flags)
     if not Player.IsAnyEdith(player) then return end
 
-    local roomType = game:GetRoom():GetType()
+    local roomType = room:GetType()
     local isAcid = BitMask.HasBitFlags(flags, DamageFlag.DAMAGE_ACID --[[@as BitSet128]])
     local isSpike = BitMask.HasBitFlags(flags, DamageFlag.DAMAGE_SPIKES --[[@as BitSet128]])
     local isSafeRoom = roomType == RoomType.ROOM_SACRIFICE or roomType == RoomType.ROOM_DEVIL
@@ -184,7 +185,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NIGHTMARE_SCENE_SHOW, function()
 end)
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
-    if game:GetRoom():GetType() ~= RoomType.ROOM_DUNGEON then return end
+    if room:GetType() ~= RoomType.ROOM_DUNGEON then return end
 
     for _, player in ipairs(PlayerManager.GetPlayers()) do
         if not Player.IsAnyEdith(player) then goto continue end

@@ -6,6 +6,7 @@ local jumpTags = tables.JumpTags
 local jumpFlags = tables.JumpFlags
 local sfx = utils.SFX
 local game = utils.Game
+local room = utils.Room
 local data = mod.DataHolder.GetEntityData
 local Jump = {}
 
@@ -105,7 +106,7 @@ end
 ---@param tag string
 function Jump.InitTaintedEdithParryJump(player, tag)
 	sfx:Play(SoundEffect.SOUND_SHELLGAME)
-	SpawnJumpDustCloud(player, game:GetRoom():HasWater(), mod.Modules.HELPERS.IsChap4())
+	SpawnJumpDustCloud(player, room:HasWater(), mod.Modules.HELPERS.IsChap4())
 
 	JumpLib:Jump(player, {
 		Height = 8,
@@ -131,7 +132,7 @@ function Jump.InitEdithJump(player, jumpTag, vestige)
 	local jumpSpeed = vestige and vestigeSpeed or (canFly and 1.5 or 2)
 
 	sfx:Play(soundEffect)
-	SpawnJumpDustCloud(player, game:GetRoom():HasWater(), mod.Modules.HELPERS.IsChap4())
+	SpawnJumpDustCloud(player, room:HasWater(), mod.Modules.HELPERS.IsChap4())
 
 	JumpLib:TryJump(player, {
 		Height = jumpHeight,

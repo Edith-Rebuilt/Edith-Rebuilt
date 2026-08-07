@@ -3,6 +3,7 @@ local enums = mod.Enums
 local utils = enums.Utils
 local game = utils.Game
 local sfx = utils.SFX
+local room = utils.Room
 local tables = enums.Tables
 local jumpTags = tables.JumpTags
 local parryTypes = enums.ParryTypes
@@ -262,7 +263,7 @@ end)
 
 ---@param isLevelCallback boolean
 local function RoomFloorStopManager(isLevelCallback)
-	local isDungeon = game:GetRoom():GetType() == RoomType.ROOM_DUNGEON
+	local isDungeon = room:GetType() == RoomType.ROOM_DUNGEON
 	local forceStop = isLevelCallback or isDungeon
 
 	Player.ForEachPlayerType(function(player)
@@ -274,7 +275,6 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
 	Player.ForEachPlayerType(function (player)
 		if utils.Level:GetCurrentRoomDesc().Data.Name ~= "Mirror Room" then return end
 
-		local room = game:GetRoom()
 		local params = TEdithMod.GetHopParryParams(player)
 
 		for i = 0, DoorSlot.NUM_DOOR_SLOTS do
@@ -397,8 +397,8 @@ local function RenderChargeBars(playerData, playerpos, offset, dashCharge, dashB
 end
 
 local function GetPlayerRenderPos(player)
-	local playerpos = game:GetRoom():WorldToScreenPosition(player.Position)
-	if game:GetRoom():IsMirrorWorld() then
+	local playerpos = room:WorldToScreenPosition(player.Position)
+	if room:IsMirrorWorld() then
 		playerpos.X = (Helpers.GetScreenCenter().X * 2 - playerpos.X)
 	end
 

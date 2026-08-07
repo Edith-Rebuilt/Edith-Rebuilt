@@ -4,7 +4,7 @@ if not Birthwrong then return end
 local mod = EdithRebuilt
 local enums = mod.Enums
 local ModRNG = mod.Modules.RNG
-local game = enums.Utils.Game
+local room = enums.Utils.Room
 
 local PROJ_PARAMS = {
     FIRE_WAVE_CHANCE  = 0.15,
@@ -31,5 +31,5 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
     if not Birthwrong.hasCharacterBW(player, enums.PlayerType.PLAYER_EDITH_B) then return end
     if player.FrameCount % 3 ~= 0 then return end
 
-    SpawnProjectile(game:GetRoom():GetRandomPosition(0), player:GetCollectibleRNG(Birthwrong.birthwrongID))
+    SpawnProjectile(room:GetRandomPosition(0), player:GetCollectibleRNG(Birthwrong.birthwrongID))
 end)

@@ -1,7 +1,9 @@
 ---@diagnostic disable: undefined-global
 local mod = EdithRebuilt
 local enums = mod.Enums
-local game = enums.Utils.Game
+local utils = enums.Utils
+local game = utils.Game
+local room = utils.Room
 local misc = enums.Misc
 local tables = enums.Tables
 local ConfigDataTypes = enums.ConfigDataTypes
@@ -15,7 +17,6 @@ function Helpers.IsDSSMenuOpen()
 end
 
 function Helpers.GetScreenCenter()
-	local room = game:GetRoom()
 	local pos = room:WorldToScreenPosition(Vector(0,0)) - room:GetRenderScrollOffset() - game.ScreenShakeOffset	
 	local rx = pos.X + 60 * 26 / 40
 	local ry = pos.Y + 140 * (26 / 40)
@@ -58,11 +59,14 @@ function Helpers.WhenEval(value, cases, default)
     return v
 end
 
+function Helpers.IsMirrorWorld()
+	return room:IsMirrorWorld() or FFGRACE and FFGRACE:IsBoilerMirrorWorld()
+end
+
 ---Helper grid destroyer function
 ---@param entity Entity
 ---@param radius number
 function Helpers.DestroyGrid(entity, radius)
-    local room = game:GetRoom()
     radius = radius or entity.Size
     for i = 0, (room:GetGridSize()) do
 		local grid = room:GetGridEntity(i)
@@ -168,7 +172,6 @@ function Helpers.GetNearestEnemy(player)
     local closestDistance = math.huge
     local closestEnemy
     local playerPos = player.Position
-    local room = game:GetRoom()
 
     for _, enemy in ipairs(Helpers.GetEnemies()) do
         if enemy:HasEntityFlags(EntityFlag.FLAG_CHARM) then goto continue end
@@ -314,7 +317,6 @@ local ColorRed = Color(1, 0, 0)
 
 ---@param effect EntityEffect
 function Helpers.SetBloodEffectColor(effect)
-    local room = game:GetRoom()
     local IsMortis = Helpers.IsLJMortis()
 	local BackDrop = room:GetBackdropType()
 	local hasWater = room:HasWater()
@@ -339,14 +341,6 @@ function Helpers.SetBloodEffectColor(effect)
 	Helpers.WhenEval(effect.Variant, switch)
     effect:SetColor(color, -1, 100, false, false)
 end
-
----@param player EntityPlayer
-function Helpers.IsInTrapdoor(player)
-	local room = game:GetRoom()
-	local grid = room:GetGridEntityFromPos(player.Position)
-
-	return grid and grid:GetType() == GridEntityType.GRID_TRAPDOOR or false
-end	
 
 ---Function used to spawn Tainted Edith's birthright fire jets
 ---@param position Vector
@@ -447,7 +441,7 @@ end
 
 local WaterBlueColor = Color(0.7, 0.75, 1)
 function Helpers.GetWaterEffectColor()
-	local waterColor = game:GetRoom():GetFXParams().WaterEffectColor
+	local waterColor = room:GetFXParams().WaterEffectColor
 
 	return (waterColor.R == 1 and waterColor.G == 1 and waterColor.B == 1) and WaterBlueColor or waterColor
 end
@@ -495,10 +489,8 @@ end
 ---Checks if player run is in Chapter 4 (Womb, Utero, Scarred Womb, Corpse)
 ---@return boolean
 function Helpers.IsChap4()
-	local backdrop = game:GetRoom():GetBackdropType()
-
 	if Helpers.IsLJMortis() then return true end
-	return Helpers.When(backdrop, tables.Chap4Backdrops, false)
+	return Helpers.When(room:GetBackdropType(), tables.Chap4Backdrops, false)
 end
 
 ---@param tear EntityTear
@@ -573,32 +565,6 @@ function Helpers.TurnTearToTerraTear(tear, rng)
 	tear:ChangeVariant(TearVariant.ROCK)
 end
 
-local LINE_SPRITE = Sprite("gfx/TinyBug.anm2", true)
-local MAX_POINTS = 360
-local ANGLE_SEPARATION = 360 / MAX_POINTS
-
-LINE_SPRITE:SetFrame("Dead", 0)
-
----@param pos Vector
----@param AreaSize number
----@param AreaColor Color
-function Helpers.RenderAreaOfEffect(pos, AreaSize, AreaColor) -- Took from Melee lib, tweaked a little bit
-	if game:GetRoom():GetRenderMode() == RenderMode.RENDER_WATER_REFLECT then return end
-
-    local renderPosition = Isaac.WorldToScreen(pos) - game.ScreenShakeOffset
-    local offset = Isaac.WorldToScreen(pos + Vector(0, AreaSize)) - renderPosition + Vector(0, 1)
-    local offset2 = offset:Rotated(ANGLE_SEPARATION)
-    local segmentSize = offset:Distance(offset2)
-    LINE_SPRITE.Scale = Vector(segmentSize * (2 / 3), 0.5)
-    for i = 1, MAX_POINTS do
-        local angle = ANGLE_SEPARATION * i
-        LINE_SPRITE.Rotation = angle
-        LINE_SPRITE.Offset = offset:Rotated(angle)
-		LINE_SPRITE.Color = AreaColor or misc.ColorDefault
-        LINE_SPRITE:Render(renderPosition)
-    end
-end
-
 ---@param wisp Entity
 ---@param ID CollectibleType
 function Helpers.IsModItemWisp(wisp, ID)
@@ -634,7 +600,7 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
 	if frame == 0 then
 		game:SetColorModifier(ColorModifier(color.r, color.g, color.b, color.a, brightness, contrast), true, 1)
 		Isaac.CreateTimer(function ()
-			game:GetRoom():UpdateColorModifier(true, true, 0.15)
+			room:UpdateColorModifier(true, true, 0.15)
 		end, 1, 1, false)
 	elseif frame == 5 then
 		overlaySprite:Stop(true)

@@ -8,7 +8,7 @@ local Helpers = modules.HELPERS
 local Maths = modules.MATHS
 local Status = modules.STATUS_EFFECTS
 local Jump = modules.JUMP
-local game = enums.Utils.Game
+local room = enums.Utils.Room
 local saveManager = mod.SaveManager
 
 local DISSOLUTION = {
@@ -42,7 +42,7 @@ end
 local function TryFillWater()
     if waterAmount >= 1 then return false end
     waterAmount = math.min(waterAmount + DISSOLUTION.WATER_FILL_RATE, 1)
-    game:GetRoom():SetWaterAmount(waterAmount)
+    room:SetWaterAmount(waterAmount)
     return true
 end
 
@@ -90,7 +90,7 @@ end)
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
     for _, player in ipairs(PlayerManager.GetPlayers()) do
         if not IsEdithBW(player) then goto continue end
-        game:GetRoom():SetWaterAmount(1)
+        room:SetWaterAmount(1)
         ::continue::
     end
 end)

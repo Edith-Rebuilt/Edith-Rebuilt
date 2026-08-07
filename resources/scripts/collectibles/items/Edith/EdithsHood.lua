@@ -18,6 +18,7 @@ local Jump = modules.JUMP
 local utils = enums.Utils
 local sfx = utils.SFX
 local game = utils.Game
+local room = utils.Room
 local data = mod.DataHolder.GetEntityData
 
 local HOOD = {
@@ -72,7 +73,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
     if not playerData.HoodJumpTimer or playerData.HoodJumpTimer ~= 0 then return end
     if not Input.IsActionTriggered(ButtonAction.ACTION_DROP, player.ControllerIndex) then return end
 
-    playerData.HoodJumpTimer = game:GetRoom():IsClear() and HOOD.TIMER_CLEAR_ROOM or HOOD.TIMER_COMBAT_ROOM
+    playerData.HoodJumpTimer = room:IsClear() and HOOD.TIMER_CLEAR_ROOM or HOOD.TIMER_COMBAT_ROOM
     Jump.InitEdithJump(player, jumpTags.EdithsHoodJump)
 end)
 

@@ -6,6 +6,7 @@ local utils = enums.Utils
 local game = utils.Game
 local level = utils.Level
 local pgd = utils.PGD
+local room = utils.Room
 local modules = mod.Modules
 local Helpers = modules.HELPERS
 local Player = modules.PLAYER
@@ -203,9 +204,6 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
     if game:AchievementUnlocksDisallowed() then return end
     if not Player.IsEdith(Isaac.GetPlayer(), false) then return end
     if pgd:Unlocked(achievements.ACHIEVEMENT_TAINTED_EDITH) then return end
-
-    local room = game:GetRoom()
-
     if not room:IsFirstVisit() then return end
 
     for _, k in ipairs(Isaac.FindByType(17)) do k:Remove() end

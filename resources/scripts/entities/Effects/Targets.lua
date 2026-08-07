@@ -1,8 +1,10 @@
 local mod = EdithRebuilt
 local enums = mod.Enums
-local Vars = enums.EffectVariant 
-local game = enums.Utils.Game
-local level = enums.Utils.Level
+local Vars = enums.EffectVariant
+local utils = enums.Utils
+local game = utils.Game
+local level = utils.Level
+local room = utils.Room
 local misc = enums.Misc
 local tables = enums.Tables
 local ConfigData = enums.ConfigDataTypes
@@ -110,8 +112,7 @@ end
 ---@param playerPos Vector
 ---@param effectPos Vector
 ---@param isBeastRoom boolean
----@param room Room
-local function UpdateCameraFocus(playerPos, effectPos, isBeastRoom, room)
+local function UpdateCameraFocus(playerPos, effectPos, isBeastRoom)
 	if isBeastRoom then return end
 	room:GetCamera():SetFocusPosition(interpolateVector2D(playerPos, effectPos, 0.6))
 end
@@ -125,10 +126,9 @@ end
 
 ---@param effect EntityEffect
 ---@param player EntityPlayer
----@param room Room
 ---@param isBeastRoom boolean
 ---@param RoomName string
-local function HandleDungeonTeleport(effect, player, room, isBeastRoom, RoomName)
+local function HandleDungeonTeleport(effect, player, isBeastRoom, RoomName)
 	if room:GetType() ~= RoomType.ROOM_DUNGEON then return end
 
 	local effectPos = effect.Position
@@ -163,15 +163,14 @@ end
 local function EdithTargetManagement(effect, player)
 	if effect.Variant ~= Vars.EFFECT_EDITH_TARGET then return end
 
-	local room = game:GetRoom()
 	local params = Edith.GetJumpStompParams(player)
 	local RoomName = level:GetCurrentRoomDesc().Data.Name
 	local isBeastRoom = RoomName == "Beast Room"
 
 	UpdateTargetAnimation(effect, player, params)
-	UpdateCameraFocus(player.Position, effect.Position, isBeastRoom, room)
+	UpdateCameraFocus(player.Position, effect.Position, isBeastRoom)
 	HandleVestigeDrag(effect, player)
-	HandleDungeonTeleport(effect, player, room, isBeastRoom, RoomName)
+	HandleDungeonTeleport(effect, player, isBeastRoom, RoomName)
 	SyncMarkedTarget(effect, player)
 end
 
@@ -283,7 +282,7 @@ end)
 
 ---@param effect EntityEffect
 mod:AddCallback(ModCallbacks.MC_PRE_EFFECT_RENDER, function(_, effect)
-	if game:GetRoom():GetRenderMode() == RenderMode.RENDER_WATER_REFLECT then return false end
+	if room:GetRenderMode() == RenderMode.RENDER_WATER_REFLECT then return false end
 	if not IsAnyEdithTarget(effect) then return end
 
 	local player = effect.SpawnerEntity:ToPlayer()

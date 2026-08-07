@@ -1,7 +1,7 @@
 local mod = EdithRebuilt
 local enums = mod.Enums
 local challenges = enums.Challenge
-local game = enums.Utils.Game
+local room = enums.Utils.Room
 local misc = enums.Misc
 local players = enums.PlayerType
 local data = mod.DataHolder.GetEntityData
@@ -32,7 +32,7 @@ end
 ---Basically makes both Edith's be less dragged by water currents
 ---@param player EntityPlayer
 function Player.WaterCurrentManager(player)
-	local current = game:GetRoom():GetWaterCurrent()
+	local current = room:GetWaterCurrent()
 	local RoomHasWaterCurrent = not (current.X == 0 and current.Y == 0)
 
 	if not RoomHasWaterCurrent then return end
@@ -133,7 +133,7 @@ end
 ---@param player EntityPlayer
 ---@return boolean
 function Player.IsInTrapdoor(player)
-	local grid = game:GetRoom():GetGridEntityFromPos(player.Position)
+	local grid = room:GetGridEntityFromPos(player.Position)
 	return grid and grid:GetType() == GridEntityType.GRID_TRAPDOOR or false
 end
 

@@ -173,6 +173,7 @@ EdithRebuilt.Enums = {
 	Utils = {
 		Game = game,
 		SFX = SFXManager(),
+		Room = game:GetRoom(),
 		RNG = RNG(),
 		Level = game:GetLevel(),
 		PGD = Isaac.GetPersistentGameData(),
