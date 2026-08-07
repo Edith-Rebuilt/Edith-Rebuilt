@@ -37,10 +37,6 @@ end
 ---@param player EntityPlayer
 ---@param totalDamageBoost number
 local function TriggerTempDamageUp(player, totalDamageBoost)
-	mod.TempStatsLib(function (player)
-        return SaveManager.GetRunSave(player)
-    end)
-
     TempStatLib:AddTempStat(player, {
         Amount = totalDamageBoost,
         Duration = SULFURIC.DAMAGE_BOOST_DUR,

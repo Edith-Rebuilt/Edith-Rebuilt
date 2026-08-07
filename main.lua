@@ -29,6 +29,9 @@ EdithRebuilt.SaveManager = require("resources.scripts.libs.EdithRebuiltSaveManag
 EdithRebuilt.SaveManager.Init(mod)
 EdithRebuilt.Hsx = require("resources.scripts.libs.lhsx")
 
+mod.TempStatsLib(function (player)
+	return mod.SaveManager.GetRunSave(player)
+end)
 
 include("resources.scripts.misc.dss.dssmain")
 include("resources.scripts.misc.dss.changelogs")
