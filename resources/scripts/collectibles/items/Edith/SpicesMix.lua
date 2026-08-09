@@ -4,6 +4,7 @@ local utils = enums.Utils
 local effects = enums.EdithStatusEffects
 local spicesMixID = enums.CollectibleType.COLLECTIBLE_SPICES_MIX
 local game = utils.Game
+local hud = utils.HUD
 local modules = mod.Modules
 local StsEffects = modules.STATUS_EFFECTS
 local Helpers = modules.HELPERS
@@ -37,7 +38,7 @@ SpicesJar:Play("Idle", true)
 ---@param spice SpiceEffect
 local function ShowSpiceInfo(spice)
     local spiceID = spice.ID
-    game:GetHUD():ShowItemText(spiceID, Descriptions[spiceID])
+    hud:ShowItemText(spiceID, Descriptions[spiceID])
 end
 
 ---@param player EntityPlayer

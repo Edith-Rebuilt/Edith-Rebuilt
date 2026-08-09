@@ -178,6 +178,7 @@ EdithRebuilt.Enums = {
 		Level = game:GetLevel(),
 		PGD = Isaac.GetPersistentGameData(),
 		ItemPool = game:GetItemPool(),
+		HUD = game:GetHUD()
 	},
 	---@enum SaltTypes
 	SaltTypes = {
