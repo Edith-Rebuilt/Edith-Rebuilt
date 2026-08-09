@@ -48,7 +48,7 @@ end
 ---@param resizer? number
 ---@return Vector
 function VecDir.GetMovementVector(input, resizer)
-    local mirrorMult = mod.Modules.HELPERS.IsMirrorWorld and -1 or 1
+    local mirrorMult = mod.Modules.HELPERS.IsMirrorWorld() and -1 or 1
     local x = GetAxisValue(input.left, input.right) * mirrorMult
     local y = GetAxisValue(input.up, input.down)
 	local vec = Vector(x, y):Normalized()

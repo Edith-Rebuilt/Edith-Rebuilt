@@ -398,7 +398,7 @@ end
 
 local function GetPlayerRenderPos(player)
 	local playerpos = room:WorldToScreenPosition(player.Position)
-	if room:IsMirrorWorld() then
+	if Helpers.IsMirrorWorld() then
 		playerpos.X = (Helpers.GetScreenCenter().X * 2 - playerpos.X)
 	end
 
