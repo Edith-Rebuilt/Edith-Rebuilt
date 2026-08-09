@@ -3,7 +3,7 @@
 	"workspace.library": [
 		"additional/library/path",
 
-		"c:\\Users\\Kotry\\.vscode\\extensions\\filloax.isaac-lua-api-vscode-1.14.0\\out\\emmylua\\repentogon"  // Add any additional library paths here
+		"c:\\Users\\Kotry\\.vscode\\extensions\\filloax.isaac-lua-api-vscode-1.14.1\\out\\emmylua\\repentogon"  // Add any additional library paths here
 	],
 	"diagnostics.globals": [
 		"Achievement",
