@@ -124,6 +124,7 @@ local includeFiles = {
 	syn .. "Effigy",
 	syn .. "Rockwaves",
 	syn .. "MysteriousLiquid",
+	syn .. "DeadEye",
 }
 
 for _, v in ipairs(includeFiles) do
