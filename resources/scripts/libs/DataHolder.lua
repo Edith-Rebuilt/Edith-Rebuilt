@@ -1,5 +1,5 @@
 -- Script taken from Isaac Blue Prints (https://isaacblueprints.com/tutorials/concepts/entity_data/)
-local mod = EdithRebuilt --[[@as ModReference]]
+local mod = EdithRebuilt
 local dataHolder = {}
 local data = {}
 
