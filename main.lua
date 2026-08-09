@@ -23,6 +23,9 @@ if not REPENTANCE_PLUS then
 	return
 end
 
+font:Unload()
+font = nil
+
 EdithRebuilt.DataHolder = include("resources.scripts.libs.DataHolder")
 EdithRebuilt.TempStatsLib = require("resources.scripts.libs.TempStatsLib")
 EdithRebuilt.SaveManager = require("resources.scripts.libs.EdithRebuiltSaveManager")
