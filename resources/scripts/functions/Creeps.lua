@@ -142,7 +142,8 @@ function Creeps.SpawnBlackPowder(parent, quantity, position, distance)
 		nil
 	):ToEffect() ---@cast Pentagram EntityEffect
 
-	Pentagram.Scale = distance + distance / 2	
+	Pentagram.Scale = distance + distance / 2
+	Pentagram:Update()
 end
 
 return Creeps
