@@ -10,7 +10,7 @@ local function AddDeadEyeCharge(player, isStomp)
 
     local charges = (isStomp and Player.IsEdithBirthtight(player)) and 2 or 1
 
-    for i = 1, charges do
+    for _ = 1, charges do
         player:AddDeadEyeCharge()
     end
 end
