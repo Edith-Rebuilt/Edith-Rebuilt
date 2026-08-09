@@ -1,14 +1,15 @@
 local mod = EdithRebuilt
 local callbacks = mod.Enums.Callbacks
 local data = mod.DataHolder.GetEntityData
+local Player = mod.Modules.PLAYER
 
 ---@param player EntityPlayer
 ---@param isStomp boolean
 local function knifeManager(player, isStomp)
 	local knife = player:FireKnife(player, 90, true, 0, KnifeVariant.SPIRIT_SWORD)
 	local knifeData = data(knife)
-	local knifeSprite = knife:GetSprite()	
-	local damageMult = isStomp and player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) and 0.75 or 0.5
+	local knifeSprite = knife:GetSprite()
+	local damageMult = (isStomp and Player.IsEdithBirthtight(player)) and 0.75 or 0.5
 	local baseDamage = (player.Damage * 8) + 10
 
 	knife.SpriteScale = knife.SpriteScale * 1.7

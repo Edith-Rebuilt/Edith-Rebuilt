@@ -273,4 +273,10 @@ function Player.SetCustomSprite(player, tainted)
 	end
 end
 
+---@param player any
+---@return boolean
+function Player.IsEdithBirthtight(player)
+	return Player.IsEdith(player, false) and Player.PlayerHasBirthright(player)
+end
+
 return Player

@@ -7,7 +7,7 @@ local data = mod.DataHolder.GetEntityData
 local function FireBrimstoneRays(player, isStomp)
 	if not player:HasCollectible(CollectibleType.COLLECTIBLE_BRIMSTONE) then return end
 
-	local totalRays = isStomp and mod.Modules.PLAYER.PlayerHasBirthright(player) and 6 or 4
+	local totalRays = isStomp and mod.Modules.PLAYER.IsEdithBirthtight(player) and 6 or 4
 	local shootDegrees = 360 / totalRays
 
 	for i = 1, totalRays do

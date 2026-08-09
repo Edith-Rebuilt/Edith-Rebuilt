@@ -15,7 +15,7 @@ local function TryHolyLight(player, ent, baseDamage, isStomp)
 
     if not ModRNG.RandomBoolean(rng, formula) then return end
 
-    local damageMult = (isStomp and Player.PlayerHasBirthright(player)) and 4 or 3
+    local damageMult = (isStomp and Player.IsEdithBirthtight(player)) and 4 or 3
 
     Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.CRACK_THE_SKY, 10, ent.Position, Vector.Zero, player)
     ent:TakeDamage(baseDamage * damageMult, DamageFlag.DAMAGE_LASER, EntityRef(player), 0)

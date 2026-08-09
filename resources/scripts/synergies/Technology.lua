@@ -11,7 +11,7 @@ local function FireTechLaser(player, ent, isStomp)
 	if not player:HasCollectible(CollectibleType.COLLECTIBLE_TECHNOLOGY) then return end
 	if not Helpers.IsEnemy(ent) then return end
 
-	local hasBirthright = Player.PlayerHasBirthright(player)
+	local hasBirthright = Player.IsEdithBirthtight(player)
 	local damageMult = (isStomp and hasBirthright) and 1.25 or 1
 	local distDiv = (isStomp and hasBirthright) and 4 or 5
 	local playerPos = player.Position

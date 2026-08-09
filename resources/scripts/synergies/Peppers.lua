@@ -35,7 +35,7 @@ end
 ---@param isStomp boolean
 ---@return number
 local function GetFireCount(player, isStomp)
-    return (isStomp and Player.PlayerHasBirthright(player)) and 8 or 4
+    return (isStomp and Player.IsEdithBirthtight(player)) and 8 or 4
 end
 
 ---@param player EntityPlayer

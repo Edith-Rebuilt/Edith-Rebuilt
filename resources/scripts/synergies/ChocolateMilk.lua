@@ -12,7 +12,7 @@ local data = mod.DataHolder.GetEntityData
 local function ChocolateMilkMult(player, params, isStomp)
     if not player:HasCollectible(CollectibleType.COLLECTIBLE_CHOCOLATE_MILK) then return end
 
-    local baseMult = (isStomp and Player.PlayerHasBirthright(player)) and 2.5 or 2
+    local baseMult = (isStomp and Player.IsEdithBirthtight(player)) and 2.5 or 2
     local chocoMult = data(player).ChocoMult or 0
     local damage = StompUtils.GetDamage(params)
 

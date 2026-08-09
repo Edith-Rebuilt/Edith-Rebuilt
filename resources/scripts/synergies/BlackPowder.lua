@@ -10,7 +10,7 @@ local data = mod.DataHolder.GetEntityData
 local function SpawnPowder(player, IsStomp)
 	if not player:HasCollectible(CollectibleType.COLLECTIBLE_BLACK_POWDER) then return end
 
-	local distance = (IsStomp and Player.PlayerHasBirthright(player)) and 90 or 70
+	local distance = (IsStomp and Player.IsEdithBirthtight(player)) and 90 or 70
 	Creeps.SpawnBlackPowder(player, 20, player.Position, distance)
 end
 

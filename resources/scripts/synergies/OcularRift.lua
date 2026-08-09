@@ -14,7 +14,7 @@ local function TrySpawnRift(player, entity, isStomp)
 
     if not ModRNG.RandomBoolean(rng, formula) then return end
 
-    local damage = (isStomp and Player.PlayerHasBirthright(player)) and player.Damage or player.Damage / 2
+    local damage = (isStomp and Player.IsEdithBirthtight(player)) and player.Damage or player.Damage / 2
 
     local rift = Isaac.Spawn(
         EntityType.ENTITY_EFFECT, EffectVariant.RIFT, 0,

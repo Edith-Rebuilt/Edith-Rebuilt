@@ -43,7 +43,7 @@ local function NeptunusLand(player, isStomp)
     local weapon = player:GetWeapon(1)
     if not weapon then return end
 
-    local hasBirthright = isStomp and Player.PlayerHasBirthright(player)
+    local hasBirthright = isStomp and Player.IsEdithBirthtight(player)
     SpawnWaterCreep(player, GetChargePercent(weapon), hasBirthright and 2 or 1, hasBirthright and 1.5 or 1)
 end
 

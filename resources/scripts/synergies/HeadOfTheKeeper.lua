@@ -10,7 +10,7 @@ local function TrySpawnCoin(player, ent, isStomp)
     if not player:HasCollectible(CollectibleType.COLLECTIBLE_HEAD_OF_THE_KEEPER) then return end
 
     local rng = player:GetCollectibleRNG(CollectibleType.COLLECTIBLE_HEAD_OF_THE_KEEPER)
-    local chance = (isStomp and Player.PlayerHasBirthright(player)) and 0.10 or 0.05
+    local chance = (isStomp and Player.IsEdithBirthtight(player)) and 0.10 or 0.05
 
     if not ModRNG.RandomBoolean(rng, chance) then return end
 

@@ -7,7 +7,7 @@ local callbacks = mod.Enums.Callbacks
 local function FireTechX(player, isStomp)
 	if not player:HasCollectible(CollectibleType.COLLECTIBLE_TECH_X) then return end
 
-	local techXDistance = (isStomp and Player.PlayerHasBirthright(player)) and 65 or 50
+	local techXDistance = (isStomp and Player.IsEdithBirthtight(player)) and 65 or 50
 	local LaserDamage = (techXDistance / 100) + 0.25
 	local techX = player:FireTechXLaser(player.Position, Vector.Zero, techXDistance, player, LaserDamage)
 

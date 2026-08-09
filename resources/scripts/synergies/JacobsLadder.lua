@@ -11,10 +11,13 @@ local function ChainLightning(player, ent, isStomp)
     if not player:HasCollectible(CollectibleType.COLLECTIBLE_JACOBS_LADDER) then return end
     if not Helpers.IsEnemy(ent) then return end
 
-    local damage = (isStomp and Player.PlayerHasBirthright(player)) and player.Damage or player.Damage / 2
-
-    game:ChainLightning(ent.Position, damage, player.TearFlags, player)
+    local mult = (isStomp and Player.IsEdithBirthtight(player)) and 0.5 or 1
+    game:ChainLightning(ent.Position, player.Damage * mult, player.TearFlags, player)
 end
 
-mod:AddCallback(Callbacks.PERFECT_PARRY, function(_, player, ent) ChainLightning(player, ent, false) end)
-mod:AddCallback(Callbacks.OFFENSIVE_STOMP_HIT, function(_, player, ent) ChainLightning(player, ent, true)  end)
+mod:AddCallback(Callbacks.PERFECT_PARRY, function(_, player, ent)
+    ChainLightning(player, ent, false)
+end)
+mod:AddCallback(Callbacks.OFFENSIVE_STOMP_HIT, function(_, player, ent)
+    ChainLightning(player, ent, true)
+end)

@@ -8,7 +8,7 @@ local data = mod.DataHolder.GetEntityData
 local function FireKnives(player, isStomp)
 	if not player:HasCollectible(CollectibleType.COLLECTIBLE_MOMS_KNIFE) then return end
 
-	local knifeEntities = (isStomp and Player.PlayerHasBirthright(player)) and 8 or 4
+	local knifeEntities = (isStomp and Player.IsEdithBirthtight(player)) and 8 or 4
 	local degrees = 360 / knifeEntities
 
 	for i = 1, knifeEntities do
