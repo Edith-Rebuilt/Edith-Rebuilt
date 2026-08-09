@@ -56,8 +56,8 @@ mod:AddCallback(JumpLib.Callbacks.ENTITY_UPDATE_60, function (_, player)
 	local IsFalling = JumpLib:IsFalling(player)
 	local targetDistance = TargetArrow.GetEdithTargetDistance(player)
 
-	if Jump.GetJumpFrame(player) > 6 then
-		EdithMod.EdithDash(player, TargetArrow.GetEdithTargetDirection(player), targetDistance, 50)
+	if Jump.GetJumpFrame(player) > 4 then
+		EdithMod.EdithDash(player, TargetArrow.GetEdithTargetDirection(player), targetDistance, 40)
 	end
 
 	if IsFalling or targetDistance <= 5 then

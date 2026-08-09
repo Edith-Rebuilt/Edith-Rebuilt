@@ -127,7 +127,7 @@ function Jump.InitEdithJump(player, jumpTag, vestige)
 
 	local canFly = player.CanFly
 	local soundEffect = canFly and SoundEffect.SOUND_ANGEL_WING or SoundEffect.SOUND_SHELLGAME
-	local vestigeSpeed = 4 + (player.MoveSpeed - 1)
+	local vestigeSpeed = 5 + (player.MoveSpeed - 1)
 	local jumpHeight = vestige and 40 or (canFly and 20 or 15)
 	local jumpSpeed = vestige and vestigeSpeed or (canFly and 1.5 or 2)
 
