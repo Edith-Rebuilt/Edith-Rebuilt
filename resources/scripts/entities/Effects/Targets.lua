@@ -2,7 +2,6 @@ local mod = EdithRebuilt
 local enums = mod.Enums
 local Vars = enums.EffectVariant
 local utils = enums.Utils
-local game = utils.Game
 local level = utils.Level
 local room = utils.Room
 local misc = enums.Misc
