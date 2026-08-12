@@ -166,9 +166,14 @@ local function ChestManager(pickup, player)
 
 	if IsKeyRequiredChest(pickup) then
 		local hasClip = player:HasTrinket(TrinketType.TRINKET_PAPER_CLIP)
-		if hasClip or CanUseKey(player) then
+		local hasPayToPlay = player:HasCollectible(CollectibleType.COLLECTIBLE_PAY_TO_PLAY)
+		if hasClip or CanUseKey(player) or hasPayToPlay then
 			if not hasClip then
-				player:TryUseKey()
+				if hasPayToPlay then
+					player:AddCoins(-1)
+				else
+					player:TryUseKey()
+				end
 			end
 			pickup:TryOpenChest(player)
 		end
