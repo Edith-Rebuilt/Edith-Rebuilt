@@ -371,7 +371,7 @@ function Edith.TargetMovementManager(player, target, isMoving)
         local input = Player.GetMovementInput(player)
 		local velMod = modules.MATHS.exp(player.MoveSpeed, 1, 1.075)
 
-        target.Velocity = (target.Velocity + mod.Modules.VEC_DIR.GetMovementVector(input, 4.5)) * velMod
+        target.Velocity = (target.Velocity + mod.Modules.VEC_DIR.GetMovementVector(input, 4.35)) * velMod
         target:MultiplyFriction(GetMovementFriction(target))
     else
         target:MultiplyFriction(0.8)
