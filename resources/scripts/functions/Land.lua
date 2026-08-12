@@ -180,11 +180,19 @@ local function ChestManager(pickup, player)
 	end
 end
 
+
+local NonRemotePickPickups = {
+	[PickupVariant.PICKUP_PILL] = true,
+	[PickupVariant.PICKUP_TAROTCARD] = true,
+	[PickupVariant.PICKUP_TRINKET] = true,
+}
+
 ---@param player EntityPlayer
 ---@param pickup EntityPickup
 ---@param includeCol boolean
 local function TriggerPickupCollide(player, pickup, includeCol)
 	if pickup:IsDead() then return end
+	if mod.Modules.HELPERS.When(pickup.Variant, NonRemotePickPickups, false) then return end
 	if (not includeCol and pickup.Variant == PickupVariant.PICKUP_COLLECTIBLE) then return end
 
 	player:ForceCollide(pickup, false)
@@ -854,6 +862,10 @@ local function ImpreciseParryManager(player, ent, HopParams, ImpreciseParryCapsu
 	ent:TakeDamage(HopParams.ParryDamage * 0.25, 0, EntityRef(player), 0)
 	StatusEffect.SetStatusEffect(enums.EdithStatusEffects.CINDER, ent, CinderTime, player)
 end
+
+mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, function (_, pickup, player)
+	print("aaaaaa")
+end)
 
 local function ProjectilePerfectParry(player, proj, shouldTriggerFireJets)
 	local spawner = proj.Parent or proj.SpawnerEntity
