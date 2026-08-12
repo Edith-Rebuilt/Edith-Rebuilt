@@ -50,23 +50,20 @@ local function ApplySaltToEntity(entity, spawnType, player)
     entData.SaltType = BitMask.AddBitFlags(entData.SaltType, spawnType)
 end
 
+---@param effect EntityEffect
 local function SaltCreepUpdate(effect)
     local player = Helpers.GetPlayerFromTear(effect)
     if not player then return end
 
-    local spawnType = Creeps.GetSaltSpawnType(effect)
-    local isShakerSalt = BitMask.HasAnyBitFlags(spawnType, saltTypes.SALT_SHAKER | saltTypes.SALT_SHAKER_JUDAS)
+    if data(effect).Shaker and effect.Timeout == 1 then
+        data(player).PushCapsulePos = nil
+    end
 
     for _, entity in pairs(GetNearbyEnemies(effect)) do
         if Helpers.IsVestigeChallenge() then
             entity:AddFear(EntityRef(player), 120)
         else
-            ApplySaltToEntity(entity, spawnType, player)
-
-            if isShakerSalt then
-                entity.Velocity = Vector.Zero
-                Helpers.TriggerPush(entity, effect, 10)
-            end
+            ApplySaltToEntity(entity, Creeps.GetSaltSpawnType(effect), player)
         end
     end
 end

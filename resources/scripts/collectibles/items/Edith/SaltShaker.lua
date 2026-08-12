@@ -42,7 +42,8 @@ end
 ---@param spawnType SaltTypes
 ---@param color Color?
 local function SpawnSaltShakerCreep(player, position, duration, spawnType, color)
-    Creeps.SpawnSaltCreep(player, position, 0, duration, 1, 4.5, spawnType, false, true, color)
+    local salt = Creeps.SpawnSaltCreep(player, position, 0, duration, 1, 4.5, spawnType, false, true, color)
+    return salt
 end
 
 ---@param player EntityPlayer
@@ -61,7 +62,8 @@ end
 local function SpawnSaltCircle(player, spawnType, color, hasCarBattery)
     local duration = hasCarBattery and SALT_SHAKER.CREEP_DURATION_CARBATTERY or SALT_SHAKER.CREEP_DURATION_BASE
     for i = 1, SaltQuantity do
-        SpawnSaltShakerCreep(player, player.Position + misc.SaltShakerDist:Rotated(degree * i), duration, spawnType, color)
+        local salt = SpawnSaltShakerCreep(player, player.Position + misc.SaltShakerDist:Rotated(degree * i), duration, spawnType, color)
+        data(salt).Shaker = true
     end
 end
 
@@ -98,6 +100,8 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM, function(_, _, rng, player, flag)
     SpawnSaltCircle(player, spawnType, color, hasCarBattery)
     PushNearbyEnemies(player)
 
+    data(player).PushCapsulePos = player.Position
+
     sfx:Play(sounds.SOUND_SALT_SHAKER, 2, 0, false, ModRNG.RandomFloat(rng, 0.9, 1.1), 0)
     return true
 end, items.COLLECTIBLE_SALTSHAKER)
@@ -119,4 +123,18 @@ mod:AddCallback(PRE_NPC_KILL.ID, function (_, npc, source)
     local saltParams = GetSaltShakerParams(player)
     local spawnType, color = saltParams.SaltType, saltParams.Color
     SpawnSaltShakerCreep(player, npc.Position, 5, spawnType, color)
+end)
+
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
+    local pos = data(player).PushCapsulePos
+
+    if not pos then return end
+
+    local capsule = Capsule(data(player).PushCapsulePos, Vector.One, 1, 60)
+
+    DebugRenderer.Get(1, true):Capsule(capsule)
+
+    for _, ent in ipairs(Isaac.FindInCapsule(capsule, EntityPartition.ENEMY)) do
+        ent:AddVelocity((ent.Position - pos):Resized(20))
+    end
 end)

@@ -44,6 +44,8 @@ function Creeps.SpawnSaltCreep(parent, position, damage, timeout, gibAmount, gib
 
 	saltdata.SpawnType = saltdata.SpawnType or 0
 	saltdata.SpawnType = modules.BIT_MASK.AddBitFlags(saltdata.SpawnType, spawnType)
+
+	return salt
 end
 
 ---@param salt EntityEffect
