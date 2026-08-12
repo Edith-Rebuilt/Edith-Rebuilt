@@ -1,5 +1,92 @@
+
+DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.2", [[
+- General:
+-- Removed unused debug 
+functions
+-- Added Fall From Grace's 
+boiler's mirror world support
+-- Added Mysterious Liquid 
+stomp/parry synergy
+-- Added Dead Eye 
+stomp/parry synergy
+-- Moved TempStatsLib save 
+init out from Sulfuric 
+Fire's script
+-- Improved Salt Shaker's push
+-- Improved T. Edith's orbitals 
+fix player detection
+-- Reduced Edith/T. Edith's 
+Effigy's use decrease (8 > 4)
+-- Fixed Edith/T. Edith using 
+keys on already opened chests
+-- Fixed Edith/T. Edith not 
+being able to use coins on 
+chests with Pay to Play
+-- Fixed Black Powder's 
+stomp/parry synergy pentagram 
+being giant for a frame
+-- Cards, pills and trinkets 
+can no longer be picked by 
+pickup grab extended radius
+
+- Edith: 
+-- Removed Edith's jump's 
+pseudoinput-buffer
+-- Fixed Edith not being able 
+to jump in flooded mortis rooms 
+(Last Judgment)
+-- Fixed Edith being able to 
+trigger a jump when pitfalling
+-- Reduced Edith's target speed
+-- Increased BombStomp 
+damage when having Mr. Mega
+-- Increased Vestige's 
+jump speed
+
+- T. Edith:
+-- Improved Status effect 
+stomp/parry synergies
+
+- Stomp/Parry synergies:
+-- Improved Edith's 
+birthright detection
+birthright interaction
+-- Added Effigy's 
+birthright interaction
+-- Removed birthright checks 
+from T. Edith's rockwave 
+parry synergy
+-- Removed LittleHorn.lua and 
+GodsFlesh.lua (these are 
+managed by tearflags)
+-- Improved Damage adders' 
+stomp synergies:
+--- Moved table outside 
+of the function
+--- Added Edith's birthright 
+interaction
+-- Changed Rockwaves synergy:
+--- Fixed rockwaves more damage 
+when having birthright with T. Edith
+--- Increased Edith's 
+Birthright's damage mult (1.4 > 1.5)
+]])
+
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.1a", [[
 - Removed bugged costume manager
+]])
+
+DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.1", [[
+- General:
+-- Improved Repentance+ check
+-- Added Clear Unlocks and Unlock 
+All buttons to ImGui progress section
+-- Fixed T. Edith being completely 
+invulnerable while redirecting her hopdash
+-- Fixed Salt Heart being 
+impossible to unlock
+-- Fixed Edith Ultra Greedier unlocks 
+not being shown when unlocked
 ]])
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.1", [[
