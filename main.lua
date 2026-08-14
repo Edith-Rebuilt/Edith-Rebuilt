@@ -45,7 +45,6 @@ include("resources.scripts.definitions")
 include("resources.scripts.libs.status_effect_library")
 
 EdithRebuilt.Modules = {
-	FLOOR = include("resources.scripts.functions.Floor"),
 	RNG = include("resources.scripts.functions.RNG"),
 	HELPERS = include("resources.scripts.functions.Helpers"),
 	VEC_DIR = include("resources.scripts.functions.VecDir"),
