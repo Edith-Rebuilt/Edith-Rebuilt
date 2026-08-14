@@ -132,8 +132,6 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
 
     local capsule = Capsule(data(player).PushCapsulePos, Vector.One, 1, 60)
 
-    DebugRenderer.Get(1, true):Capsule(capsule)
-
     for _, ent in ipairs(Isaac.FindInCapsule(capsule, EntityPartition.ENEMY)) do
         ent:AddVelocity((ent.Position - pos):Resized(20))
     end
