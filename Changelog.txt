@@ -536,3 +536,7 @@ v1.8.2
 -- Changed Rockwaves synergy:
 --- Fixed rockwaves more damage when having birthright with T. Edith
 --- Increased Edith's Birthright's damage mult (1.4 > 1.5)
+
+v1.8.2a
+- Removed an unused module
+- Removed a leftover debug renderer

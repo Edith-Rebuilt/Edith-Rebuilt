@@ -1,3 +1,7 @@
+DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.2a", [[DeadSeaScrollsMenu
+- Removed an unused module
+- Removed a leftover debug renderer
+]])
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.2", [[
 - General:

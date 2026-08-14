@@ -72,7 +72,7 @@ local version = {
 	1,
 	8,
 	2,
-	""
+	"a"
 }
 local beta = false
 EdithRebuilt.Version = "v" .. version[1].. "." .. version[2] .. "." .. version[3] .. version[4] .. (beta and "Beta" or "")
