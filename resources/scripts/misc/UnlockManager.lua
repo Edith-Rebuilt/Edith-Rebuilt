@@ -119,6 +119,8 @@ local function GreedierUnlockManager(player, difficulty)
 
     local unlockTable = Helpers.When(player, GreedierUnlocks)
 
+    if not unlockTable then return end
+
     for _, ach in ipairs(unlockTable) do
         pgd:TryUnlock(ach)
     end
