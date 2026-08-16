@@ -229,13 +229,6 @@ mod:AddCallback(JumpLib.Callbacks.POST_ENTITY_JUMP, function(_, player)
 end, JumpParams.EdithJump)
 
 ---@param player EntityPlayer
----@param jumpData JumpData
-local function ManageFeedback(player, jumpData)
-    if Player.IsInTrapdoor(player) then return end
-    Land.LandFeedbackManager(player, Land.GetLandSoundTable(false), player.Color, jumpData)
-end
-
----@param player EntityPlayer
 ---@param jumpParams EdithJumpStompParams
 local function ExecuteStompSequence(player, jumpParams)
 	EdithMod.CriticalStompManager(player, jumpParams)
@@ -245,6 +238,7 @@ local function ExecuteStompSequence(player, jumpParams)
     EdithMod.StompRadiusManager(player, jumpParams)
 
     Land.EdithStomp(player, jumpParams, true)
+
     Land.TriggerLandenemyJump(player, jumpParams.StompedEntities, jumpParams.Knockback, 8, 2)
     Land.BombLandManager(player, jumpParams)
 end
@@ -271,9 +265,9 @@ local function ResetEdithScale(player)
 	player.SpriteScale = data(player).BaseSpriteScale
 end	
 
----@param player any
+---@param player EntityPlayer
 ---@param jumpData JumpData
----@param pitfall any
+---@param pitfall boolean
 mod:AddCallback(JumpLib.Callbacks.ENTITY_LAND, function(_, player, jumpData, pitfall)
     local edithTarget = TargetArrow.GetEdithTarget(player)
 	ResetEdithScale(player)
@@ -285,10 +279,12 @@ mod:AddCallback(JumpLib.Callbacks.ENTITY_LAND, function(_, player, jumpData, pit
         return
     end
 
+	if Player.IsInTrapdoor(player) then return end
+
     local jumpParams = params(player)
 
 	Land.TriggerLandAnimation(player)
-    ManageFeedback(player, jumpData)
+	Land.LandFeedbackManager(player, Land.GetLandSoundTable(false), player.Color, jumpData)
     ExecuteStompSequence(player, jumpParams)
     ApplyLandingState(player, edithTarget)
     ResetPropulsionState(player)

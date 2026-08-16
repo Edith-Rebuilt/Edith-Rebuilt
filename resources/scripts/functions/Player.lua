@@ -134,7 +134,11 @@ end
 ---@return boolean
 function Player.IsInTrapdoor(player)
 	local grid = room:GetGridEntityFromPos(player.Position)
-	return grid and grid:GetType() == GridEntityType.GRID_TRAPDOOR or false
+	if not grid then return false end
+	if not grid:ToTrapDoor() then return false end
+	if grid:GetSprite():GetAnimation() ~= "Opened" then return false end
+
+	return true
 end
 
 ---Helper function for Edith's cooldown color manager
