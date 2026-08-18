@@ -1,15 +1,21 @@
 local mod = EdithRebuilt
 local enums = mod.Enums
 local players = enums.PlayerType
+local saveManager = mod.SaveManager
 local achievements = enums.Achievements
 local utils = enums.Utils
 local game = utils.Game
 local level = utils.Level
 local pgd = utils.PGD
 local room = utils.Room
+local EdithStatusEffects = enums.EdithStatusEffects
+local parryTypes = enums.ParryTypes
 local modules = mod.Modules
 local Helpers = modules.HELPERS
 local Player = modules.PLAYER
+local StatusEffects = modules.STATUS_EFFECTS
+local TEdithMod = modules.TEDITH
+local callbacks = enums.Callbacks
 local UnlockTable = {
     Edith = {
         [CompletionType.MOMS_HEART] = {
@@ -218,4 +224,51 @@ end)
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
     if player:GetNumBombs() < 25 then return end
     pgd:TryUnlock(achievements.ACHIEVEMENT_EDITH)
+end)
+
+local VestigeAch = achievements.ACHIEVEMENT_VESTIGE
+
+---@param player EntityPlayer
+---@param ent Entity
+mod:AddCallback(callbacks.OFFENSIVE_STOMP_KILL, function (_, player, ent)
+    if not Player.IsEdith(player, false) then return end
+    if not StatusEffects.EntHasStatusEffect(ent, EdithStatusEffects.SALTED) then return end
+    if pgd:Unlocked(VestigeAch) then return end
+
+    local PersistentData = saveManager.GetPersistentSave()
+
+    if not PersistentData then return end
+
+    PersistentData.StompKills = (PersistentData.StompKills or 0) + 1
+
+    if PersistentData.StompKills < 15 then return end
+
+    pgd:TryUnlock(VestigeAch)
+    PersistentData.StompKills = 0
+end)
+
+local GrudgeAch = enums.Achievements.ACHIEVEMENT_GRUDGE
+
+---@param player EntityPlayer
+---@param ent Entity
+mod:AddCallback(callbacks.POST_PARRY_LAND, function (_, player, ent)
+    if not Player.IsEdith(player, true) then return end
+    if pgd:Unlocked(GrudgeAch) then return end
+
+    local PersistentData = saveManager.GetPersistentSave()
+
+	if not PersistentData then return end
+
+    local parryType = TEdithMod.GetParryType(TEdithMod.GetHopParryParams(player))
+
+    PersistentData.ConsecutiveParries = PersistentData.ConsecutiveParries or 0
+
+    if parryType == parryTypes.PERFECT then
+        PersistentData.ConsecutiveParries = PersistentData.ConsecutiveParries + 1
+    else
+        PersistentData.ConsecutiveParries = 0
+    end
+
+    if PersistentData.ConsecutiveParries < 5 then return end
+    pgd:TryUnlock(GrudgeAch)
 end)
