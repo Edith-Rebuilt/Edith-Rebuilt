@@ -114,8 +114,6 @@ function Jump.InitTaintedEdithParryJump(player, tag)
 		Tags = tag,
 		Flags = jumpFlags.TEdithJump,
 	})
-
-	data(player).IsParryJump = true
 end
 
 ---@param player EntityPlayer
