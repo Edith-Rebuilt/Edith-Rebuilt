@@ -129,18 +129,25 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM, function(_, ID, _, player)
     Player.SetCustomSprite(player, Player.IsEdith(player, true))
 end)
 
+local InitParams = {
+    [true] = {
+        ANM2 = "gfx/EdithAnim.anm2",
+        Costume = costumes.EDITH,
+    },
+    [false] = {
+        ANM2 = "gfx/EdithTaintedAnim.anm2",
+        Costume = costumes.EDIT_EDITHTH,
+    }
+}
+
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function(_, player)
 	if not Player.IsAnyEdith(player) then return end
 
-    local IsEdith = Player.IsEdith(player, false)
-    local params = {
-        ANM2 = IsEdith and "gfx/EdithAnim.anm2" or "gfx/EdithTaintedAnim.anm2",
-        costume = IsEdith and costumes.EDITH or costumes.T_EDITH,
-    }
+    local params = InitParams[Player.IsEdith(player, false)]
 
 	Player.SetNewANM2(player, params.ANM2)
-	player:AddNullItemEffect(params.costume, true)
+	player:AddNullItemEffect(params.Costume, true)
 end)
 
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function()
