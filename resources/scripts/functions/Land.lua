@@ -790,6 +790,7 @@ local function ParryTearManager(ent, HopParams)
 	local tear = ent:ToTear()
 
 	if not tear then return end
+	if data(tear).LudoTear then return end
 
 	mod.Modules.HELPERS.BoostTear(tear, 20, 1.5 + ((HopParams.HopStaticCharge + HopParams.HopStaticBRCharge) / 100))
 
@@ -951,6 +952,7 @@ local function ProcessParryHits(player, hopParams, isTaintedEdith, capsules)
 
     for _, ent in pairs(Isaac.FindInCapsule(capsules.tear, EntityPartition.TEAR)) do
         ParryTearManager(ent, hopParams)
+		Isaac.RunCallback(enums.Callbacks.PERFECT_PARRY, player, ent, hopParams)
         perfectParry = true
     end
 

@@ -129,6 +129,7 @@ end
 ---@param speed number
 ---@param dmgMult number
 function Helpers.BoostTear(tear, speed, dmgMult)
+	if data(tear).FakeLudo then return end
 	local player = Helpers.GetPlayerFromTear(tear)
 
 	if not player then return end
@@ -493,7 +494,7 @@ function Helpers.CanPickupBePurchased(player, pickup)
 
 	local price = pickup.Price
 
-	if price < 0 then 
+	if price < 0 then
 		return true
 	else
 		return player:GetNumCoins() >= price
