@@ -20,10 +20,10 @@ function Creeps.SpawnSaltCreep(parent, position, damage, timeout, gibAmount, gib
 
 	local modules = mod.Modules
 	local salt = Isaac.Spawn(
-		EntityType.ENTITY_EFFECT, 
-		EffectVariant.PLAYER_CREEP_RED, 
+		EntityType.ENTITY_EFFECT,
+		EffectVariant.PLAYER_CREEP_RED,
 		SubTypes.SALT_CREEP,
-		position, 
+		position,
 		Vector.Zero,
 		parent
 	):ToEffect() ---@cast salt EntityEffect
@@ -62,8 +62,8 @@ end
 ---@param timeout number
 function Creeps.SpawnPepperCreep(parent, position, damage, timeout)
 	local pepper = Isaac.Spawn(
-		EntityType.ENTITY_EFFECT, 
-		EffectVariant.PLAYER_CREEP_RED, 
+		EntityType.ENTITY_EFFECT,
+		EffectVariant.PLAYER_CREEP_RED,
 		enums.SubTypes.PEPPER_CREEP,
 		position,
 		Vector.Zero,
@@ -81,8 +81,8 @@ end
 ---@param timeout number
 function Creeps.SpawnCinderCreep(parent, position, damage, timeout)
 	local Cinder = Isaac.Spawn(
-		EntityType.ENTITY_EFFECT, 
-		EffectVariant.PLAYER_CREEP_RED, 
+		EntityType.ENTITY_EFFECT,
+		EffectVariant.PLAYER_CREEP_RED,
 		enums.SubTypes.CINDER_CREEP,
 		position,
 		Vector.Zero,
@@ -101,8 +101,8 @@ end
 ---@param timeout number
 function Creeps.SpawnOreganoCreep(parent, position, timeout)
 	local pepper = Isaac.Spawn(
-		EntityType.ENTITY_EFFECT, 
-		EffectVariant.PLAYER_CREEP_RED, 
+		EntityType.ENTITY_EFFECT,
+		EffectVariant.PLAYER_CREEP_RED,
 		enums.SubTypes.OREGANO_CREEP,
 		position,
 		Vector.Zero,
@@ -125,10 +125,10 @@ function Creeps.SpawnBlackPowder(parent, quantity, position, distance)
 	for i = 1, quantity do
 		blackPowder = Isaac.Spawn(
 			EntityType.ENTITY_EFFECT,
-			EffectVariant.PLAYER_CREEP_BLACKPOWDER, 
-			0, 
+			EffectVariant.PLAYER_CREEP_BLACKPOWDER,
+			0,
 			position + Vector(0, distance or 60):Rotated(degrees * i),
-			Vector.Zero, 
+			Vector.Zero,
 			parent
 		)
 		if not blackPowder then return end
@@ -137,10 +137,10 @@ function Creeps.SpawnBlackPowder(parent, quantity, position, distance)
 
 	local Pentagram = Isaac.Spawn(
 		EntityType.ENTITY_EFFECT,
-		EffectVariant.PENTAGRAM_BLACKPOWDER, 
-		0, 
-		position, 
-		Vector.Zero, 
+		EffectVariant.PENTAGRAM_BLACKPOWDER,
+		0,
+		position,
+		Vector.Zero,
 		nil
 	):ToEffect() ---@cast Pentagram EntityEffect
 
