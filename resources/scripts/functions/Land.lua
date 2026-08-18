@@ -4,7 +4,6 @@ local enums = mod.Enums
 local utils = enums.Utils
 local game = utils.Game
 local sfx = utils.SFX
-local pgd = utils.PGD
 local room = utils.Room
 local misc = enums.Misc
 local ConfigDataTypes = enums.ConfigDataTypes
@@ -93,7 +92,7 @@ local KeyRequiredChests = {
 
 ---@param pickup EntityPickup
 ---@return boolean
-function IsKeyRequiredChest(pickup)
+local function IsKeyRequiredChest(pickup)
 	return mod.Modules.HELPERS.When(pickup.Variant, KeyRequiredChests, false)
 end
 
@@ -124,6 +123,15 @@ local function MegaChestManager(player, pickup)
 	player:TryUseKey()
 end
 
+---@param player EntityPlayer
+local function StopStompAnim(player)
+	local sprite = player:GetSprite()
+
+	if not sprite:IsPlaying("BigJumpFinish") then return end
+	sprite:Stop()
+	player:StopExtraAnimation()	
+end
+
 local NonTriggerAnimPickupVar = {
 	[PickupVariant.PICKUP_COLLECTIBLE] = true,
 	[PickupVariant.PICKUP_TRINKET] = true,
@@ -147,7 +155,7 @@ local function ChestManager(pickup, player)
 	local var = pickup.Variant
 
 	if room:GetType() == RoomType.ROOM_CHALLENGE then
-		player:StopExtraAnimation()
+		StopStompAnim(player)
 		return
 	end
 
@@ -185,50 +193,49 @@ local function ChestManager(pickup, player)
 	end
 end
 
-local NonRemotePickPickups = {
-	[PickupVariant.PICKUP_PILL] = true,
-	[PickupVariant.PICKUP_TAROTCARD] = true,
-	[PickupVariant.PICKUP_TRINKET] = true,
-}
+---@param player EntityPlayer
+---@param pickup EntityPickup
+local function TriggerPickupCollide(player, pickup)
+	local var = pickup.Variant
+	local IsStopAnimPickup = mod.Modules.HELPERS.When(var, NonTriggerAnimPickupVar, false)
+	local IsEternalHeart = (var == PickupVariant.PICKUP_HEART and pickup.SubType == HeartSubType.HEART_ETERNAL)
+
+	if pickup:IsDead() then return end
+	if pickup:IsShopItem() then return end
+
+	if IsStopAnimPickup or IsEternalHeart then
+		StopStompAnim(player)
+	end
+
+	player:ForceCollide(pickup, true)
+end
 
 ---@param player EntityPlayer
 ---@param pickup EntityPickup
----@param includeCol boolean
-local function TriggerPickupCollide(player, pickup, includeCol)
-	if pickup:IsDead() then return end
-	if mod.Modules.HELPERS.When(pickup.Variant, NonRemotePickPickups, false) then return end
-	if (not includeCol and pickup.Variant == PickupVariant.PICKUP_COLLECTIBLE) then return end
+local function ShopItemManager(player, pickup)
+	if not pickup:IsShopItem() then return end
+	if not mod.Modules.HELPERS.CanPickupBePurchased(player, pickup) then return end
 
+	StopStompAnim(player)
 	player:ForceCollide(pickup, false)
 end
 
 ---@param player EntityPlayer
 ---@param ent Entity
----@param includeCol boolean
----@param stopExtraAnim? boolean
-local function PickupManager(player, ent, includeCol, stopExtraAnim)
+---@param isShopItem? boolean
+local function PickupManager(player, ent, isShopItem)
 	local pickup = ent:ToPickup()
 
 	if not pickup then return end
-	if pickup:IsShopItem() then return end
-	
-	if stopExtraAnim == nil then
-		stopExtraAnim = true
-	end
 
-	local var = pickup.Variant
-	local IsStopAnimPickup = mod.Modules.HELPERS.When(var, NonTriggerAnimPickupVar, false)
-	local IsEternalHeart = (var == PickupVariant.PICKUP_HEART and pickup.SubType == HeartSubType.HEART_ETERNAL)
-
-	if stopExtraAnim and (IsStopAnimPickup or IsEternalHeart) then
-		player:StopExtraAnimation()
+	if isShopItem then
+		ShopItemManager(player, pickup)
 	else
-		ChestManager(pickup, player)
+		TriggerPickupCollide(player, pickup)
 	end
 
-	TriggerPickupCollide(player, pickup, includeCol)
+	ChestManager(pickup, player)
 end
-
 ---@param parent EntityPlayer
 ---@param ent Entity
 local function SlotLandManager(parent, ent)
@@ -328,24 +335,6 @@ local function EntityInteractHandler(ent, parent, knockback)
 	end
 end
 
-local VestigeAch = enums.Achievements.ACHIEVEMENT_VESTIGE
-
-local function VestigeUnlockManager()
-	if pgd:Unlocked(VestigeAch) then return end
-
-	local PersistentData = saveManager.GetPersistentSave()
-
-	if not PersistentData then return end
-
-	PersistentData.StompKills = PersistentData.StompKills or 0
-	PersistentData.StompKills = PersistentData.StompKills + 1
-
-	if PersistentData.StompKills >= 15 then
-		pgd:TryUnlock(VestigeAch)
-		PersistentData.StompKills = 0
-	end
-end
-
 ---@param parent EntityPlayer
 ---@param ent Entity
 ---@param params EdithJumpStompParams
@@ -372,9 +361,6 @@ local function HandleStompedEnemy(parent, ent, params, saltedTime, numTears, mat
 
 	Isaac.RunCallback(callbacks.OFFENSIVE_STOMP_KILL, parent, ent, params)
 
-	local isSalted = mod.Modules.STATUS_EFFECTS.EntHasStatusEffect(ent, enums.EdithStatusEffects.SALTED)
-	if isSalted then VestigeUnlockManager() end
-
 	Land.AddExtraGore(ent, parent)
 end
 
@@ -392,6 +378,7 @@ function Land.EdithStomp(parent, params, breakGrid)
 
 	local Capsules = {
 		Stomp = Capsule(parent.Position, Vector.One, 0, params.Radius),
+		ShopItem = Capsule(parent.Position, Vector.One, 0, parent.Size),
 		Pickup = Capsule(parent.Position, Vector.One, 0, 30),
 		Slot = Capsule(parent.Position, Vector.One, 0, parent.Size),
 	}
@@ -403,6 +390,10 @@ function Land.EdithStomp(parent, params, breakGrid)
 	end
 
 	for _, ent in ipairs(Isaac.FindInCapsule(Capsules.Pickup, EntityPartition.PICKUP)) do
+		PickupManager(parent, ent)
+	end
+
+	for _, ent in ipairs(Isaac.FindInCapsule(Capsules.ShopItem, EntityPartition.PICKUP)) do
 		PickupManager(parent, ent, true)
 	end
 
@@ -481,7 +472,7 @@ function Land.TaintedEdithHop(parent, HopParams)
 	}
 
 	for _, ent in ipairs(Isaac.FindInCapsule(Capsules.Pickup)) do
-		PickupManager(parent, ent, true, false)
+		PickupManager(parent, ent, true)
 	end
 
 	for _, ent in ipairs(Isaac.FindInCapsule(Capsules.Slot)) do
@@ -791,28 +782,7 @@ local function IsEntInTwoCapsules(ent, capsule1, capsule2)
 
 	return IsInsideCapsule1 and IsInsideCapsule2
 end
-local GrudgeAch = enums.Achievements.ACHIEVEMENT_GRUDGE
 
----@param PerfectParry boolean
-local function GrudgeUnlockManager(PerfectParry)
-	if pgd:Unlocked(GrudgeAch) then return end
-
-	local PersistentData = saveManager.GetPersistentSave()
-
-	if not PersistentData then return end
-
-	PersistentData.ConsecutiveParries = PersistentData.ConsecutiveParries or 0
-
-	if PerfectParry then
-		PersistentData.ConsecutiveParries = PersistentData.ConsecutiveParries + 1
-	else
-		PersistentData.ConsecutiveParries = 0
-	end
-
-	if PersistentData.ConsecutiveParries == 5 then
-		pgd:TryUnlock(GrudgeAch)
-	end
-end
 
 ---@param ent Entity
 ---@param HopParams TEdithHopParryParams
@@ -1044,9 +1014,6 @@ function Land.ParryLandManager(player, hopParams, isTaintedEdith)
     hopParams.ParryCooldown = CalcParryCooldown(isTaintedEdith, perfectParry, hasBirthcake, staticChargeCooldownBonus)
     data(player).MaxParryCooldown = hopParams.ParryCooldown or 0
     hopParams.IsParryJump = false
-
-    GrudgeUnlockManager(perfectParry)
-
     hopParams.ParriedEnemies = {}
     hopParams.ImpreciseParriedEnemies = {}
     return perfectParry, enemiesInImpreciseParry

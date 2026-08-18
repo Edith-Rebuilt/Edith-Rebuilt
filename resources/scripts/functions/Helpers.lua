@@ -486,6 +486,20 @@ function Helpers.GetMortisDrop()
 	end
 end
 
+---@param player EntityPlayer
+---@param pickup EntityPickup
+function Helpers.CanPickupBePurchased(player, pickup)
+	if not pickup:IsShopItem() then return false end
+
+	local price = pickup.Price
+
+	if price < 0 then 
+		return true
+	else
+		return player:GetNumCoins() >= price
+	end
+end
+
 ---Checks if player run is in Chapter 4 (Womb, Utero, Scarred Womb, Corpse)
 ---@return boolean
 function Helpers.IsChap4()
@@ -504,18 +518,18 @@ mod:AddCallback(ModCallbacks.MC_POST_TEAR_DEATH, function (_, tear)
 		var = ent.Variant
 		sprite = ent:GetSprite()
 
-		if not (var == EffectVariant.ROCK_POOF or var == EffectVariant.TOOTH_PARTICLE) then goto Break end
-		if ent.Position:Distance(tear.Position) > 10 then goto Break end
+		if not (var == EffectVariant.ROCK_POOF or var == EffectVariant.TOOTH_PARTICLE) then goto continue end
+		if ent.Position:Distance(tear.Position) > 10 then goto continue end
 
 		Path = var == EffectVariant.ROCK_POOF and tearData.ShatterSprite or tearData.SaltGibsSprite
 
 		if var == EffectVariant.TOOTH_PARTICLE then
-			if ent.SpawnerEntity then goto Break end
+			if ent.SpawnerEntity then goto continue end
 			ent.Color = tear.Color
 		end
 
 		sprite:ReplaceSpritesheet(0, misc.TearPath .. Path .. ".png", true)
-		::Break::
+		::continue::
 	end
 end)
 
@@ -586,18 +600,18 @@ function Helpers.TriggerPerfectParryFlash(player)
 	ItemOverlay.GetSprite().Color = NoColor
 end
 
-mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
-	local overlaySprite = ItemOverlay.GetSprite()
-	local frame = overlaySprite:GetFrame()
-
+mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()	
 	if ItemOverlay.GetOverlayID() ~= enums.Giantbook.PERFECT_PARRY then return end
 
-	local tEdithConfig = Helpers.GetConfigData(ConfigDataTypes.TEDITH) --[[@as TEdithData]]
-	local color = tEdithConfig.ParryFlashColor
-	local contrast = tEdithConfig.ParryFlashContrast
-	local brightness = tEdithConfig.ParryFlashBrightness
-
+	local overlaySprite = ItemOverlay.GetSprite()
+	local frame = overlaySprite:GetFrame()
+	
 	if frame == 0 then
+		local tEdithConfig = Helpers.GetConfigData(ConfigDataTypes.TEDITH) --[[@as TEdithData]]
+		local color = tEdithConfig.ParryFlashColor
+		local contrast = tEdithConfig.ParryFlashContrast
+		local brightness = tEdithConfig.ParryFlashBrightness
+
 		game:SetColorModifier(ColorModifier(color.r, color.g, color.b, color.a, brightness, contrast), true, 1)
 		Isaac.CreateTimer(function ()
 			room:UpdateColorModifier(true, true, 0.15)
