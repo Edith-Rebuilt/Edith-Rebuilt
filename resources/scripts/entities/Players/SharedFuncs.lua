@@ -136,7 +136,7 @@ local InitParams = {
     },
     [false] = {
         ANM2 = "gfx/EdithTaintedAnim.anm2",
-        Costume = costumes.EDIT_EDITHTH,
+        Costume = costumes.T_EDITH,
     }
 }
 
