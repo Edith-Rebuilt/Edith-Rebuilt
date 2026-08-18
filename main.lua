@@ -14,7 +14,7 @@ if not REPENTOGON then
 end
 
 if not REPENTANCE_PLUS then
-	local text = "This mod is meant to be used with Repentance+ DLC"
+	local text = "This mod is meant to be used with the Repentance+ DLC"
 	local text2 = "Look for it on steam"
 	mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
         font:DrawStringScaledUTF8(text, Isaac.GetScreenWidth()/1.1 - font:GetStringWidthUTF8(text)/2, Isaac.GetScreenHeight()/1.2, 1, 1, KColor(2,.5,.5,1), 1, true )
