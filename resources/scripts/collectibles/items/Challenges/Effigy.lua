@@ -174,6 +174,14 @@ local function EffigyHopLand(player, jumpParams, jumpData)
     jumpParams.Radius = 30
 
     player:SetActiveCharge(Helpers.GetEffigyCharge(player) - EFFIGY.HOP_CHARGE_COST, Helpers.GetEffigySlot(player))
+
+    if Player.IsJudasWithBirthright(player) then
+        for i = 1, 4 do
+            local jet = Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.FIRE_JET, 0, player.Position + Vector(0, 30):Rotated(360 * i/4), Vector.Zero, player)
+            
+            jet.CollisionDamage = player.Damage
+        end
+    end
 end
 
 ---@param player EntityPlayer
@@ -188,6 +196,14 @@ local function EffigyJumpLand(player, jumpParams, jumpData)
 
     data(player).EffigyJumpCooldown = EFFIGY.JUMP_COOLDOWN
     player:SetActiveCharge(Helpers.GetEffigyCharge(player) - EFFIGY.JUMP_CHARGE_COST, Helpers.GetEffigySlot(player))
+
+    if Player.IsJudasWithBirthright(player) then
+        for i = 1, 8 do
+            local jet = Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.FIRE_JET, 0, player.Position + Vector(0, 40):Rotated(360 * i/8), Vector.Zero, player)
+
+            jet.CollisionDamage = player.Damage * 2
+        end
+    end
 
     for _, ent in ipairs(Isaac.FindByType(EntityType.ENTITY_FAMILIAR, FamiliarVariant.WISP, items.COLLECTIBLE_EFFIGY)) do
         ent:Kill()
