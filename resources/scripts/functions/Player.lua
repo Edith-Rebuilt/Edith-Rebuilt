@@ -283,4 +283,8 @@ function Player.IsEdithBirthtight(player)
 	return Player.IsEdith(player, false) and Player.PlayerHasBirthright(player)
 end
 
+function Player.IsEffigyStatue(player)
+	return player:GetEffects():HasNullEffect(enums.NullItemID.EFFIGY)
+end
+
 return Player

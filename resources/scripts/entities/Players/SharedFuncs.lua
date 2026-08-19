@@ -28,6 +28,10 @@ mod:AddPriorityCallback(ModCallbacks.MC_INPUT_ACTION, CallbackPriority.IMPORTANT
     return tables.OverrideActions[action]
 end)
 
+local function IsStatue(player)
+    return Player.IsAnyEdith(player) or Player.IsEffigyStatue(player) 
+end
+
 local ModCostumes = {
     [costumes.EDITH] = true,
     [costumes.T_EDITH] = true,
@@ -64,9 +68,13 @@ end)
 
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
-    if not Player.IsAnyEdith(player) then return end
+    if not IsStatue(player) then return end
+
 	Player.WaterCurrentManager(player)
-    Player.ManageEdithWeapons(player)
+
+    if Player.IsAnyEdith(player) then
+        Player.ManageEdithWeapons(player)
+    end
 end)
 
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, function(_, tear)
@@ -83,7 +91,7 @@ end)
 ---@param flags DamageFlag
 ---@return boolean?
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function(_, player, _, flags)
-    if not Player.IsAnyEdith(player) then return end
+    if not IsStatue(player) then return end
 
     local roomType = room:GetType()
     local isAcid = BitMask.HasBitFlags(flags, DamageFlag.DAMAGE_ACID --[[@as BitSet128]])
@@ -161,7 +169,7 @@ end)
 ---@param player EntityPlayer
 ---@param grid GridEntity
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_GRID_COLLISION, function(_, player, _, grid)
-	if not Player.IsAnyEdith(player) then return end
+	if not IsStatue(player) then return end
     if not grid then return end
     if grid:GetType() ~= GridEntityType.GRID_ROCK_SPIKED then return end
 	return true
@@ -203,7 +211,7 @@ end)
 
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_RENDER, function(_, player)
-    if not Player.IsAnyEdith(player) then return end
+    if not IsStatue(player) then return end
 
     player:ClearEntityFlags(EntityFlag.FLAG_SLIPPERY_PHYSICS)
 end)
