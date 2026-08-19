@@ -220,8 +220,13 @@ local function EffigyGeneralLand(player, jumpParams, jumpData)
     data(player).EffigyHopCooldown = EFFIGY.HOP_COOLDOWN
 end
 
-mod:AddCallback(JumpLib.Callbacks.ENTITY_LAND, function(_, entity, jumpData)
+---@param entity Entity
+---@param jumpData JumpData
+---@param pitfall boolean
+mod:AddCallback(JumpLib.Callbacks.ENTITY_LAND, function(_, entity, jumpData, pitfall)
+    if pitfall then return end
     if not IsEffigyJump(jumpData) then return end
+
     local player = entity:ToPlayer()
     if not player then return end
 
