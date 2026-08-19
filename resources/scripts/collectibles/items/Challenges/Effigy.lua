@@ -163,6 +163,14 @@ mod:AddCallback(ModCallbacks.MC_INPUT_ACTION, function(_, entity, input, action)
     return tables.OverrideActions[action]
 end)
 
+local function TriggerJudasBirthrightEffect(player, quantity, distance, isBigJump)
+    if not Player.IsJudasWithBirthright(player) then return end
+    for i = 1, quantity do
+        local jet = Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.FIRE_JET, 0, player.Position + Vector(0, distance):Rotated(360 * i/quantity), Vector.Zero, player)
+        jet.CollisionDamage = player.Damage * (isBigJump and 2 or 1)
+    end
+end
+
 ---@param player EntityPlayer
 ---@param jumpParams EdithJumpStompParams
 ---@param jumpData JumpData
@@ -175,13 +183,7 @@ local function EffigyHopLand(player, jumpParams, jumpData)
 
     player:SetActiveCharge(Helpers.GetEffigyCharge(player) - EFFIGY.HOP_CHARGE_COST, Helpers.GetEffigySlot(player))
 
-    if Player.IsJudasWithBirthright(player) then
-        for i = 1, 4 do
-            local jet = Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.FIRE_JET, 0, player.Position + Vector(0, 30):Rotated(360 * i/4), Vector.Zero, player)
-            
-            jet.CollisionDamage = player.Damage
-        end
-    end
+    TriggerJudasBirthrightEffect(player, 4, 30, false)
 end
 
 ---@param player EntityPlayer
@@ -197,18 +199,12 @@ local function EffigyJumpLand(player, jumpParams, jumpData)
     data(player).EffigyJumpCooldown = EFFIGY.JUMP_COOLDOWN
     player:SetActiveCharge(Helpers.GetEffigyCharge(player) - EFFIGY.JUMP_CHARGE_COST, Helpers.GetEffigySlot(player))
 
-    if Player.IsJudasWithBirthright(player) then
-        for i = 1, 8 do
-            local jet = Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.FIRE_JET, 0, player.Position + Vector(0, 40):Rotated(360 * i/8), Vector.Zero, player)
-
-            jet.CollisionDamage = player.Damage * 2
-        end
-    end
+    TriggerJudasBirthrightEffect(player, 8, 40, true)
 
     for _, ent in ipairs(Isaac.FindByType(EntityType.ENTITY_FAMILIAR, FamiliarVariant.WISP, items.COLLECTIBLE_EFFIGY)) do
         ent:Kill()
         for i = 1, 6 do
-            local tear = Isaac.Spawn(EntityType.ENTITY_TEAR, 0, 0, ent.Position, Vector.FromAngle((360/6) * i):Resized(10), ent):ToTear() ---@cast tear EntityTear
+            Isaac.Spawn(EntityType.ENTITY_TEAR, 0, 0, ent.Position, Vector.FromAngle((360/6) * i):Resized(10), ent):ToTear()
         end
     end
 end
