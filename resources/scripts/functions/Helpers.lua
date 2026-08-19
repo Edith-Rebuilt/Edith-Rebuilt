@@ -75,7 +75,7 @@ function Helpers.DestroyGrid(entity, radius)
 		if (entity.Position - grid.Position):Length() > radius then goto continue end
 		if grid:GetType() == GridEntityType.GRID_DOOR then goto continue end
 
-		grid:DestroyWithSource(true, EntityRef(entity))
+		grid:DestroyWithSource(false, EntityRef(entity))
 
 		::continue::
     end
