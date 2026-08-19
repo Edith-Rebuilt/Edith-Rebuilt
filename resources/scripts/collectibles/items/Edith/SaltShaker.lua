@@ -136,3 +136,9 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
         ent:AddVelocity((ent.Position - pos):Resized(20))
     end
 end)
+
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
+    for _, player in ipairs(PlayerManager.GetPlayers()) do
+        data(player).PushCapsulePos = nil
+    end
+end)
