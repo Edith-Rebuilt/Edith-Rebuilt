@@ -540,3 +540,36 @@ v1.8.2
 v1.8.2a
 - Removed an unused module
 - Removed a leftover debug renderer
+
+v1.8.3
+- General: 
+-- General vector math optimization
+-- Fixed Edith/T. Edith's Greedier unlock function triggering for other players
+-- Added Ludovico's Stomp/Parry synergy
+-- Improved Edith/T. Edith costume giver function
+-- Removed an unused variable
+-- Moved both Vestige and Grudge unlock methods to UnlockManager.lua
+-- Improved Rep+ detection message
+-- Remade Stomp's pickup grab system:
+--- Cards/runes, pills and trinkets can be taken again with this
+--- Now Edith must land in almost as close as possible to a shop item to buy it
+--- Fixed an error that caused Edith to lose her body for a moment when trying to grab two cards/runes/pills/trinkets at once
+
+- Edith:
+-- Fixed Edith triggering stomp synergies when going trough a trapdoor
+
+- Items:
+-- Fixed Salt Shaker push area persisting between rooms
+-- Effigy:
+--- Now a player in effigy state won't be affected by slipperyness
+--- Now a player in effigy state will be less dragged by water currents
+--- Now a player in effigy state won't receive damage from creep and spikes
+--- Now a player in effigy state won't get damage by destroying a spiked rock with a stomp
+--- Added Judas' Birthright interaction for Effigy
+--- Fixed Effigy consuming more charges than intended with non-Edith Characters
+--- Fixed Effigy triggering its effects when falling to a pitfall
+
+- Trinkets:
+-- Rumbling Pebble changes:
+--- Increased rock scattering spread
+--- Now Edith stomps/ T. Edith hops can trigger rock scattering
