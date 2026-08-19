@@ -30,7 +30,7 @@ mod:AddCallback(ModCallbacks.MC_POST_GRID_ROCK_DESTROY, function(_, rock, type, 
 	for i = 1, totalrocks do
 		local rockTear = player:FireTear(
 			rock.Position, 
-			Vector.One:Rotated((shootDegree + rng:RandomInt(-10, 10) * i)):Resized(10)
+			Vector.One:Rotated((shootDegree + rng:RandomInt(-40, 40) * i)):Resized(10)
 		)
 
 		local FallSpeedVar = ModRNG.RandomFloat(rng, 0.8, 1.2)
