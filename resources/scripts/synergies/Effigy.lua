@@ -11,6 +11,7 @@ local Callbacks = mod.Enums.Callbacks
 ---@param params EdithJumpStompParams | TEdithHopParryParams
 ---@param isStomp boolean
 local function EffigyIncreasedDamage(player, params, isStomp)
+    if not Player.IsAnyEdith(player) then return end
     if not player:GetEffects():HasNullEffect(NullItemID.EFFIGY) then return end
 
     local reduceCharges = (isStomp and Player.IsEdithBirthtight(player)) and 2 or 4
