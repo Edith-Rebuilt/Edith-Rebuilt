@@ -132,7 +132,7 @@ local function HandleDungeonTeleport(effect, player, isBeastRoom, RoomName)
 
 	local effectPos = effect.Position
 	for _, v in pairs(teleportPoints) do
-		if (effectPos - v):Length() > 20 then goto continue end
+		if (effectPos - v):LengthSquared() > 400 then goto continue end
 		if isBeastRoom then goto continue end
 		if RoomName == "Rotgut Maggot" and (v.X ~= 595 and v.Y ~= 385) then goto continue end
 		player.Position = effectPos + effect.Velocity:Resized(25)

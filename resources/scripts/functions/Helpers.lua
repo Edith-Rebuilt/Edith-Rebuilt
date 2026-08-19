@@ -72,7 +72,7 @@ function Helpers.DestroyGrid(entity, radius)
 		local grid = room:GetGridEntity(i)
 
 		if not grid then goto continue end
-		if (entity.Position - grid.Position):Length() > radius then goto continue end
+		if (entity.Position - grid.Position):LengthSquared() > radius * radius then goto continue end
 		if grid:GetType() == GridEntityType.GRID_DOOR then goto continue end
 
 		grid:DestroyWithSource(false, EntityRef(entity))
@@ -178,9 +178,9 @@ function Helpers.GetNearestEnemy(player)
         if enemy:HasEntityFlags(EntityFlag.FLAG_CHARM) then goto continue end
 
         local enemyPos = enemy.Position
-        local distanceToPlayer = enemyPos:Distance(playerPos)
+        local distanceToPlayer = enemyPos:DistanceSquared(playerPos)
 
-        if distanceToPlayer >= closestDistance then goto continue end
+        if distanceToPlayer >= closestDistance*closestDistance then goto continue end
         if not room:CheckLine(playerPos, enemyPos, LineCheckMode.PROJECTILE, 0, false, false) then goto continue end
 
         closestEnemy = enemy
@@ -194,8 +194,7 @@ end
 ---@param ent Entity
 ---@return boolean
 function Helpers.IsEnemy(ent)
-	return (ent:IsActiveEnemy() and ent:IsVulnerableEnemy()) or
-	(ent.Type == EntityType.ENTITY_GEMINI and ent.Variant == 12) -- this for blighted ovum little sperm like shit i hate it fuuuck
+	return (ent:IsEnemy() and ent:IsActiveEnemy() and ent:IsVulnerableEnemy())
 end
 
 function Helpers.IsVestigeChallenge()
@@ -520,7 +519,7 @@ mod:AddCallback(ModCallbacks.MC_POST_TEAR_DEATH, function (_, tear)
 		sprite = ent:GetSprite()
 
 		if not (var == EffectVariant.ROCK_POOF or var == EffectVariant.TOOTH_PARTICLE) then goto continue end
-		if ent.Position:Distance(tear.Position) > 10 then goto continue end
+		if ent.Position:DistanceSquared(tear.Position) > 100 then goto continue end
 
 		Path = var == EffectVariant.ROCK_POOF and tearData.ShatterSprite or tearData.SaltGibsSprite
 

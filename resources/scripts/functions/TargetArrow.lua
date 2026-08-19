@@ -46,6 +46,15 @@ function targetArrow.GetEdithTargetDistance(player)
 	return target and player.Position:Distance(target.Position) or 0
 end
 
+---Returns distance between Edith and her target
+---@param player EntityPlayer
+---@return number
+function targetArrow.GetEdithTargetDistanceSquared(player)
+	local target = targetArrow.GetEdithTarget(player, false)
+	if not target then return 0 end
+	return target and player.Position:DistanceSquared(target.Position) or 0
+end
+
 ---Function to spawn Edith's Target, setting `tainted` to `true` will Spawn Tainted Edith's Arrow
 ---@param player EntityPlayer
 ---@param tainted? boolean

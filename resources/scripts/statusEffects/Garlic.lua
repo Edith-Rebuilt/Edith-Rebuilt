@@ -10,7 +10,7 @@ mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, function (_, npc)
     local player = Helpers.GetPlayerFromRef(Status.GetStatusEffectData(npc, effects.GARLIC).Source)
 
     if not player then return end
-    if npc.Position:Distance(player.Position) > 80 then return end
+    if npc.Position:DistanceSquared(player.Position) > 6400 then return end
     Helpers.TriggerPush(npc, player, 2)
 end)
 

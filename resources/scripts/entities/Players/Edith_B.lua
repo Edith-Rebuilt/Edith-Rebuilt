@@ -472,7 +472,7 @@ end
 ---@param ent Entity
 local function StopVel(player, ent)
 	if not Player.IsEdith(player, true) then return end
-	if ent.Velocity:Length() <= 50 then return end
+	if ent.Velocity:LengthSquared() <= 2500 then return end
 	ent.Velocity = Vector.Zero
 end
 

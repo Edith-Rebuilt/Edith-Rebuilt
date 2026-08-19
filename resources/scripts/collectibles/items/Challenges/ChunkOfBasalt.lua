@@ -40,7 +40,8 @@ end
 ---@param player EntityPlayer
 ---@param playerData table
 local function ResetBasaltDash(player, playerData)
-    if player.Velocity:Length() > CHUNK_OF_BASALT.VELOCITY_RESET_THRESHOLD then return end
+    local threshold = CHUNK_OF_BASALT.VELOCITY_RESET_THRESHOLD
+    if player.Velocity:LengthSquared() > threshold * threshold then return end
     playerData.IsBasaltDash = false
 end
 

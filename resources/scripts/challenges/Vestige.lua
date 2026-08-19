@@ -60,7 +60,7 @@ mod:AddCallback(JumpLib.Callbacks.ENTITY_UPDATE_60, function (_, player)
 		EdithMod.EdithDash(player, TargetArrow.GetEdithTargetDirection(player), targetDistance, 40)
 	end
 
-	if IsFalling or targetDistance <= 5 then
+	if IsFalling or TargetArrow.GetEdithTargetDistanceSquared(player) <= 25 then
 		player.Velocity = Vector.Zero
 		player.Position = target.Position
 	end

@@ -76,7 +76,7 @@ end
 ---@return Direction
 local function GetHeadDirection(player)
     local TargetArrow = mod.Modules.TARGET_ARROW
-    if TargetArrow.GetEdithTargetDistance(player) <= 5 then
+    if TargetArrow.GetEdithTargetDistanceSquared(player) <= 25 then
         return Direction.DOWN
     end
     return mod.Modules.VEC_DIR.VectorToDirection(TargetArrow.GetEdithTargetDirection(player))
@@ -122,7 +122,7 @@ local function HandleMarsAndPonyDash(player, effects, direction, distance)
 		Edith.EdithDash(player, direction, distance, 50)
 	end
 
-	if player.Velocity:Length() <= 3 then
+	if player.Velocity:LengthSquared() <= 9 then
 		effects:RemoveCollectibleEffect(CollectibleType.COLLECTIBLE_PONY, -1)
 		effects:RemoveCollectibleEffect(CollectibleType.COLLECTIBLE_WHITE_PONY, -1)
 	end
@@ -186,7 +186,7 @@ end
 ---@return boolean
 local function ShouldTriggerFall(player, distance)
     local TargetArrow = mod.Modules.TARGET_ARROW
-    return (TargetArrow.IsEdithTargetMoving(player) and distance <= 60) or distance <= 10
+    return (TargetArrow.IsEdithTargetMoving(player) and distance <= 3600) or distance <= 100
 end
 
 ---@param jumpdata JumpData
@@ -215,7 +215,7 @@ function Edith.FlightFallBehavior(player, jumpdata, jumpParams)
     if jumpParams.IsDefensiveStomp then return end
     if not player.CanFly then return end
 
-    local distance = mod.Modules.TARGET_ARROW.GetEdithTargetDistance(player)
+    local distance = mod.Modules.TARGET_ARROW.GetEdithTargetDistanceSquared(player)
     if not ShouldTriggerFall(player, distance) then return end
     if not JumpLib:IsFalling(player) then return end
 
@@ -534,7 +534,7 @@ end
 local function PutEdithInTarget(player, jumpData)
 	if not JumpLib:IsFalling(player) then return end
 	if mod.Modules.MATHS.Round(jumpData.Height, 1) ~= 21.6 then return end
-	if mod.Modules.TARGET_ARROW.GetEdithTargetDistance(player) > 19 then return end
+	if mod.Modules.TARGET_ARROW.GetEdithTargetDistanceSquared(player) > 361 then return end
 
 	player:MultiplyFriction(0.2)
 	JumpLib:SetSpeed(player, 30)
