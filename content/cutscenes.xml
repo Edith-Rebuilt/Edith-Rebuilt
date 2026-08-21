@@ -1,0 +1,5 @@
+<cutscenes root="gfx/cutscenes/">
+	<cutscene name="You cant have Edith">
+        <videopart file="EdithCutscene.ogv" keepMusic="true" />
+	</cutscene>
+</cutscenes>
