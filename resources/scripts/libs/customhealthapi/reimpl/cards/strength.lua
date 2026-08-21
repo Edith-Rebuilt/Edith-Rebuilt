@@ -1,0 +1,262 @@
+function CustomHealthAPI.Helper.HandleTemporaryHP(player, datakey)
+	local key = "EMPTY_HEART"
+	
+	if CustomHealthAPI.Helper.PlayerIsSoulHeartOnly(player) then
+		key = CustomHealthAPI.Helper.GetConvertedMaxHealthType(player)
+	elseif CustomHealthAPI.Helper.PlayerIsBoneHeartOnly(player) then
+		key = "BONE_HEART"
+	else
+		key = Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.GET_MAX_HP_CONVERSION, player:GetPlayerType(), player, key) or key
+	end
+	
+	local hp
+	local typ = CustomHealthAPI.Library.GetInfoOfKey(key, "Type")
+	local maxHP = CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP")
+	if typ == CustomHealthAPI.Enums.HealthTypes.SOUL then
+		if maxHP <= 1 then
+			hp = 2
+		else
+			hp = maxHP
+		end
+	elseif typ == CustomHealthAPI.Enums.HealthTypes.CONTAINER then
+		if maxHP <= 0 then
+			if CustomHealthAPI.Library.GetInfoOfKey(key, "CanHaveHalfCapacity") == true then
+				hp = 2
+			else
+				hp = 1
+			end
+		else
+			hp = maxHP
+		end
+	end
+	
+	local hpBefore = CustomHealthAPI.Helper.GetTotalHPOfKey(player, key, true)
+	if typ == CustomHealthAPI.Enums.HealthTypes.CONTAINER and
+	   maxHP <= 0 
+	then
+		hpBefore = CustomHealthAPI.Helper.GetTotalKeys(player, key, true)
+		if CustomHealthAPI.Library.GetInfoOfKey(key, "CanHaveHalfCapacity") == true then
+			hpBefore = hpBefore * 2
+		end
+	end
+	
+	CustomHealthAPI.Helper.UpdateHealthMasks(player, key, hp)
+	if typ == CustomHealthAPI.Enums.HealthTypes.CONTAINER and 
+	   CustomHealthAPI.Library.GetInfoOfKey(key, "KindContained") ~= CustomHealthAPI.Enums.HealthKinds.NONE
+	then
+		CustomHealthAPI.Helper.UpdateHealthMasks(player, "RED_HEART", 2)
+	end
+	CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
+	
+	local hpAfter = CustomHealthAPI.Helper.GetTotalHPOfKey(player, key, true)
+	if typ == CustomHealthAPI.Enums.HealthTypes.CONTAINER and
+	   maxHP <= 0 
+	then
+		hpAfter = CustomHealthAPI.Helper.GetTotalKeys(player, key, true)
+		if CustomHealthAPI.Library.GetInfoOfKey(key, "CanHaveHalfCapacity") == true then
+			hpAfter = hpAfter * 2
+		end
+	end
+	
+	if hpAfter - hpBefore > 0 then
+		CustomHealthAPI.Helper.GetSavedata(player)[datakey] = CustomHealthAPI.Helper.GetSavedata(player)[datakey] or {}
+		table.insert(CustomHealthAPI.Helper.GetSavedata(player)[datakey], {Key = key, HP = hpAfter - hpBefore})
+	end
+end
+
+function CustomHealthAPI.Helper.HandleStrength(player)
+	CustomHealthAPI.Helper.HandleTemporaryHP(player, "StrengthHPToRemove")
+end
+
+function CustomHealthAPI.Helper.HandleReverseEmpress(player, doubled)
+	CustomHealthAPI.Helper.HandleTemporaryHP(player, "ReverseEmpressHPToRemove")
+	if not doubled then
+		CustomHealthAPI.Helper.HandleTemporaryHP(player, "ReverseEmpressHPToRemove")
+	end
+end
+
+function CustomHealthAPI.Helper.SubtractTemporaryHP(player, key, hpDiff)
+	local strengthHP = CustomHealthAPI.Helper.GetSavedata(player).StrengthHPToRemove or {}
+	local empressHP = CustomHealthAPI.Helper.GetSavedata(player).ReverseEmpressHPToRemove or {}
+	
+	local typ = CustomHealthAPI.Library.GetInfoOfKey(key, "Type")
+	local hpToRemove = math.abs(hpDiff)
+	
+	for i = #strengthHP, 1, -1 do
+		local strengthKey = strengthHP[i].Key
+		if typ == CustomHealthAPI.Enums.HealthTypes.SOUL then
+			local hpRemoving = math.min(hpToRemove, strengthHP[i].HP)
+			strengthHP[i].HP = strengthHP[i].HP - hpRemoving
+			hpToRemove = hpToRemove - hpRemoving
+			if strengthHP[i].HP == 0 then
+				table.remove(strengthHP, i)
+			end
+		elseif typ == CustomHealthAPI.Enums.HealthTypes.CONTAINER then
+			local maxHP = CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP")
+			local strengthMaxHP = CustomHealthAPI.Library.GetInfoOfKey(strengthKey, "MaxHP")
+			if (maxHP <= 0) == (strengthMaxHP <= 0) then
+				local canHaveHalfCapacity = CustomHealthAPI.PersistentData.HealthDefinitions[key].CanHaveHalfCapacity
+				
+				local hpPer
+				if maxHP >= 1 then
+					hpPer = maxHP
+				elseif canHaveHalfCapacity then
+					hpPer = 2
+				else
+					hpPer = 1
+				end
+					
+				table.remove(strengthHP, i)
+				hpToRemove = hpToRemove - hpPer
+			end
+		end
+		
+		if hpToRemove <= 0 then
+			break
+		end
+	end
+	
+	for i = #empressHP, 1, -1 do
+		local empressKey = empressHP[i].Key
+		if typ == CustomHealthAPI.Enums.HealthTypes.SOUL then
+			local hpRemoving = math.min(hpToRemove, empressHP[i].HP)
+			empressHP[i].HP = empressHP[i].HP - hpRemoving
+			hpToRemove = hpToRemove - hpRemoving
+			if empressHP[i].HP == 0 then
+				table.remove(empressHP, i)
+			end
+		elseif typ == CustomHealthAPI.Enums.HealthTypes.CONTAINER then
+			local maxHP = CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP")
+			local empressMaxHP = CustomHealthAPI.Library.GetInfoOfKey(empressKey, "MaxHP")
+			if (maxHP <= 0) == (empressMaxHP <= 0) then
+				local canHaveHalfCapacity = CustomHealthAPI.PersistentData.HealthDefinitions[key].CanHaveHalfCapacity
+				
+				local hpPer
+				if maxHP >= 1 then
+					hpPer = maxHP
+				elseif canHaveHalfCapacity then
+					hpPer = 2
+				else
+					hpPer = 1
+				end
+					
+				table.remove(empressHP, i)
+				hpToRemove = hpToRemove - hpPer
+			end
+		end
+		
+		if hpToRemove <= 0 then
+			break
+		end
+	end
+end
+
+function CustomHealthAPI.Helper.RemoveTemporaryHP(player, datakey)
+	local strengthHP = CustomHealthAPI.Helper.GetSavedata(player)[datakey]
+	
+	for i = 1, #strengthHP do
+		local key = strengthHP[i].Key
+		
+		local typ = CustomHealthAPI.Library.GetInfoOfKey(key, "Type")
+		local maxHP = CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP")
+	
+		local hpPer
+		local hpRemainingOfKey
+		local hpRemainingOtherwise
+		if typ == CustomHealthAPI.Enums.HealthTypes.SOUL then
+			hpPer = maxHP
+			hpRemainingOfKey = CustomHealthAPI.Helper.GetTotalSoulHP(player, true, nil, true)
+			hpRemainingOtherwise = CustomHealthAPI.Helper.GetTotalRedHP(player, true, nil, true) + CustomHealthAPI.Helper.GetTotalBoneHP(player, true, true)
+		elseif typ == CustomHealthAPI.Enums.HealthTypes.CONTAINER then
+			local canHaveHalfCapacity = CustomHealthAPI.PersistentData.HealthDefinitions[key].CanHaveHalfCapacity
+			
+			if maxHP >= 1 then
+				hpPer = maxHP
+				hpRemainingOfKey = CustomHealthAPI.Helper.GetTotalBoneHP(player, true, true) * 2
+				hpRemainingOtherwise = CustomHealthAPI.Helper.GetTotalSoulHP(player, true, nil, true) + 
+				                       math.min(CustomHealthAPI.Helper.GetTotalRedHP(player, true, nil, true), CustomHealthAPI.Helper.GetTotalMaxHP(player, true))
+			elseif canHaveHalfCapacity then
+				hpPer = 2
+				hpRemainingOfKey = CustomHealthAPI.Helper.GetTotalMaxHP(player, true)
+				hpRemainingOtherwise = CustomHealthAPI.Helper.GetTotalSoulHP(player, true, nil, true) + CustomHealthAPI.Helper.GetTotalBoneHP(player, true, true)
+			else
+				hpPer = 1
+				hpRemainingOfKey = CustomHealthAPI.Helper.GetTotalMaxHP(player, true)
+				hpRemainingOtherwise = CustomHealthAPI.Helper.GetTotalSoulHP(player, true, nil, true) + CustomHealthAPI.Helper.GetTotalBoneHP(player, true, true)
+			end
+		end
+		
+		if hpRemainingOfKey <= 2 and hpRemainingOtherwise == 0 then
+			--do nothing
+		else
+			CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing + 1
+			CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth + 1
+			CustomHealthAPI.Library.AddHealth(player, key, hpPer * -1, false, false, false, true)
+			CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing - 1
+			CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth - 1
+		end
+	end
+	
+	CustomHealthAPI.Helper.GetSavedata(player)[datakey] = nil
+end
+
+function CustomHealthAPI.Helper.AddHandleStrengthOnNewRoomCallback()
+---@diagnostic disable-next-line: param-type-mismatch
+	Isaac.AddPriorityCallback(CustomHealthAPI.Mod, ModCallbacks.MC_POST_NEW_ROOM, -1 * math.huge, CustomHealthAPI.Mod.HandleStrengthOnNewRoomCallback, -1)
+end
+table.insert(CustomHealthAPI.CallbacksToAdd, CustomHealthAPI.Helper.AddHandleStrengthOnNewRoomCallback)
+
+function CustomHealthAPI.Helper.RemoveHandleStrengthOnNewRoomCallback()
+	CustomHealthAPI.Mod:RemoveCallback(ModCallbacks.MC_POST_NEW_ROOM, CustomHealthAPI.Mod.HandleStrengthOnNewRoomCallback)
+end
+table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveHandleStrengthOnNewRoomCallback)
+
+function CustomHealthAPI.Mod:HandleStrengthOnNewRoomCallback()
+	for i = 0, Game():GetNumPlayers() - 1 do
+		local player = Isaac.GetPlayer(i)
+		
+		if CustomHealthAPI.Helper.GetSavedata(player) and 
+		   #(CustomHealthAPI.Helper.GetSavedata(player).StrengthHPToRemove or {}) > 0 and
+		   not player:GetEffects():HasCollectibleEffect(CollectibleType.COLLECTIBLE_MAGIC_MUSHROOM)
+		then
+			CustomHealthAPI.Helper.RemoveTemporaryHP(player, "StrengthHPToRemove")
+		end
+		
+		if player:GetSubPlayer() and CustomHealthAPI.Helper.GetSavedata(player:GetSubPlayer()) and 
+		   #(CustomHealthAPI.Helper.GetSavedata(player:GetSubPlayer()).StrengthHPToRemove or {}) > 0 and
+		   not player:GetSubPlayer():GetEffects():HasCollectibleEffect(CollectibleType.COLLECTIBLE_MAGIC_MUSHROOM)
+		then
+			CustomHealthAPI.Helper.RemoveTemporaryHP(player:GetSubPlayer(), "StrengthHPToRemove")
+		end
+		
+		if player:GetOtherTwin() and CustomHealthAPI.Helper.GetSavedata(player:GetOtherTwin()) and 
+		   #(CustomHealthAPI.Helper.GetSavedata(player:GetOtherTwin()).StrengthHPToRemove or {}) > 0 and
+		   not player:GetOtherTwin():GetEffects():HasCollectibleEffect(CollectibleType.COLLECTIBLE_MAGIC_MUSHROOM)
+		then
+			CustomHealthAPI.Helper.RemoveTemporaryHP(player:GetOtherTwin(), "StrengthHPToRemove")
+		end
+	end
+end
+
+function CustomHealthAPI.Helper.HandleReverseEmpressOnRemove(player)
+	if CustomHealthAPI.Helper.GetSavedata(player) and 
+	   #(CustomHealthAPI.Helper.GetSavedata(player).ReverseEmpressHPToRemove or {}) > 0 and
+	   not player:GetEffects():HasNullEffect(NullItemID.ID_REVERSE_EMPRESS)
+	then
+		CustomHealthAPI.Helper.RemoveTemporaryHP(player, "ReverseEmpressHPToRemove")
+	end
+	
+	if player:GetSubPlayer() and CustomHealthAPI.Helper.GetSavedata(player:GetSubPlayer()) and 
+	   #(CustomHealthAPI.Helper.GetSavedata(player:GetSubPlayer()).ReverseEmpressHPToRemove or {}) > 0 and
+	   not player:GetSubPlayer():GetEffects():HasNullEffect(NullItemID.ID_REVERSE_EMPRESS)
+	then
+		CustomHealthAPI.Helper.RemoveTemporaryHP(player:GetSubPlayer(), "ReverseEmpressHPToRemove")
+	end
+	
+	if player:GetOtherTwin() and CustomHealthAPI.Helper.GetSavedata(player:GetOtherTwin()) and 
+	   #(CustomHealthAPI.Helper.GetSavedata(player:GetOtherTwin()).ReverseEmpressHPToRemove or {}) > 0 and
+	   not player:GetOtherTwin():GetEffects():HasNullEffect(NullItemID.ID_REVERSE_EMPRESS)
+	then
+		CustomHealthAPI.Helper.RemoveTemporaryHP(player:GetOtherTwin(), "ReverseEmpressHPToRemove")
+	end
+end
