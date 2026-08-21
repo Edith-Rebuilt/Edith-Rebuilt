@@ -274,14 +274,16 @@ mod:AddCallback(JumpLib.Callbacks.ENTITY_LAND, function(_, player, jumpData, pit
 
 	if not edithTarget then return end
 
+	local jumpParams = params(player)
+
     if pitfall then
         TargetArrow.RemoveEdithTarget(player)
+		jumpParams.BombStomp = false
         return
     end
 
 	if Player.IsInTrapdoor(player) then return end
 
-    local jumpParams = params(player)
 
 	Land.TriggerLandAnimation(player)
 	Land.LandFeedbackManager(player, Land.GetLandSoundTable(false), player.Color, jumpData)
