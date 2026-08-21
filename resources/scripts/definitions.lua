@@ -474,7 +474,6 @@ EdithRebuilt.Enums = {
 		TEdithHoodPath = "gfx/characters/costumes/characterTaintedEdithHood.png",
 		TargetLineColor = Color(1, 1, 1),
 		SaltShakerDist = Vector(0, 60),
-		ColorDefault = Color(1, 1, 1, 1),
 		JumpReadyColor = Color(1, 1, 1, 1, 0.5, 0.5, 0.5),
 		PerfectParryRadius = 32,
 		ImpreciseParryRadius = 45,
@@ -484,7 +483,6 @@ EdithRebuilt.Enums = {
 		ChargeBarleftVector = Vector(-8, 10),
 		ChargeBarcenterVector = Vector(0, 10),
 		ChargeBarrightVector = Vector(8, 10),
-		PaprikaColor = Color(0.8, 0.2, 0),
 		ParryPartitions = EntityPartition.ENEMY | EntityPartition.BULLET | EntityPartition.TEAR, --[[@as EntityPartition|integer]]
 	},
 }
