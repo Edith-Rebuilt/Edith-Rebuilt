@@ -13,6 +13,7 @@ local MortisBackdrop = tables.MortisBackdrop
 local sounds = enums.SoundEffect
 local callbacks = enums.Callbacks
 local status = enums.EdithStatusEffects
+local VecOne = Vector.One
 local data = mod.DataHolder.GetEntityData
 local Land = {}
 
@@ -373,14 +374,15 @@ function Land.EdithStomp(parent, params, breakGrid)
 	local maths = modules.MATHS
 	local Helpers = modules.HELPERS
 	local Player = modules.PLAYER
+	local playerPos = parent.Position
 	local saltedTime = maths.Round(maths.Clamp(120 * (Player.GetplayerTears(parent) / 2.73), 60, 360))
 	local numTears = Player.GetNumTears(parent)
 
 	local Capsules = {
-		Stomp = Capsule(parent.Position, Vector.One, 0, params.Radius),
-		ShopItem = Capsule(parent.Position, Vector.One, 0, parent.Size),
-		Pickup = Capsule(parent.Position, Vector.One, 0, 30),
-		Slot = Capsule(parent.Position, Vector.One, 0, parent.Size),
+		Stomp = Capsule(playerPos, VecOne, 0, params.Radius),
+		ShopItem = Capsule(playerPos, VecOne, 0, parent.Size),
+		Pickup = Capsule(playerPos, VecOne, 0, 30),
+		Slot = Capsule(playerPos, VecOne, 0, parent.Size),
 	}
 
 	params.StompedEntities = Isaac.FindInCapsule(Capsules.Stomp)
@@ -464,15 +466,19 @@ function Land.TaintedEdithHop(parent, HopParams)
 	local PlayerRef = EntityRef(parent)
 	local CinderDuration = mod.Modules.MATHS.SecondsToFrames(4 * (Charge + BRCharge))
 	local playerPos = parent.Position
-	local VecOne = Vector.One
 	local Capsules = {
 		Hop = Capsule(playerPos, VecOne, 0, HopParams.HopRadius),
 		Slot = Capsule(playerPos, VecOne, 0, parent.Size),
 		Pickup = Capsule(playerPos, VecOne, 0, 30),
+		ShopItem = Capsule(playerPos, VecOne, 0, parent.Size)
 	}
 
-	for _, ent in ipairs(Isaac.FindInCapsule(Capsules.Pickup)) do
+	for _, ent in ipairs(Isaac.FindInCapsule(Capsules.ShopItem, EntityPartition.PICKUP)) do
 		PickupManager(parent, ent, true)
+	end
+
+	for _, ent in ipairs(Isaac.FindInCapsule(Capsules.Pickup, EntityPartition.PICKUP)) do
+		PickupManager(parent, ent)
 	end
 
 	for _, ent in ipairs(Isaac.FindInCapsule(Capsules.Slot)) do
