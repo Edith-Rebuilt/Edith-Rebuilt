@@ -11,52 +11,15 @@ table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveGen
 
 function CustomHealthAPI.Mod:GenesisAndGlowingHourglassOnNewRoomCallback()
 	if CustomHealthAPI.PersistentData.UsingGenesis then
-		CustomHealthAPI.Helper.RunPostGenesisCallbacks()
-	elseif not REPENTOGON then
-		if CustomHealthAPI.PersistentData.UsingGlowingHourglass then
-			CustomHealthAPI.Helper.LoadHealthForGlowingHourglass()
-		else
-			CustomHealthAPI.Helper.BackupHealthForGlowingHourglass()
-		end
+		CustomHealthAPI.Helper.ClearHealthForGenesis()
+	elseif CustomHealthAPI.PersistentData.UsingGlowingHourglass then
+		CustomHealthAPI.Helper.LoadHealthForGlowingHourglass()
+	else
+		CustomHealthAPI.Helper.BackupHealthForGlowingHourglass()
 	end
 	
 	CustomHealthAPI.PersistentData.UsingGlowingHourglass = false
 	CustomHealthAPI.PersistentData.UsingGenesis = false
-end
-
-if REPENTOGON then
-function CustomHealthAPI.Helper.AddGlowingHourglassSaveCallback()
----@diagnostic disable-next-line: param-type-mismatch
-	Isaac.AddCallback(CustomHealthAPI.Mod, ModCallbacks.MC_POST_GLOWING_HOURGLASS_SAVE, CustomHealthAPI.Mod.GlowingHourglassSaveCallback)
-end
-table.insert(CustomHealthAPI.CallbacksToAdd, CustomHealthAPI.Helper.AddGlowingHourglassSaveCallback)
-
-function CustomHealthAPI.Helper.RemoveGlowingHourglassSaveCallback()
-	CustomHealthAPI.Mod:RemoveCallback(ModCallbacks.MC_POST_GLOWING_HOURGLASS_SAVE, CustomHealthAPI.Mod.GlowingHourglassSaveCallback)
-end
-table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveGlowingHourglassSaveCallback)
-
-function CustomHealthAPI.Mod:GlowingHourglassSaveCallback(slot)
-	if Game():GetRoom():GetFrameCount() == 0 then
-		CustomHealthAPI.Mod:HandleStrengthOnNewRoomCallback()
-	end
-	CustomHealthAPI.Helper.BackupHealthForGlowingHourglass(slot)
-end
-
-function CustomHealthAPI.Helper.AddGlowingHourglassLoadCallback()
----@diagnostic disable-next-line: param-type-mismatch
-	Isaac.AddCallback(CustomHealthAPI.Mod, ModCallbacks.MC_POST_GLOWING_HOURGLASS_LOAD, CustomHealthAPI.Mod.GlowingHourglassLoadCallback)
-end
-table.insert(CustomHealthAPI.CallbacksToAdd, CustomHealthAPI.Helper.AddGlowingHourglassLoadCallback)
-
-function CustomHealthAPI.Helper.RemoveGlowingHourglassLoadCallback()
-	CustomHealthAPI.Mod:RemoveCallback(ModCallbacks.MC_POST_GLOWING_HOURGLASS_LOAD, CustomHealthAPI.Mod.GlowingHourglassLoadCallback)
-end
-table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveGlowingHourglassLoadCallback)
-
-function CustomHealthAPI.Mod:GlowingHourglassLoadCallback(slot)
-	CustomHealthAPI.Helper.LoadHealthForGlowingHourglass(slot)
-end
 end
 
 function CustomHealthAPI.Helper.AddUseItemCallback()
@@ -69,41 +32,6 @@ function CustomHealthAPI.Helper.RemoveUseItemCallback()
 	CustomHealthAPI.Mod:RemoveCallback(ModCallbacks.MC_USE_ITEM, CustomHealthAPI.Mod.UseItemCallback)
 end
 table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveUseItemCallback)
-
-function CustomHealthAPI.Helper.RunPreYumHeartHealCallback(iter, otherplayer, hp)
-	local iterator = iter
-	if iterator == nil then
-		local t = Isaac.GetCallbacks(CustomHealthAPI.Enums.Callbacks.PRE_YUM_HEART_HEAL)
-		local k = nil
-		iterator = function()
-			local v
-			k, v = next(t, k)
-			return v
-		end
-	end
-	
-	local playerType = otherplayer:GetPlayerType()
-	local returnTable = {}
-	for callback in iterator do
-		if not callback.Param or callback.Param == playerType then
-			local returnval = callback.Function(callback.Mod, otherplayer, hp)
-			if type(returnval) == "table" then
-				if returnval.HP then
-					returnTable.HP = returnval.HP
-				end
-				if returnval.Prevent then
-					returnTable.Prevent = returnval.Prevent
-					break
-				end
-			elseif returnval ~= nil then
-				returnTable.Prevent = returnval
-				break
-			end
-		end
-	end
-	return returnTable
-end
-CustomHealthAPI.Enums.RunCallbackFuncs[CustomHealthAPI.Enums.Callbacks.PRE_YUM_HEART_HEAL] = CustomHealthAPI.Helper.RunPreYumHeartHealCallback
 
 function CustomHealthAPI.Mod:UseItemCallback(collectible, rng, player, useflags)
 	if player:GetPlayerType() == PlayerType.PLAYER_THESOUL_B then
@@ -183,44 +111,19 @@ function CustomHealthAPI.Mod:UseItemCallback(collectible, rng, player, useflags)
 			--if doubled then 
 			--	hp = hp * 2
 			--end
-			
-			local returnval = CustomHealthAPI.Helper.RunPreYumHeartHealCallback(nil, otherplayer, hp)
-			local shouldCancel = nil
-			if type(returnval) == "table" then
-				if returnval.HP then
-					hp = returnval.HP
-				end
-				if returnval.Prevent then
-					shouldCancel = returnval.Prevent
-				end
-			elseif returnval ~= nil then
-				shouldCancel = returnval
-			end
-			
-			if shouldCancel ~= true then
-				CustomHealthAPI.Helper.UpdateHealthMasks(otherplayer, "RED_HEART", hp)
-			end
-			
-			CustomHealthAPI.Helper.UpdateBasegameHealthState(otherplayer)
-			
-			if shouldCancel ~= true then
-				Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_YUM_HEART_HEAL, otherplayer:GetPlayerType(), otherplayer, hp)
-			end
-		end
+			CustomHealthAPI.Helper.UpdateHealthMasks(player, "RED_HEART", hp)
+			CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
+		end			
 	elseif collectible == CollectibleType.COLLECTIBLE_POTATO_PEELER then
 		-- removes 1 non-bone container
-		-- make sure we didnt just resync so that resyncing in the take_damage callback doesn't make us remove containers twice
-		local data = CustomHealthAPI.Helper.GetOtherData(player)
-		if not data.LastResync or Isaac.GetFrameCount() - data.LastResync > 0 then
-			if CustomHealthAPI.Helper.GetTotalMaxHP(player, true) >= 2 then
-				local hp = -2
-				--if doubled then 
-				--	hp = hp * 2
-				--end
-				CustomHealthAPI.Helper.UpdateHealthMasks(player, "EMPTY_HEART", hp, false, true)
-			end
-			CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
+		if CustomHealthAPI.Helper.GetTotalMaxHP(player, true) >= 2 then
+			local hp = -2
+			--if doubled then 
+			--	hp = hp * 2
+			--end
+			CustomHealthAPI.Helper.UpdateHealthMasks(player, "EMPTY_HEART", hp, false, true)
 		end
+		CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
 	elseif collectible == CollectibleType.COLLECTIBLE_MAGIC_SKIN then
 		-- gives a broken heart in exchange for 1 container, or if no containers two souls
 		if math.ceil(CustomHealthAPI.Helper.GetTotalMaxHP(player, true) / 2) + CustomHealthAPI.Helper.GetTotalBoneHP(player, true, true) > 0 then

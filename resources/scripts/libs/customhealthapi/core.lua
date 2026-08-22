@@ -1,13 +1,8 @@
-local version = 0.967
+local version = 0.961
 
-local root = "resources.scripts.libs.customhealthapi." -- Replace with the location of the 'customhealthapi' folder in your mod (e.g. "modscripts.dependencies.customhealthapi.")
-local modname = "Custom Health API (Edith Rebuilt)" -- Replace with "Custom Health API" + the name of your mod (e.g. "Custom Health API (My Cool Isaac Mod)"
-local modinitials = "ER" -- Replace with the initials of your mod (e.g. "MCIM")
-
--- Example of above (from Fiend Folio):
--- local root = "ffscripts.customhealthapi."
--- local modname = "Custom Health API (Fiend Folio)"
--- local modinitials = "FF"
+local root = "resources.scripts.libs.customhealthapi." 
+local modname = "Custom Health API (Edith Rebuilt)"
+local modinitials = "Edith Rebuilt"
 
 CustomHealthAPI = CustomHealthAPI or {}
 
@@ -17,7 +12,6 @@ if CustomHealthAPI.Mod and CustomHealthAPI.Mod.Version then
 		shouldLoadMod = true
 	elseif CustomHealthAPI.Mod.Version < version then
 		shouldLoadMod = true
-		CustomHealthAPI.PersistentData.ShownDisclaimer = false
 	else
 		shouldLoadMod = false
 	end
@@ -69,17 +63,14 @@ if shouldLoadMod then
 	CustomHealthAPI.Mod = RegisterMod(modname, 1)
 	CustomHealthAPI.Mod.Version = version
 	CustomHealthAPI.Mod.ModName = modname
-	CustomHealthAPI.Mod.AddedCallbacks = false
 
 	CustomHealthAPI.PersistentData = CustomHealthAPI.PersistentData or {}
 	CustomHealthAPI.Helper = {}
 	CustomHealthAPI.Library = {}
 	CustomHealthAPI.Constants = {}
 	CustomHealthAPI.Enums = {}
-	
-	-- v1.9.7.13 is required to be distinguished for the sake of RGON as of 2025-09-09
-	local nullItemTest = Isaac.GetItemConfig():GetNullItem(132)
-	CustomHealthAPI.REPPLUS_V1_9_7_13 = nullItemTest ~= nil and nullItemTest.Name == "transcendance body"
+
+	CustomHealthAPI.Mod.AddedCallbacks = false
 	
 	CustomHealthAPI.PersistentData.OriginalAddCallback = CustomHealthAPI.PersistentData.OriginalAddCallback or Isaac.AddCallback
 	CustomHealthAPI.CallbacksToAdd = CustomHealthAPI.CallbacksToAdd or {}
@@ -165,12 +156,8 @@ if shouldLoadMod then
 	include(root .. "reimpl.pills.hematemesis")
 	include(root .. "reimpl.pills.misc")
 	include(root .. "reimpl.apioverrides")
-	include(root .. "reimpl.beds")
 	include(root .. "reimpl.changeplayertype")
 	include(root .. "reimpl.damage")
-	include(root .. "reimpl.greedsgullet")
-	include(root .. "reimpl.mantles")
-	include(root .. "reimpl.peepuddles")
 	include(root .. "reimpl.pickups")
 	include(root .. "reimpl.renderhealthbar")
 	include(root .. "reimpl.restock")
@@ -179,7 +166,6 @@ if shouldLoadMod then
 	include(root .. "reimpl.subplayers")
 	include(root .. "reimpl.sumptorium")
 	include(root .. "reimpl.whoreofbabylon")
-	if REPENTOGON then include(root .. "getdatacache") end
 	include(root .. "misc")
 	include(root .. "savingandloading")
 	
@@ -228,25 +214,6 @@ if shouldLoadMod then
 			else
 				hasBadLoad = false
 			end
-		end
-	end
-	
-	CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth or 0
-
-	function CustomHealthAPI.Helper.AddResetTechnicalAddHealthCallback()
-		Isaac.AddCallback(CustomHealthAPI.Mod, ModCallbacks.MC_POST_UPDATE, CustomHealthAPI.Mod.ResetTechnicalAddHealth, -1)
-	end
-	table.insert(CustomHealthAPI.CallbacksToAdd, CustomHealthAPI.Helper.AddResetTechnicalAddHealthCallback)
-
-	function CustomHealthAPI.Helper.RemoveResetTechnicalAddHealthCallback()
-		CustomHealthAPI.Mod:RemoveCallback(ModCallbacks.MC_POST_UPDATE, CustomHealthAPI.Mod.ResetTechnicalAddHealth)
-	end
-	table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveResetTechnicalAddHealthCallback)
-
-	function CustomHealthAPI.Mod:ResetTechnicalAddHealth()
-		if CustomHealthAPI.PersistentData.IsTechnicalAddHealth ~= 0 then
-			-- this should only ever happen if an error occurs
-			CustomHealthAPI.PersistentData.IsTechnicalAddHealth = 0
 		end
 	end
 

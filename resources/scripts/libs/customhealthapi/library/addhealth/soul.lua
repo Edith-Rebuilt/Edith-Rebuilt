@@ -1,6 +1,6 @@
 function CustomHealthAPI.Helper.TryConvertingSoulHP(player, key, overflowedHP, ignoreRoomForOtherKeys)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
 	local maskIndex = CustomHealthAPI.PersistentData.HealthDefinitions[key].MaskIndex
 	local keyContainingMask = otherMasks[maskIndex]
 	
@@ -74,8 +74,8 @@ function CustomHealthAPI.Helper.TryInsertingSoulHP(player, key, hpAddedByKey, ov
 	if (CustomHealthAPI.Helper.GetRoomForOtherKeys(player) > 0 or ignoreRoomForOtherKeys) and 
 	   (maxHP > 1 or hpAddedByKey + overflowedHP >= 2) 
 	then
-		local data = CustomHealthAPI.Helper.GetSavedata(player)
-		local otherMasks = data.OtherHealthMasks or {}
+		local data = player:GetData().CustomHealthAPISavedata
+		local otherMasks = data.OtherHealthMasks
 		local maskIndex = CustomHealthAPI.PersistentData.HealthDefinitions[key].MaskIndex
 		local keyContainingMask = otherMasks[maskIndex]
 		
@@ -103,8 +103,8 @@ function CustomHealthAPI.Helper.TryInsertingSoulHP(player, key, hpAddedByKey, ov
 end
 
 function CustomHealthAPI.Helper.TryHealingSoulHP(player, key, hpAddedByKey, overflowedHP, ignoreRoomForOtherKeys)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
 	local maskIndex = CustomHealthAPI.PersistentData.HealthDefinitions[key].MaskIndex
 	local keyContainingMask = otherMasks[maskIndex]
 	local prioritizeHealing = CustomHealthAPI.PersistentData.HealthDefinitions[key].PrioritizeHealing
@@ -186,8 +186,8 @@ function CustomHealthAPI.Helper.TryHealingSoulHP(player, key, hpAddedByKey, over
 end
 
 function CustomHealthAPI.Helper.HealSoulAnywhere(player, hp)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
 	
 	local remainingHPToHeal = hp
 	for i = 1, #otherMasks do
@@ -256,8 +256,8 @@ function CustomHealthAPI.Helper.PlusSoulMain(player, key, hp, ignoreRoomForOther
 end
 
 function CustomHealthAPI.Helper.OtherMaskHasSoul(player, maskIndex)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
 	local mask = otherMasks[maskIndex]
 	
 	for j = 1, #mask do
@@ -270,8 +270,8 @@ function CustomHealthAPI.Helper.OtherMaskHasSoul(player, maskIndex)
 end
 
 function CustomHealthAPI.Helper.TryRemoveLowPrioritySoulFromMask(player, maskIndex, hpToRemove)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
 	local mask = otherMasks[maskIndex]
 	
 	local lastHealth
@@ -351,8 +351,8 @@ function CustomHealthAPI.Helper.TryRemoveLowPrioritySoulFromMask(player, maskInd
 end
 
 function CustomHealthAPI.Helper.TryRemoveLowPrioritySoulFromAnywhere(player, hpToRemove)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
 	
 	local lowestPriorityHealth
 	local lowestPriority
@@ -376,8 +376,8 @@ function CustomHealthAPI.Helper.TryRemoveLowPrioritySoulFromAnywhere(player, hpT
 end
 
 function CustomHealthAPI.Helper.MinusSoulMain(player, key, hp)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
 	local maskIndex = CustomHealthAPI.PersistentData.HealthDefinitions[key].MaskIndex
 	
 	local hpToRemove = hp

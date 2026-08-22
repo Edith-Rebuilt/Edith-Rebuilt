@@ -1,7 +1,7 @@
 function CustomHealthAPI.Helper.HandleHematemesis(player)
 	if CustomHealthAPI.Helper.GetRedCapacity(player) > 0 and not CustomHealthAPI.Helper.PlayerIsRedHealthless(player, true) then
-		local data = CustomHealthAPI.Helper.GetSavedata(player)
-		local redMasks = data.RedHealthMasks or {}
+		local data = player:GetData().CustomHealthAPISavedata
+		local redMasks = data.RedHealthMasks
 		
 		local highestPriorityHealth
 		local healthMaskIndex

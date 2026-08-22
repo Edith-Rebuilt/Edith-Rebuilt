@@ -20,10 +20,11 @@ function CustomHealthAPI.Helper.InitializeRedHealthMasks(player)
 	local rotten = CustomHealthAPI.PersistentData.OverriddenFunctions.GetRottenHearts(player)
 	local red = total - (rotten * 2)
 	
-	CustomHealthAPI.Helper.UpdateHealthMasks(player, "ROTTEN_HEART", rotten * 2, true, false, false, true, true)
+	CustomHealthAPI.Helper.UpdateHealthMasks(player, "ROTTEN_HEART", rotten, true, false, false, true, true)
 	CustomHealthAPI.Helper.UpdateHealthMasks(player, "RED_HEART", red, true, false, false, true, true)
 	
-	--[[local data = CustomHealthAPI.Helper.GetSavedata(player, true)
+	--[[player:GetData().CustomHealthAPISavedata = player:GetData().CustomHealthAPISavedata or {}
+	local data = player:GetData().CustomHealthAPISavedata
 	
 	local order = CustomHealthAPI.Helper.GetRedHealthOrder()
 	data.RedHealthMasks = {}
@@ -84,7 +85,8 @@ function CustomHealthAPI.Helper.InitializeOtherHealthMasks(player)
 	CustomHealthAPI.Helper.UpdateHealthMasks(player, "EMPTY_HEART", math.ceil(empty / 2) * 2)
 	CustomHealthAPI.Helper.UpdateHealthMasks(player, "BROKEN_HEART", broken)
 	
-	--[[local data = CustomHealthAPI.Helper.GetSavedata(player, true)
+	--[[player:GetData().CustomHealthAPISavedata = player:GetData().CustomHealthAPISavedata or {}
+	local data = player:GetData().CustomHealthAPISavedata
 	
 	local order = CustomHealthAPI.Helper.GetOtherHealthOrder()
 	data.OtherHealthMasks = {}
@@ -169,112 +171,45 @@ function CustomHealthAPI.Helper.InitializeOverlays(player)
 end
 
 function CustomHealthAPI.Helper.GetRedHealthMask(player, i)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	local data = player:GetData().CustomHealthAPISavedata
 	return data.RedHealthMasks[i]
 end
 
 function CustomHealthAPI.Helper.GetOtherHealthMask(player, i)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	local data = player:GetData().CustomHealthAPISavedata
 	return data.OtherHealthMasks[i]
 end
 
 function CustomHealthAPI.Helper.CheckIfPlayerRespawned(player)
 	local revived = false
 	
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	local data = player:GetData().CustomHealthAPISavedata
 	
-	local pdata = CustomHealthAPI.Helper.GetPersistentData(player, true)
+	player:GetData().CustomHealthAPIPersistent = player:GetData().CustomHealthAPIPersistent or {}
+	local pdata = player:GetData().CustomHealthAPIPersistent
 	
-	local subPlayer = player:GetSubPlayer()
-	local playertype = player:GetPlayerType()
 	if player:IsDead() then
 		pdata.IsDead = true
-		
-		-- revives before dead cat that keep current hp
-		pdata.CanEarlyRevive = (player:GetCard(0) == Card.CARD_SOUL_LAZARUS or player:GetCard(1) == Card.CARD_SOUL_LAZARUS or player:GetEffects():HasNullEffect(NullItemID.ID_LAZARUS_SOUL_REVIVE)) or
-		                       player:HasCollectible(CollectibleType.COLLECTIBLE_1UP) or
-		                       player:GetPlayerType() == PlayerType.PLAYER_LAZARUS
-		
-		-- other early revives
-		pdata.CanDeadCat = player:HasCollectible(CollectibleType.COLLECTIBLE_DEAD_CAT)
-		pdata.CanInnerChild = player:HasCollectible(CollectibleType.COLLECTIBLE_INNER_CHILD)
-		
-		-- FUCK YOU
-		pdata.CanGuppysCollar = player:HasCollectible(CollectibleType.COLLECTIBLE_GUPPYS_COLLAR)
-		
-		-- revives after guppys collar but before broken ankh that clear hp
-		pdata.CanLazarusRags = player:GetCollectibleNum(CollectibleType.COLLECTIBLE_LAZARUS_RAGS)
-		pdata.CanAnkh = player:HasCollectible(CollectibleType.COLLECTIBLE_ANKH)
-		
-		-- DOUBLE FUCK YOU
-		pdata.CanBrokenAnkh = player:HasTrinket(TrinketType.TRINKET_BROKEN_ANKH)
-		
-		-- everything after
-		pdata.CanJudasShadow = player:GetCollectibleNum(CollectibleType.COLLECTIBLE_JUDAS_SHADOW)
-		pdata.CanMissingPoster = player:GetTrinketMultiplier(TrinketType.TRINKET_MISSING_POSTER)
-		pdata.CanTaintedLostBirthright = (playertype == PlayerType.PLAYER_THELOST_B and player:GetCollectibleNum(CollectibleType.COLLECTIBLE_BIRTHRIGHT)) or 0
 	elseif pdata.IsDead then
-		local clearingHP
-		if pdata.IsCustomRevive or pdata.CanEarlyRevive then
-			clearingHP = false
-		elseif pdata.CanDeadCat then
-			clearingHP = true
-		elseif pdata.CanInnerChild then
-			clearingHP = false
-		elseif pdata.CanGuppysCollar then
-			-- guppys collar throws everything into chaos because it's random
-			-- and then broken anhk rolls into the function and makes everything even worse
-			-- good thing broken ankh turns you into ???/tainted ??? so you dont have heart containers anyways
-			-- so i can just pretend that if you respawned into ???/tainted ??? health got cleared
-			-- stupid nasty hack that could maybe break with RGON healthtype-changing stuff but my hands are tied
-			if pdata.CanLazarusRags > 0 and pdata.CanLazarusRags > player:GetCollectibleNum(CollectibleType.COLLECTIBLE_LAZARUS_RAGS) then
-				clearingHP = false
-			elseif (pdata.CanAnkh or pdata.CanBrokenAnkh) and (playertype == PlayerType.PLAYER_BLUEBABY or playertype == PlayerType.PLAYER_BLUEBABY_B) then
-				clearingHP = true
-			elseif pdata.CanJudasShadow > 0 and pdata.CanJudasShadow > player:GetCollectibleNum(CollectibleType.COLLECTIBLE_JUDAS_SHADOW) then
-				clearingHP = true
-			elseif pdata.CanMissingPoster > 0 and pdata.CanMissingPoster > player:GetTrinketMultiplier(TrinketType.TRINKET_MISSING_POSTER) then
-				clearingHP = true
-			elseif pdata.CanTaintedLostBirthright > 0 and pdata.CanTaintedLostBirthright > player:GetCollectibleNum(CollectibleType.COLLECTIBLE_BIRTHRIGHT) then
-				clearingHP = true
-			else
-				clearingHP = false
-			end
-		elseif pdata.CanLazarusRags > 0 then
-			clearingHP = false
-		else
-			-- ankh, broken ankh, judas shadow, missing poster, tainted lost birthright
-			clearingHP = true
-		end
-		if clearingHP then
-			CustomHealthAPI.Helper.ClearSavedata(player)
-			if subPlayer ~= nil then
-				CustomHealthAPI.Helper.ClearSavedata(subPlayer)
-			end
+		player:GetData().CustomHealthAPISavedata = nil
+		if player:GetSubPlayer() ~= nil then
+			player:GetSubPlayer():GetData().CustomHealthAPISavedata = nil
 		end
 		pdata.IsDead = nil
-		pdata.IsCustomRevive = nil
-		pdata.CanEarlyRevive = nil
-		pdata.CanDeadCat = nil
-		pdata.CanInnerChild = nil
-		pdata.CanGuppysCollar = nil
-		pdata.CanLazarusRags = nil
-		pdata.CanAnkh = nil
-		pdata.CanBrokenAnkh = nil
-		pdata.CanJudasShadow = nil
-		pdata.CanMissingPoster = nil
-		pdata.CanTaintedLostBirthright = nil
 		revived = true
 	end
 	
-	if subPlayer ~= nil then
-		local subpdata = CustomHealthAPI.Helper.GetPersistentData(subPlayer, true)
+	if player:GetSubPlayer() ~= nil then
+		local subdata = player:GetSubPlayer():GetData().CustomHealthAPISavedata
 		
-		if subPlayer:IsDead() then
+		player:GetSubPlayer():GetData().CustomHealthAPIPersistent = player:GetSubPlayer():GetData().CustomHealthAPIPersistent or {}
+		local subpdata = player:GetSubPlayer():GetData().CustomHealthAPIPersistent
+		
+		if player:GetSubPlayer():IsDead() then
 			subpdata.IsDead = true
 		elseif subpdata.IsDead then
-			CustomHealthAPI.Helper.ClearSavedata(player)
-			CustomHealthAPI.Helper.ClearSavedata(subPlayer)
+			player:GetData().CustomHealthAPISavedata = nil
+			player:GetSubPlayer():GetData().CustomHealthAPISavedata = nil
 			subpdata.IsDead = nil
 			revived = true
 		end
@@ -301,39 +236,6 @@ function CustomHealthAPI.Mod:ResetRecursiveInitPreventionCallback()
 	end
 end
 
-function CustomHealthAPI.Helper.InitializeEmptyHealthMasks(player)
-	local data = CustomHealthAPI.Helper.ResetSavedata(player)
-	
-	local redorder = CustomHealthAPI.Helper.GetRedHealthOrder()
-	data.RedHealthMasks = {}
-	for i = 1, #redorder do
-		data.RedHealthMasks[i] = {}
-	end
-	
-	local otherorder = CustomHealthAPI.Helper.GetOtherHealthOrder()
-	data.OtherHealthMasks = {}
-	for i = 1, #otherorder do
-		data.OtherHealthMasks[i] = {}
-	end
-	
-	local overlaylayers = CustomHealthAPI.Helper.GetOverlayHealthLayerOrders()
-	data.OverlayHealthMaskLayers = {}
-	for i, order in ipairs(overlaylayers) do
-		data.OverlayHealthMaskLayers[i] = {}
-		for j = 1, #order do
-			data.OverlayHealthMaskLayers[i][j] = {}
-		end
-	end
-	
-	-- Legacy
-	data.Overlays = {
-		ETERNAL_HEART = 0,
-		GOLDEN_HEART = 0,
-	}
-	
-	data.PlayerType = player:GetPlayerType()
-end
-
 function CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player, isSubPlayer)
 	-- Call this early to trigger repentogon's GetHealthType callback in case it changed.
 	local ignored = CustomHealthAPI.Helper.PlayerIsIgnored(player)
@@ -342,9 +244,6 @@ function CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player, isSubP
 		return
 	end
 	avoidRecursive = true
-	if type(CustomHealthAPI.PersistentData.PreventResyncing) == "boolean" then
-		CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing and 1 or 0
-	end
 	CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing + 1
 
 	local revived = false
@@ -352,22 +251,25 @@ function CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player, isSubP
 		revived = CustomHealthAPI.Helper.CheckIfPlayerRespawned(player)
 	end
 	
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	local data = player:GetData().CustomHealthAPISavedata
 	
 	local callCache = false
 	local callSubCache = false
 	if ignored then
-		CustomHealthAPI.Helper.ClearSavedata(player)
+		player:GetData().CustomHealthAPISavedata = nil
 		avoidRecursive = false
 		CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing - 1
 		
 		if revived then
-			Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_PLAYER_REVIVED, player:GetPlayerType(), player)
+			local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_PLAYER_REVIVED)
+			for _, callback in ipairs(callbacks) do
+				callback.Function(player)
+			end
 		end
 		
 		local i = CustomHealthAPI.Helper.GetPlayerIndex(player)
-		if CustomHealthAPI.PersistentData.HiddenPlayerHealthBackup[i] ~= nil and CustomHealthAPI.Helper.GetPersistentData(player, false) == nil then
-			CustomHealthAPI.Helper.SetPersistentData(player, CustomHealthAPI.PersistentData.HiddenPlayerHealthBackup[i]["Persist"])
+		if CustomHealthAPI.PersistentData.HiddenPlayerHealthBackup[i] ~= nil and player:GetData().CustomHealthAPIPersistent == nil then
+			player:GetData().CustomHealthAPIPersistent = CustomHealthAPI.PersistentData.HiddenPlayerHealthBackup[i]["Persist"]
 			
 			player:AddCacheFlags(CacheFlag.CACHE_DAMAGE | 
 								 CacheFlag.CACHE_FIREDELAY | 
@@ -383,23 +285,21 @@ function CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player, isSubP
 	elseif data == nil then
 		local i = CustomHealthAPI.Helper.GetPlayerIndex(player)
 		if CustomHealthAPI.PersistentData.HiddenPlayerHealthBackup[i] ~= nil then
-			CustomHealthAPI.Helper.SetSavedata(player, CustomHealthAPI.PersistentData.HiddenPlayerHealthBackup[i]["Save"])
-			CustomHealthAPI.Helper.SetPersistentData(player, CustomHealthAPI.PersistentData.HiddenPlayerHealthBackup[i]["Persist"])
-			data = CustomHealthAPI.Helper.GetSavedata(player)
+			player:GetData().CustomHealthAPISavedata = CustomHealthAPI.PersistentData.HiddenPlayerHealthBackup[i]["Save"]
+			player:GetData().CustomHealthAPIPersistent = CustomHealthAPI.PersistentData.HiddenPlayerHealthBackup[i]["Persist"]
+			data = player:GetData().CustomHealthAPISavedata
 			
 			callCache = true
 		end
 	end
 	
-	local subPlayer = player:GetSubPlayer()
-	
-	if subPlayer ~= nil and not isSubPlayer then
-		local subdata = CustomHealthAPI.Helper.GetSavedata(subPlayer)
+	if player:GetSubPlayer() ~= nil and not isSubPlayer then
+		local subdata = player:GetSubPlayer():GetData().CustomHealthAPISavedata
 		if subdata == nil then
 			local i = CustomHealthAPI.Helper.GetPlayerIndex(player)
 			if CustomHealthAPI.PersistentData.HiddenSubplayerHealthBackup[i] ~= nil then
-				CustomHealthAPI.Helper.SetSavedata(subPlayer, CustomHealthAPI.PersistentData.HiddenSubplayerHealthBackup[i]["Save"])
-				CustomHealthAPI.Helper.SetPersistentData(subPlayer, CustomHealthAPI.PersistentData.HiddenSubplayerHealthBackup[i]["Persist"])
+				player:GetSubPlayer():GetData().CustomHealthAPISavedata = CustomHealthAPI.PersistentData.HiddenSubplayerHealthBackup[i]["Save"]
+				player:GetSubPlayer():GetData().CustomHealthAPIPersistent = CustomHealthAPI.PersistentData.HiddenSubplayerHealthBackup[i]["Persist"]
 				CustomHealthAPI.Helper.CheckIfSwapSubPlayerInfo(player)
 			
 				callSubCache = true
@@ -409,15 +309,31 @@ function CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player, isSubP
 	
 	local callCallbacks = false
 	if data == nil then
-		CustomHealthAPI.Helper.InitializeEmptyHealthMasks(player)
-		data = CustomHealthAPI.Helper.GetSavedata(player)
+		player:GetData().CustomHealthAPISavedata = {}
+		data = player:GetData().CustomHealthAPISavedata
 		
-		CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth + 1
+		local redorder = CustomHealthAPI.Helper.GetRedHealthOrder()
+		data.RedHealthMasks = {}
+		for i = 1, #redorder do
+			data.RedHealthMasks[i] = {}
+		end
+		
+		local otherorder = CustomHealthAPI.Helper.GetOtherHealthOrder()
+		data.OtherHealthMasks = {}
+		for i = 1, #otherorder do
+			data.OtherHealthMasks[i] = {}
+		end
+		
+		data.Overlays = {}
+		data.Overlays["ETERNAL_HEART"] = 0
+		data.Overlays["GOLDEN_HEART"] = 0
+		
 		CustomHealthAPI.Helper.InitializeOtherHealthMasks(player)
 		CustomHealthAPI.Helper.InitializeRedHealthMasks(player)
 		CustomHealthAPI.Helper.InitializeOverlays(player)
-		CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth - 1
 		CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
+		
+		data.PlayerType = player:GetPlayerType()
 		
 		callCallbacks = true
 	end
@@ -425,16 +341,22 @@ function CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player, isSubP
 	avoidRecursive = false
 	CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing - 1
 	
-	if subPlayer ~= nil and not isSubPlayer then
-		CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(subPlayer, true)
+	if player:GetSubPlayer() ~= nil and not isSubPlayer then
+		CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player:GetSubPlayer(), true)
 	end
 	
 	if callCallbacks then
-		Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_PLAYER_INITIALIZE, player:GetPlayerType(), player, isSubPlayer)
+		local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_PLAYER_INITIALIZE)
+		for _, callback in ipairs(callbacks) do
+			callback.Function(player, isSubPlayer)
+		end
 	end
 	
 	if revived then
-		Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_PLAYER_REVIVED, player:GetPlayerType(), player)
+		local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_PLAYER_REVIVED)
+		for _, callback in ipairs(callbacks) do
+			callback.Function(player)
+		end
 	end
 	
 	if callCache then
@@ -449,14 +371,14 @@ function CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player, isSubP
 	end
 	
 	if callSubCache then
-		subPlayer:AddCacheFlags(CacheFlag.CACHE_DAMAGE | 
+		player:GetSubPlayer():AddCacheFlags(CacheFlag.CACHE_DAMAGE | 
 							 CacheFlag.CACHE_FIREDELAY | 
 							 CacheFlag.CACHE_SPEED | 
 							 CacheFlag.CACHE_SHOTSPEED | 
 							 CacheFlag.CACHE_RANGE | 
 							 CacheFlag.CACHE_LUCK)
 		
-		subPlayer:EvaluateItems()
+		player:GetSubPlayer():EvaluateItems()
 	end
 end
 

@@ -30,10 +30,6 @@ function CustomHealthAPI.Mod:UseCardCallback(card, player, useflags)
 	elseif card == Card.CARD_HEARTS_2 then
 		-- adds red hp equal to the basegame amount
 		local hp = CustomHealthAPI.Helper.GetTotalRedHP(player, true, nil, true)
-		-- if isaac has 0 hp, grant 2 hp
-		if hp == 0 then
-			hp = 2
-		end
 		--if doubled then 
 		--	hp = hp * 2
 		--end

@@ -1,19 +1,10 @@
 -- oh my godddddddddddd there is a singular function for this in the game but we don't have it in the api whyyyyyyyyyyyyyyy
--- REPENTOGON: "hi"
 
 CustomHealthAPI.PersistentData.RestockInfo = CustomHealthAPI.PersistentData.RestockInfo or {}
 
 function CustomHealthAPI.Helper.ShouldRestock()
-	if Game():GetRoom():GetType() ~= RoomType.ROOM_SHOP then
-		return false
-	end
-	
 	if Game():IsGreedMode() then
 		return true
-	end
-	
-	if REPENTOGON then
-		return PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_RESTOCK)
 	end
 	
 	for i = 0, Game():GetNumPlayers() - 1 do
@@ -29,10 +20,6 @@ end
 function CustomHealthAPI.Helper.GetDimension()
 	local level = Game():GetLevel()
 	
-	if REPENTOGON then
-		return level:GetDimension()
-	end
-	
 	local roomIndex = level:GetCurrentRoomIndex()
 	for i = 0, 2 do
 		if GetPtrHash(level:GetRoomByIdx(roomIndex, i)) == GetPtrHash(level:GetRoomByIdx(roomIndex, -1)) then
@@ -42,19 +29,13 @@ function CustomHealthAPI.Helper.GetDimension()
 	return 0
 end
 
-function CustomHealthAPI.Library.TriggerRestock(pickup, noSpawn, basePrice)
+function CustomHealthAPI.Library.TriggerRestock(pickup, noSpawn)
 	if CustomHealthAPI.Helper.ShouldRestock() then
 		local shopid = pickup.ShopItemId
-		local room = Game():GetRoom()
-		
-		if REPENTOGON then
-			local shopid = pickup.ShopItemId
-			local gridIndex = room:GetGridIndex(pickup.Position)
-			room:TriggerRestock(gridIndex, shopid)
-			return
-		end
 		
 		local level = Game():GetLevel()
+		local room = Game():GetRoom()
+		
 		local roomIndex = level:GetCurrentRoomIndex()
 		local dimension = CustomHealthAPI.Helper.GetDimension()
 		
@@ -68,7 +49,6 @@ function CustomHealthAPI.Library.TriggerRestock(pickup, noSpawn, basePrice)
 		restockInfo.NextSubType = pickup.SubType
 		restockInfo.NextGridIndex = room:GetGridIndex(pickup.Position)
 		restockInfo.TimesPurchased = (restockInfo.TimesPurchased or 0) + 1
-		restockInfo.BasePrice = basePrice
 		if noSpawn then
 			restockInfo.TimeTilRestock = 0
 		else
@@ -80,10 +60,6 @@ function CustomHealthAPI.Library.TriggerRestock(pickup, noSpawn, basePrice)
 end
 
 function CustomHealthAPI.Helper.HasCustomRestocked(pickup)
-	if REPENTOGON then
-		return false
-	end
-	
 	local level = Game():GetLevel()
 	local room = Game():GetRoom()
 	
@@ -102,19 +78,16 @@ function CustomHealthAPI.Helper.HasCustomRestocked(pickup)
 	return timesPurchased > 0
 end
 
-if not REPENTOGON then
-	function CustomHealthAPI.Helper.AddRestockPickupsCallback()
-		Isaac.AddCallback(CustomHealthAPI.Mod, ModCallbacks.MC_POST_UPDATE, CustomHealthAPI.Mod.RestockPickupsCallback, -1)
-	end
-	table.insert(CustomHealthAPI.CallbacksToAdd, CustomHealthAPI.Helper.AddRestockPickupsCallback)
-
-	function CustomHealthAPI.Helper.RemoveRestockPickupsCallback()
-		CustomHealthAPI.Mod:RemoveCallback(ModCallbacks.MC_POST_UPDATE, CustomHealthAPI.Mod.RestockPickupsCallback)
-	end
-	table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveRestockPickupsCallback)
+function CustomHealthAPI.Helper.AddRestockPickupsCallback()
+	Isaac.AddCallback(CustomHealthAPI.Mod, ModCallbacks.MC_POST_UPDATE, CustomHealthAPI.Mod.RestockPickupsCallback, -1)
 end
+table.insert(CustomHealthAPI.CallbacksToAdd, CustomHealthAPI.Helper.AddRestockPickupsCallback)
 
--- Not used with REPENTOGON
+function CustomHealthAPI.Helper.RemoveRestockPickupsCallback()
+	CustomHealthAPI.Mod:RemoveCallback(ModCallbacks.MC_POST_UPDATE, CustomHealthAPI.Mod.RestockPickupsCallback)
+end
+table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveRestockPickupsCallback)
+
 function CustomHealthAPI.Mod:RestockPickupsCallback()
 	local level = Game():GetLevel()
 	local room = Game():GetRoom()
@@ -163,7 +136,7 @@ function CustomHealthAPI.Mod:RestockPickupsCallback()
 				if pickup.Variant ~= PickupVariant.PICKUP_COLLECTIBLE and pickup:IsShopItem() then
 					if pickup.AutoUpdatePrice and not pickup:IsDead() then
 						pickup.Price = CustomHealthAPI.Helper.GetPriceOfPickup(pickup)
-						CustomHealthAPI.Helper.GetEntityData(pickup).CHAPILastPriceUpdate = Game():GetFrameCount()
+						pickup:GetData().CHAPILastPriceUpdate = Game():GetFrameCount()
 					elseif pickup:IsDead() then
 						pickup.AutoUpdatePrice = false
 					end
@@ -174,9 +147,6 @@ function CustomHealthAPI.Mod:RestockPickupsCallback()
 end
 
 function CustomHealthAPI.Helper.GetNumSteamSales()
-	if REPENTOGON then
-		return PlayerManager.GetNumCollectibles(CollectibleType.COLLECTIBLE_STEAM_SALE)
-	end
 	local numSteamSales = 0
 	for i = 0, Game():GetNumPlayers() - 1 do
 		local player = Isaac.GetPlayer(i)
@@ -186,9 +156,6 @@ function CustomHealthAPI.Helper.GetNumSteamSales()
 end
 
 function CustomHealthAPI.Helper.SomeoneHasPoundOfFlesh()
-	if REPENTOGON then
-		return PlayerManager.AnyoneHasCollectible(CollectibleType.COLLECTIBLE_POUND_OF_FLESH)
-	end
 	for i = 0, Game():GetNumPlayers() - 1 do
 		local player = Isaac.GetPlayer(i)
 		if player:HasCollectible(CollectibleType.COLLECTIBLE_POUND_OF_FLESH) then
@@ -199,9 +166,6 @@ function CustomHealthAPI.Helper.SomeoneHasPoundOfFlesh()
 end
 
 function CustomHealthAPI.Helper.SomeoneHasStoreCredit()
-	if REPENTOGON then
-		return PlayerManager.AnyoneHasTrinket(TrinketType.TRINKET_STORE_CREDIT)
-	end
 	for i = 0, Game():GetNumPlayers() - 1 do
 		local player = Isaac.GetPlayer(i)
 		if player:HasTrinket(TrinketType.TRINKET_STORE_CREDIT) then
@@ -211,9 +175,8 @@ function CustomHealthAPI.Helper.SomeoneHasStoreCredit()
 	return false
 end
 
--- Less relevant with REPENTOGON but could still be useful.
-function CustomHealthAPI.Helper.GetPriceOfPickup(pickup, force, basePrice)
-	if CustomHealthAPI.Helper.GetEntityData(pickup).CHAPILastPriceUpdate == Game():GetFrameCount() and not force then
+function CustomHealthAPI.Helper.GetPriceOfPickup(pickup, force)
+	if pickup:GetData().CHAPILastPriceUpdate == Game():GetFrameCount() and not force then
 		return pickup.Price
 	end
 	
@@ -231,8 +194,18 @@ function CustomHealthAPI.Helper.GetPriceOfPickup(pickup, force, basePrice)
 	
 	local shopid = pickup.ShopItemId
 	local timesPurchased = 0
+	if CustomHealthAPI.PersistentData.RestockInfo["a"..dimension] and 
+	   CustomHealthAPI.PersistentData.RestockInfo["a"..dimension]["a"..roomIndex] and
+	   CustomHealthAPI.PersistentData.RestockInfo["a"..dimension]["a"..roomIndex]["a"..shopid]
+	then
+		timesPurchased = (CustomHealthAPI.PersistentData.RestockInfo["a"..dimension]["a"..roomIndex]["a"..shopid].TimesPurchased or 0)
+	end
 	
-	local basePrice = basePrice or 5
+	local isGreedMode = Game():IsGreedMode()
+	local hasDiscount = level:GetRoomByIdx(level:GetCurrentRoomIndex()).ShopItemDiscountIdx == shopid
+	local numSteamSales = CustomHealthAPI.Helper.GetNumSteamSales()
+	
+	local basePrice = 5
 	if pickup.Variant == PickupVariant.PICKUP_HEART and
 	   (pickup.SubType == HeartSubType.HEART_FULL or pickup.SubType == HeartSubType.HEART_HALF)
 	then
@@ -240,19 +213,6 @@ function CustomHealthAPI.Helper.GetPriceOfPickup(pickup, force, basePrice)
 	elseif pickup.Variant == PickupVariant.PICKUP_GRAB_BAG then
 		basePrice = 7
 	end
-	
-	if not REPENTOGON and
-	   CustomHealthAPI.PersistentData.RestockInfo["a"..dimension] and 
-	   CustomHealthAPI.PersistentData.RestockInfo["a"..dimension]["a"..roomIndex] and
-	   CustomHealthAPI.PersistentData.RestockInfo["a"..dimension]["a"..roomIndex]["a"..shopid]
-	then
-		timesPurchased = (CustomHealthAPI.PersistentData.RestockInfo["a"..dimension]["a"..roomIndex]["a"..shopid].TimesPurchased or 0)
-		basePrice = CustomHealthAPI.PersistentData.RestockInfo["a"..dimension]["a"..roomIndex]["a"..shopid].BasePrice or basePrice
-	end
-	
-	local isGreedMode = Game():IsGreedMode()
-	local hasDiscount = level:GetRoomByIdx(level:GetCurrentRoomIndex()).ShopItemDiscountIdx == shopid
-	local numSteamSales = CustomHealthAPI.Helper.GetNumSteamSales()
 	
 	local discountedPrice = basePrice
 	if pickup.Variant == PickupVariant.PICKUP_GRAB_BAG and
@@ -304,20 +264,17 @@ function CustomHealthAPI.Helper.TryRemoveStoreCredit(player)
 	end
 end
 
-if not REPENTOGON then
-	function CustomHealthAPI.Helper.AddUpdatePickupPriceCallback()
-	---@diagnostic disable-next-line: param-type-mismatch
-		Isaac.AddPriorityCallback(CustomHealthAPI.Mod, ModCallbacks.MC_POST_PICKUP_UPDATE, CustomHealthAPI.Enums.CallbackPriorities.LATE, CustomHealthAPI.Mod.UpdatePickupPriceCallback, -1)
-	end
-	table.insert(CustomHealthAPI.CallbacksToAdd, CustomHealthAPI.Helper.AddUpdatePickupPriceCallback)
-
-	function CustomHealthAPI.Helper.RemoveUpdatePickupPriceCallback()
-		CustomHealthAPI.Mod:RemoveCallback(ModCallbacks.MC_POST_PICKUP_UPDATE, CustomHealthAPI.Mod.UpdatePickupPriceCallback)
-	end
-	table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveUpdatePickupPriceCallback)
+function CustomHealthAPI.Helper.AddUpdatePickupPriceCallback()
+---@diagnostic disable-next-line: param-type-mismatch
+	Isaac.AddPriorityCallback(CustomHealthAPI.Mod, ModCallbacks.MC_POST_PICKUP_UPDATE, CustomHealthAPI.Enums.CallbackPriorities.LATE, CustomHealthAPI.Mod.UpdatePickupPriceCallback, -1)
 end
+table.insert(CustomHealthAPI.CallbacksToAdd, CustomHealthAPI.Helper.AddUpdatePickupPriceCallback)
 
--- Not used with REPENTOGON
+function CustomHealthAPI.Helper.RemoveUpdatePickupPriceCallback()
+	CustomHealthAPI.Mod:RemoveCallback(ModCallbacks.MC_POST_PICKUP_UPDATE, CustomHealthAPI.Mod.UpdatePickupPriceCallback)
+end
+table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveUpdatePickupPriceCallback)
+
 function CustomHealthAPI.Mod:UpdatePickupPriceCallback(pickup)
 	if pickup.Variant ~= PickupVariant.PICKUP_COLLECTIBLE and 
 	   pickup:IsShopItem() and 
@@ -327,6 +284,6 @@ function CustomHealthAPI.Mod:UpdatePickupPriceCallback(pickup)
 	   CustomHealthAPI.Helper.HasCustomRestocked(pickup)
 	then
 		pickup.Price = CustomHealthAPI.Helper.GetPriceOfPickup(pickup, true)
-		CustomHealthAPI.Helper.GetEntityData(pickup).CHAPILastPriceUpdate = Game():GetFrameCount()
+		pickup:GetData().CHAPILastPriceUpdate = Game():GetFrameCount()
 	end
 end

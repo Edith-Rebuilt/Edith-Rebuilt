@@ -1,6 +1,5 @@
 CustomHealthAPI.PersistentData.UsingGlowingHourglass = CustomHealthAPI.PersistentData.UsingGlowingHourglass or false
 CustomHealthAPI.PersistentData.GlowingHourglassBackup = CustomHealthAPI.PersistentData.GlowingHourglassBackup or nil
-CustomHealthAPI.PersistentData.GlowingHourglassBackup2 = CustomHealthAPI.PersistentData.GlowingHourglassBackup2 or nil
 
 local isReversingTime = false
 
@@ -39,23 +38,18 @@ function CustomHealthAPI.Mod:PreUseGlowingHourglassCallback(collectible, rng, pl
 	end
 end
 
-function CustomHealthAPI.Helper.BackupHealthForGlowingHourglass(slot)
-	if slot == 1 then
-		CustomHealthAPI.PersistentData.GlowingHourglassBackup2 = CustomHealthAPI.Library.GetHealthBackup()
-	else
-		CustomHealthAPI.PersistentData.GlowingHourglassBackup = CustomHealthAPI.Library.GetHealthBackup()
-	end
+function CustomHealthAPI.Helper.BackupHealthForGlowingHourglass()
+	CustomHealthAPI.PersistentData.GlowingHourglassBackup = CustomHealthAPI.Library.GetHealthBackup()
 end
 
-function CustomHealthAPI.Helper.LoadHealthForGlowingHourglass(slot)
-	if slot == 1 then
-		CustomHealthAPI.Library.LoadHealthFromBackup(CustomHealthAPI.PersistentData.GlowingHourglassBackup2)
-	else
-		CustomHealthAPI.Library.LoadHealthFromBackup(CustomHealthAPI.PersistentData.GlowingHourglassBackup)
-	end
+function CustomHealthAPI.Helper.LoadHealthForGlowingHourglass()
+	CustomHealthAPI.Library.LoadHealthFromBackup(CustomHealthAPI.PersistentData.GlowingHourglassBackup)
 	
 	for i = 0, Game():GetNumPlayers() - 1 do
 		local player = Isaac.GetPlayer(i)
-		CustomHealthAPI.Helper.GetOtherData(player).LastValues = nil
+		
+		player:GetData().CustomHealthAPIOtherData = player:GetData().CustomHealthAPIOtherData or {}
+		local data = player:GetData().CustomHealthAPIOtherData
+		data.LastValues = nil
 	end
 end

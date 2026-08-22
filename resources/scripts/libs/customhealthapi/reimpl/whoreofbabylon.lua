@@ -1,5 +1,4 @@
 local preventManualWoBGiantbook = false
-local antiRecursion = false
 
 function CustomHealthAPI.Helper.AddSetPreventManualWoBGiantbook()
 	Isaac.AddPriorityCallback(CustomHealthAPI.Mod, ModCallbacks.MC_POST_NEW_ROOM, -1 * math.huge, CustomHealthAPI.Mod.SetPreventManualWoBGiantbook, -1)
@@ -27,7 +26,6 @@ table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveCle
 
 function CustomHealthAPI.Mod:ClearPreventManualWoBGiantbook()
 	preventManualWoBGiantbook = false
-	antiRecursion = false
 end
 
 function CustomHealthAPI.Helper.AddWhoreOfBabylonPrevention(player)
@@ -53,20 +51,8 @@ end
 function CustomHealthAPI.Helper.RemoveWhoreOfBabylonPrevention(player)
 	player:GetEffects():RemoveCollectibleEffect(CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON)
 	
-	if not antiRecursion and not preventManualWoBGiantbook and player:HasCollectible(CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON) then
-		if REPENTOGON then
-			local currentRedHP = math.max(CustomHealthAPI.Helper.GetTotalRedHP(player, true, nil, true), CustomHealthAPI.Helper.GetTotalRedHP(player, false, nil, true))
-			if not player:IsDead() and currentRedHP < (player:GetPlayerType() == PlayerType.PLAYER_EVE and 3 or 2) then
-				ItemOverlay.Show(Giantbook.WHORE_OF_BABYLON)
-				if not player:GetEffects():HasCollectibleEffect(CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON) then
-					player:GetEffects():AddCollectibleEffect(CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON, true)
-				end
-			end
-			return
-		end
-		
+	if not preventManualWoBGiantbook then
 		-- Force game to recheck
-		antiRecursion = true
 		CustomHealthAPI.PersistentData.OverriddenFunctions.AddCollectible(player, 
 		                                                                  CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON, 
 		                                                                  0, 
@@ -75,7 +61,6 @@ function CustomHealthAPI.Helper.RemoveWhoreOfBabylonPrevention(player)
 		                                                                  0,
 		                                                                  ItemPoolType.POOL_TREASURE)
 		player:RemoveCollectible(CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON)
-		antiRecursion = false
 	end
 end
 
@@ -97,31 +82,20 @@ function CustomHealthAPI.Helper.RemoveBloodyBabylonPrevention(player)
 	local currentRedHP = math.max(CustomHealthAPI.Helper.GetTotalRedHP(player, true, nil, true), CustomHealthAPI.Helper.GetTotalRedHP(player, false, nil, true))
 	local currentSoulHP = math.max(CustomHealthAPI.Helper.GetTotalSoulHP(player, true, nil, true), CustomHealthAPI.Helper.GetTotalSoulHP(player, false, nil, true))
 	local currentBoneHP = math.max(CustomHealthAPI.Helper.GetTotalBoneHP(player, true, true), CustomHealthAPI.Helper.GetTotalBoneHP(player, false, true))
-	local currentEternalHP = CustomHealthAPI.Helper.GetTotalKeys(player, "ETERNAL_HEART")
-	local currentGoldenHP = CustomHealthAPI.Helper.GetTotalKeys(player, "GOLDEN_HEART")
+	local currentEternalHP = player:GetData().CustomHealthAPISavedata.Overlays["ETERNAL_HEART"]
+	local currentGoldenHP = player:GetData().CustomHealthAPISavedata.Overlays["GOLDEN_HEART"]
 	
 	local currentHP = currentRedHP + currentSoulHP + currentBoneHP + currentEternalHP + currentGoldenHP
 	
 	if currentHP == 1 and 
 	   not preventManualWoBGiantbook and
-	   not antiRecursion and
-	   not CustomHealthAPI.Helper.GetOtherData(player).SpawningSumptorium and
-	   not CustomHealthAPI.Helper.PlayerHasClots(player) and
-	   player:GetPlayerType() == PlayerType.PLAYER_EVE_B
+	   not (player:GetData().CustomHealthAPIOtherData and player:GetData().CustomHealthAPIOtherData.SpawningSumptorium) and
+	   not CustomHealthAPI.Helper.PlayerHasClots(player)
 	then
-		if REPENTOGON then
-			ItemOverlay.Show(Giantbook.WHORE_OF_BABYLON)
-			if not player:GetEffects():HasNullEffect(NullItemID.ID_BLOODY_BABYLON) then
-				player:GetEffects():AddNullEffect(NullItemID.ID_BLOODY_BABYLON, true)
-			end
-			return
-		end
-		
 		local wobNum = player:GetEffects():GetCollectibleEffectNum(CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON)
 		player:GetEffects():RemoveCollectibleEffect(CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON, wobNum)
 		
 		-- Force game to play giantbook
-		antiRecursion = true
 		CustomHealthAPI.PersistentData.OverriddenFunctions.AddCollectible(player, 
 		                                                                  CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON, 
 		                                                                  0, 
@@ -130,7 +104,6 @@ function CustomHealthAPI.Helper.RemoveBloodyBabylonPrevention(player)
 		                                                                  0,
 		                                                                  ItemPoolType.POOL_TREASURE)
 		player:RemoveCollectible(CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON)
-		antiRecursion = false
 		
 		player:GetEffects():RemoveCollectibleEffect(CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON, 
 		                                            player:GetEffects():GetCollectibleEffectNum(CollectibleType.COLLECTIBLE_WHORE_OF_BABYLON))

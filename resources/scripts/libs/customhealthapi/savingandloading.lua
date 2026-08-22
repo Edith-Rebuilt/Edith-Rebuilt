@@ -58,18 +58,30 @@ function CustomHealthAPI.Mod:HandleSaveDataOnGameStartCallback(isContinued)
 	end
 	CustomHealthAPI.Helper.SaveData()
 	CustomHealthAPI.PersistentData.GlowingHourglassBackup = CustomHealthAPI.Library.GetHealthBackup()
-	CustomHealthAPI.PersistentData.GlowingHourglassBackup2 = CustomHealthAPI.Library.GetHealthBackup()
 	
 	CustomHealthAPI.PersistentData.SaveDataLoaded = true
 end
 
 function CustomHealthAPI.Helper.SaveData(isPreGameExit)
 	local save = CustomHealthAPI.Library.GetHealthBackup()
-	Isaac.RunCallback(CustomHealthAPI.Enums.Callbacks.ON_SAVE, save, isPreGameExit == true)
+	
+	local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.ON_SAVE)
+	for _, callback in ipairs(callbacks) do
+		callback.Function(save, isPreGameExit == true)
+	end
 end
 
 function CustomHealthAPI.Helper.LoadData()
-	local save = Isaac.RunCallback(CustomHealthAPI.Enums.Callbacks.ON_LOAD)
+	local save
+	
+	local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.ON_LOAD)
+	for _, callback in ipairs(callbacks) do
+		save = callback.Function()
+		if save ~= nil then
+			break
+		end
+	end
+	
 	if save ~= nil then
 		CustomHealthAPI.Library.LoadHealthFromBackup(save)
 	end

@@ -13,51 +13,40 @@ table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveUse
 
 function CustomHealthAPI.Mod:UseGenesisCallback()
 	CustomHealthAPI.PersistentData.UsingGenesis = true
-	if not REPENTOGON then CustomHealthAPI.PersistentData.GlowingHourglassBackup = CustomHealthAPI.Library.GetHealthBackup() end
+	CustomHealthAPI.PersistentData.GlowingHourglassBackup = CustomHealthAPI.Library.GetHealthBackup()
 end
 
-function CustomHealthAPI.Helper.AddGenesisPlayerInitCallback()
----@diagnostic disable-next-line: param-type-mismatch
-	Isaac.AddPriorityCallback(CustomHealthAPI.Mod, ModCallbacks.MC_POST_PLAYER_INIT, CustomHealthAPI.Enums.CallbackPriorities.FIRST, CustomHealthAPI.Mod.GenesisPlayerInit)
-end
-table.insert(CustomHealthAPI.CallbacksToAdd, CustomHealthAPI.Helper.AddGenesisPlayerInitCallback)
-
-function CustomHealthAPI.Helper.RemoveGenesisPlayerInitCallback()
-	CustomHealthAPI.Mod:RemoveCallback(ModCallbacks.MC_POST_PLAYER_INIT, CustomHealthAPI.Mod.GenesisPlayerInit)
-end
-table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveGenesisPlayerInitCallback)
-
-function CustomHealthAPI.Mod:GenesisPlayerInit(player)
-	if CustomHealthAPI.PersistentData.UsingGenesis then
-		CustomHealthAPI.Helper.ClearPlayerHealthForGenesis(player)
-	end
-end
-
-function CustomHealthAPI.Helper.ClearPlayerHealthForGenesis(player)
-	CustomHealthAPI.Mod:ClearGetDataCache(player)
-	CustomHealthAPI.Helper.ClearSavedata(player)
-	CustomHealthAPI.Helper.ClearOtherData(player)
-	CustomHealthAPI.Helper.ClearCandiesAndLockets(player)
-	CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
-	CustomHealthAPI.Helper.ResyncHealthOfPlayer(player)
-end
-
-function CustomHealthAPI.Helper.RunPostGenesisCallbacks()
+function CustomHealthAPI.Helper.ClearHealthForGenesis()
 	CustomHealthAPI.PersistentData.HiddenPlayerHealthBackup = {}
 	CustomHealthAPI.PersistentData.HiddenSubplayerHealthBackup = {}
 	
 	for i = 0, Game():GetNumPlayers() - 1 do
 		local player = Isaac.GetPlayer(i)
-		Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_PLAYER_GENESIS, player:GetPlayerType(), player)
+		
+		player:GetData().CustomHealthAPISavedata = nil
+		player:GetData().CustomHealthAPIOtherData = nil
+		CustomHealthAPI.Helper.ClearCandiesAndLockets(player)
+		
+		if player:GetSubPlayer() ~= nil then
+			player:GetSubPlayer():GetData().CustomHealthAPISavedata = nil
+			player:GetSubPlayer():GetData().CustomHealthAPIOtherData = nil
+			CustomHealthAPI.Helper.ClearCandiesAndLockets(player:GetSubPlayer())
+		end
+		
+		if player:GetOtherTwin() ~= nil then
+			player:GetOtherTwin():GetData().CustomHealthAPISavedata = nil
+			player:GetOtherTwin():GetData().CustomHealthAPIOtherData = nil
+			CustomHealthAPI.Helper.ClearCandiesAndLockets(player:GetOtherTwin())
+		end
+		
+		local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_PLAYER_GENESIS)
+		for _, callback in ipairs(callbacks) do
+			callback.Function(player)
+		end
 	end
-	Isaac.RunCallback(CustomHealthAPI.Enums.Callbacks.POST_GENESIS)
-end
-
-function CustomHealthAPI.Helper.ClearHealthForGenesis()
-	for i = 0, Game():GetNumPlayers() - 1 do
-		local player = Isaac.GetPlayer(i)
-		CustomHealthAPI.Helper.ClearPlayerHealthForGenesis(player)
+	
+	local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_GENESIS)
+	for _, callback in ipairs(callbacks) do
+		callback.Function()
 	end
-
-	CustomHealthAPI.Helper.RunPostGenesisCallbacks()
 end

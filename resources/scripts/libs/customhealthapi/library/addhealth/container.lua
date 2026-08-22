@@ -1,6 +1,6 @@
 function CustomHealthAPI.Helper.TryConvertingContainerHP(player, key)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
 	local maskIndex = CustomHealthAPI.PersistentData.HealthDefinitions[key].MaskIndex
 	local keyContainingMask = otherMasks[maskIndex]
 	
@@ -75,22 +75,14 @@ function CustomHealthAPI.Helper.TryConvertingContainerHP(player, key)
 end
 
 function CustomHealthAPI.Helper.TryInsertingContainerHP(player, key, ignoreRoomForOtherKeys, convertedMaxInsertFront)
-	local keyContainingMask = CustomHealthAPI.Helper.GetMaskForKey(player, key)
-	local healthDef = CustomHealthAPI.PersistentData.HealthDefinitions[key]
-	local maxHP = healthDef.MaxHP
-	
-	if maxHP > 1 and healthDef.AddRemoveContainerByHP then
-		-- Try ""healing"" an existing container.
-		for i, health in ipairs(keyContainingMask) do
-			if health.Key == key and health.HP < maxHP then
-				health.HP = health.HP + 1
-				return
-			end
-		end
-	end
-	
 	if CustomHealthAPI.Helper.GetRoomForOtherKeys(player) > 0 or ignoreRoomForOtherKeys then
-		local hp = (maxHP > 1 and healthDef.AddRemoveContainerByHP) and 1 or maxHP
+		local data = player:GetData().CustomHealthAPISavedata
+		local otherMasks = data.OtherHealthMasks
+		local maskIndex = CustomHealthAPI.PersistentData.HealthDefinitions[key].MaskIndex
+		local keyContainingMask = otherMasks[maskIndex]
+		
+		local maxHP = CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP")
+		local hp = (maxHP >= 1) and 1 or 0
 		if convertedMaxInsertFront then
 			table.insert(keyContainingMask, 1, {Key = key, HP = hp, HalfCapacity = false})
 		else
@@ -102,18 +94,16 @@ function CustomHealthAPI.Helper.TryInsertingContainerHP(player, key, ignoreRoomF
 end
 
 function CustomHealthAPI.Helper.PlusContainerMain(player, key, hp, ignoreRoomForOtherKeys, convertedMaxInsertFront)
-	local healthDef = CustomHealthAPI.PersistentData.HealthDefinitions[key]
-	local maxHP = healthDef.MaxHP
-	local canHaveHalfCapacity = healthDef.CanHaveHalfCapacity
+	local maxHP = CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP")
+	local canHaveHalfCapacity = CustomHealthAPI.PersistentData.HealthDefinitions[key].CanHaveHalfCapacity
 	
 	local hpToAdd = hp
 	local hpPer
 	local keysToAdd
-
-	if maxHP >= 1 and not healthDef.AddRemoveContainerByHP then
+	if maxHP >= 1 then
 		keysToAdd = math.ceil(hp / maxHP)
 		hpPer = maxHP
-	elseif maxHP == 0 and canHaveHalfCapacity then
+	elseif canHaveHalfCapacity then
 		keysToAdd = math.ceil(hp / 2)
 		hpPer = 2
 	else
@@ -136,30 +126,9 @@ function CustomHealthAPI.Helper.PlusContainerMain(player, key, hp, ignoreRoomFor
 	return math.max(0, hpToAdd)
 end
 
-function CustomHealthAPI.Helper.TryRemoveMaxFromMaskByKey(player, key)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
-	local healthDef = CustomHealthAPI.PersistentData.HealthDefinitions[key]
-	local maxHP = healthDef.MaxHP
-	local maskIndex = healthDef.MaskIndex
-	local mask = otherMasks[maskIndex]
-	
-	for i = #mask, 1, -1 do
-		local health = mask[i]
-		if health.Key == key then
-			if maxHP >= 1 and healthDef.AddRemoveContainerByHP and health.HP > 1 then
-				health.HP = health.HP - 1
-			else
-				table.remove(mask, i)
-			end
-			return true
-		end
-	end
-end
-
 function CustomHealthAPI.Helper.TryRemoveLowPriorityMaxFromMask(player, maskIndex, removingBone, removingBroken, avoidRemovingBone)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
 	local mask = otherMasks[maskIndex]
 	
 	local lowestPriorityHealth
@@ -167,10 +136,9 @@ function CustomHealthAPI.Helper.TryRemoveLowPriorityMaxFromMask(player, maskInde
 	local indexOfLowestPriority
 	for i = #mask, 1, -1 do
 		local health = mask[i]
-		local healthDef = CustomHealthAPI.PersistentData.HealthDefinitions[health.Key]
-		if healthDef.Type == CustomHealthAPI.Enums.HealthTypes.CONTAINER and not healthDef.ExplicitRemovalOnly then
-			local isBroken = healthDef.KindContained == CustomHealthAPI.Enums.HealthKinds.NONE
-			local maxHP = healthDef.MaxHP
+		if CustomHealthAPI.PersistentData.HealthDefinitions[health.Key].Type == CustomHealthAPI.Enums.HealthTypes.CONTAINER then
+			local isBroken = CustomHealthAPI.PersistentData.HealthDefinitions[health.Key].KindContained == CustomHealthAPI.Enums.HealthKinds.NONE
+			local maxHP = CustomHealthAPI.Library.GetInfoOfHealth(health, "MaxHP")
 			
 			local checkForRemoval = false
 			if isBroken then
@@ -188,7 +156,7 @@ function CustomHealthAPI.Helper.TryRemoveLowPriorityMaxFromMask(player, maskInde
 			end
 			
 			if checkForRemoval then
-				local removePriorityOfHealth = healthDef.RemovePriority
+				local removePriorityOfHealth = CustomHealthAPI.PersistentData.HealthDefinitions[health.Key].RemovePriority
 				if lowestPriorityHealth == nil or removePriorityOfHealth < lowestPriority then
 					lowestPriorityHealth = health
 					lowestPriority = removePriorityOfHealth
@@ -200,14 +168,12 @@ function CustomHealthAPI.Helper.TryRemoveLowPriorityMaxFromMask(player, maskInde
 	
 	if lowestPriority ~= nil then
 		table.remove(mask, indexOfLowestPriority)
-		return true
 	end
-	return false
 end
 
 function CustomHealthAPI.Helper.TryRemoveLowPriorityMaxFromAnywhere(player, removingBone, removingBroken, avoidRemovingBone)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
 	
 	local lowestPriorityHealth
 	local lowestPriority
@@ -216,10 +182,9 @@ function CustomHealthAPI.Helper.TryRemoveLowPriorityMaxFromAnywhere(player, remo
 		local mask = otherMasks[i]
 		for j = #mask, 1, -1 do
 			local health = mask[j]
-			local healthDef = CustomHealthAPI.PersistentData.HealthDefinitions[health.Key]
-			if healthDef.Type == CustomHealthAPI.Enums.HealthTypes.CONTAINER and not healthDef.ExplicitRemovalOnly then
-				local isBroken = healthDef.KindContained == CustomHealthAPI.Enums.HealthKinds.NONE
-				local maxHP = healthDef.MaxHP
+			if CustomHealthAPI.PersistentData.HealthDefinitions[health.Key].Type == CustomHealthAPI.Enums.HealthTypes.CONTAINER then
+				local isBroken = CustomHealthAPI.PersistentData.HealthDefinitions[health.Key].KindContained == CustomHealthAPI.Enums.HealthKinds.NONE
+				local maxHP = CustomHealthAPI.Library.GetInfoOfHealth(health, "MaxHP")
 				
 				local checkForRemoval = false
 				if isBroken then
@@ -237,7 +202,7 @@ function CustomHealthAPI.Helper.TryRemoveLowPriorityMaxFromAnywhere(player, remo
 				end
 				
 				if checkForRemoval then
-					local removePriorityOfHealth = healthDef.RemovePriority
+					local removePriorityOfHealth = CustomHealthAPI.PersistentData.HealthDefinitions[health.Key].RemovePriority
 					if lowestPriorityHealth == nil or removePriorityOfHealth < lowestPriority then
 						lowestPriorityHealth = health
 						lowestPriority = removePriorityOfHealth
@@ -252,8 +217,8 @@ function CustomHealthAPI.Helper.TryRemoveLowPriorityMaxFromAnywhere(player, remo
 end
 
 function CustomHealthAPI.Helper.HasRemovableMaxHP(player, key, avoidRemovingBone)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
 	
 	local maxHP = CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP")
 	local removingBone = maxHP > 0
@@ -263,10 +228,9 @@ function CustomHealthAPI.Helper.HasRemovableMaxHP(player, key, avoidRemovingBone
 		local mask = otherMasks[i]
 		for j = 1, #mask do
 			local health = mask[j]
-			local healthDef = CustomHealthAPI.PersistentData.HealthDefinitions[health.Key]
-			if healthDef.Type == CustomHealthAPI.Enums.HealthTypes.CONTAINER and (key == health.Key or not healthDef.ExplicitRemovalOnly) then
-				local isBroken = healthDef.KindContained == CustomHealthAPI.Enums.HealthKinds.NONE
-				local maxHP = healthDef.MaxHP
+			if CustomHealthAPI.PersistentData.HealthDefinitions[health.Key].Type == CustomHealthAPI.Enums.HealthTypes.CONTAINER then
+				local isBroken = CustomHealthAPI.PersistentData.HealthDefinitions[health.Key].KindContained == CustomHealthAPI.Enums.HealthKinds.NONE
+				local maxHP = CustomHealthAPI.Library.GetInfoOfHealth(health, "MaxHP")
 				
 				if isBroken then
 					if removingBroken then
@@ -289,8 +253,8 @@ function CustomHealthAPI.Helper.HasRemovableMaxHP(player, key, avoidRemovingBone
 end
 
 function CustomHealthAPI.Helper.OtherMaskHasMaxForRemoval(player, maskIndex, key, avoidRemovingBone)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
 	local mask = otherMasks[maskIndex]
 	
 	local maxHP = CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP")
@@ -299,10 +263,9 @@ function CustomHealthAPI.Helper.OtherMaskHasMaxForRemoval(player, maskIndex, key
 	
 	for i = 1, #mask do
 		local health = mask[i]
-		local healthDef = CustomHealthAPI.PersistentData.HealthDefinitions[health.Key]
-		if healthDef.Type == CustomHealthAPI.Enums.HealthTypes.CONTAINER and (key == health.Key or not healthDef.ExplicitRemovalOnly) then
-			local isBroken = healthDef.KindContained == CustomHealthAPI.Enums.HealthKinds.NONE
-			local maxHP = healthDef.MaxHP
+		if CustomHealthAPI.PersistentData.HealthDefinitions[health.Key].Type == CustomHealthAPI.Enums.HealthTypes.CONTAINER then
+			local isBroken = CustomHealthAPI.PersistentData.HealthDefinitions[health.Key].KindContained == CustomHealthAPI.Enums.HealthKinds.NONE
+			local maxHP = CustomHealthAPI.Library.GetInfoOfHealth(health, "MaxHP")
 			
 			if isBroken then
 				if removingBroken then
@@ -324,21 +287,20 @@ function CustomHealthAPI.Helper.OtherMaskHasMaxForRemoval(player, maskIndex, key
 end
 
 function CustomHealthAPI.Helper.MinusContainerMain(player, key, hp, avoidRemovingBone)
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
-	local healthDef = CustomHealthAPI.PersistentData.HealthDefinitions[key]
-	local maskIndex = healthDef.MaskIndex
-	local maxHP = healthDef.MaxHP
-	local canHaveHalfCapacity = healthDef.CanHaveHalfCapacity
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
+	local maskIndex = CustomHealthAPI.PersistentData.HealthDefinitions[key].MaskIndex
+	
+	local maxHP = CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP")
+	local canHaveHalfCapacity = CustomHealthAPI.PersistentData.HealthDefinitions[key].CanHaveHalfCapacity
 	
 	local hpToRemove = hp
 	local hpPer
 	local keysToRemove
-	
-	if maxHP >= 1 and not healthDef.AddRemoveContainerByHP then
+	if maxHP >= 1 then
 		keysToRemove = math.ceil(hp / maxHP)
 		hpPer = maxHP
-	elseif maxHP == 0 and canHaveHalfCapacity then
+	elseif canHaveHalfCapacity then
 		keysToRemove = math.ceil(hp / 2)
 		hpPer = 2
 	else
@@ -347,22 +309,16 @@ function CustomHealthAPI.Helper.MinusContainerMain(player, key, hp, avoidRemovin
 	end
 	
 	local removingBone = maxHP > 0
-	local removingBroken = healthDef.KindContained == CustomHealthAPI.Enums.HealthKinds.NONE
+	local removingBroken = CustomHealthAPI.PersistentData.HealthDefinitions[key].KindContained == CustomHealthAPI.Enums.HealthKinds.NONE
 	while keysToRemove > 0 do
 		if not CustomHealthAPI.Helper.HasRemovableMaxHP(player, key, avoidRemovingBone) then
-			break
+			return math.max(0, hpToRemove) * -1
 		end
 		
-		local removed = CustomHealthAPI.Helper.TryRemoveMaxFromMaskByKey(player, key)
-		if not removed then
-			if CustomHealthAPI.Helper.OtherMaskHasMaxForRemoval(player, maskIndex, key, avoidRemovingBone) then
-				removed = CustomHealthAPI.Helper.TryRemoveLowPriorityMaxFromMask(player, maskIndex, removingBone, removingBroken, avoidRemovingBone)
-			else
-				removed = CustomHealthAPI.Helper.TryRemoveLowPriorityMaxFromAnywhere(player, removingBone, removingBroken, avoidRemovingBone)
-			end
-			if not removed then
-				break
-			end
+		if CustomHealthAPI.Helper.OtherMaskHasMaxForRemoval(player, maskIndex, key, avoidRemovingBone) then
+			CustomHealthAPI.Helper.TryRemoveLowPriorityMaxFromMask(player, maskIndex, removingBone, removingBroken, avoidRemovingBone)
+		else
+			CustomHealthAPI.Helper.TryRemoveLowPriorityMaxFromAnywhere(player, removingBone, removingBroken, avoidRemovingBone)
 		end
 		
 		keysToRemove = keysToRemove - 1

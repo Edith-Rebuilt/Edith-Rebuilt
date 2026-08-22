@@ -1,27 +1,3 @@
-function CustomHealthAPI.Library.CanPickHeart(player, pickup)
-	CustomHealthAPI.Helper.CheckIfHealthOrderSet()
-	CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
-	CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
-	CustomHealthAPI.Helper.ResyncHealthOfPlayer(player)
-	
-	local id = pickup.Type
-	local var = pickup.Variant
-	local subt = pickup.SubType
-	
-	if id == EntityType.ENTITY_PICKUP then
-		local pickupDef = CustomHealthAPI.Library.GetPickupDefinition(var, subt)
-		if pickupDef then
-			return CustomHealthAPI.Helper.CanCollectCustomPickup(player, pickup, pickupDef)
-		end
-	end
-	
-	if CustomHealthAPI.PersistentData.PickupToHeartKeys[id] and 
-	   CustomHealthAPI.PersistentData.PickupToHeartKeys[id][var]
-	then
-		return CustomHealthAPI.Helper.CanPickAnyKey(player, CustomHealthAPI.PersistentData.PickupToHeartKeys[id][var][subt])
-	end
-end
-
 function CustomHealthAPI.Library.CanPickKey(player, key)
 	CustomHealthAPI.Helper.CheckIfHealthOrderSet()
 	CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
@@ -33,9 +9,12 @@ end
 function CustomHealthAPI.Helper.CanPickKey(player, key)
 	local typ = CustomHealthAPI.Library.GetInfoOfKey(key, "Type")
 	
-	local canpick = Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.CAN_PICK_HEALTH, player:GetPlayerType(), player, key)
-	if canpick ~= nil then
-		return canpick
+	local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.CAN_PICK_HEALTH)
+	for _, callback in ipairs(callbacks) do
+		local canpick = callback.Function(player, key)
+		if canpick ~= nil then
+			return canpick
+		end
 	end
 	
 	if typ == CustomHealthAPI.Enums.HealthTypes.RED then
@@ -44,16 +23,10 @@ function CustomHealthAPI.Helper.CanPickKey(player, key)
 		return CustomHealthAPI.Helper.CanPickSoul(player, key)
 	elseif typ == CustomHealthAPI.Enums.HealthTypes.CONTAINER then
 		return CustomHealthAPI.Helper.CanPickContainer(player, key)
-	elseif typ == CustomHealthAPI.Enums.HealthTypes.OVERLAY then
-		return CustomHealthAPI.Helper.CanPickOverlay(player, key)
-	end
-end
-
-function CustomHealthAPI.Helper.CanPickAnyKey(player, keys)
-	for _, key in ipairs(keys or {}) do
-		if CustomHealthAPI.Helper.CanPickKey(player, key) then
-			return true
-		end
+	elseif key == "ETERNAL_HEART" then
+		return true
+	elseif key == "GOLDEN_HEART" then
+		return CustomHealthAPI.PersistentData.OverriddenFunctions.CanPickGoldenHearts(player)
 	end
 end
 
@@ -93,8 +66,8 @@ function CustomHealthAPI.Helper.CanPickRed(player, key)
 		return true
 	end
 	
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local redMasks = data.RedHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local redMasks = data.RedHealthMasks
 	
 	local addPriorityOfKey = CustomHealthAPI.PersistentData.HealthDefinitions[key].AddPriority
 	for i = 1, #redMasks do
@@ -143,10 +116,9 @@ function CustomHealthAPI.Helper.CanPickSoul(player, key)
 	end
 	
 	local alabasterChargesToAdd = 0
-	local alabasterPlayer = CustomHealthAPI.Helper.GetAlabasterBoxOwner(player)
 	for i = 0, 2 do
-		if alabasterPlayer:GetActiveItem(i) == CollectibleType.COLLECTIBLE_ALABASTER_BOX then
-			alabasterChargesToAdd = alabasterChargesToAdd + (12 - alabasterPlayer:GetActiveCharge(i))
+		if player:GetActiveItem(i) == CollectibleType.COLLECTIBLE_ALABASTER_BOX then
+			alabasterChargesToAdd = alabasterChargesToAdd + (12 - player:GetActiveCharge(i))
 		end
 	end
 	if alabasterChargesToAdd > 0 then
@@ -157,8 +129,8 @@ function CustomHealthAPI.Helper.CanPickSoul(player, key)
 		return true
 	end
 	
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
 	
 	local addPriorityOfKey = CustomHealthAPI.PersistentData.HealthDefinitions[key].AddPriority
 	for i = 1, #otherMasks do
@@ -216,8 +188,8 @@ function CustomHealthAPI.Helper.CanPickContainer(player, key)
 		return true
 	end
 	
-	local data = CustomHealthAPI.Helper.GetSavedata(player)
-	local otherMasks = data.OtherHealthMasks or {}
+	local data = player:GetData().CustomHealthAPISavedata
+	local otherMasks = data.OtherHealthMasks
 	
 	local addPriorityOfKey = CustomHealthAPI.PersistentData.HealthDefinitions[key].AddPriority
 	for i = 1, #otherMasks do
@@ -237,18 +209,4 @@ function CustomHealthAPI.Helper.CanPickContainer(player, key)
 	end
 
 	return false
-end
-
-function CustomHealthAPI.Helper.CanPickOverlay(player, key)
-	if key == "ETERNAL_HEART" then
-		return true
-	end
-	if CustomHealthAPI.Helper.PlayerIsIgnored(player) then
-		if key == "GOLDEN_HEART" then
-			return CustomHealthAPI.PersistentData.OverriddenFunctions.CanPickGoldenHearts(player)
-		else
-			return false
-		end
-	end
-	return CustomHealthAPI.Helper.GetRoomInOverlayLayer(player, key) > 0
 end
