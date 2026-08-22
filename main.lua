@@ -1,4 +1,4 @@
-EdithRebuilt = RegisterMod("Edith: Rebuilt", 1) ---@class ModReference
+EdithRebuilt = RegisterMod("Edith: Rebuilt", 1) --[[@as ModReference]]
 local mod = EdithRebuilt
 local font = Font()
 font:Load("font/pftempestasevencondensed.fnt")
@@ -79,3 +79,6 @@ EdithRebuilt.Version = "v" .. version[1].. "." .. version[2] .. "." .. version[3
 
 Isaac.DebugString("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
 print("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
+
+
+include("resources.scripts.compat.contentModules.CommunityRemix.main")
