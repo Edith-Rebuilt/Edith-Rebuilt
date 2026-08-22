@@ -206,10 +206,15 @@ function Player.IsPlayerShooting(p)
 	return (shoot.l or shoot.r or shoot.u or shoot.d)
 end
 
+local JudasTypes = {
+	[PlayerType.PLAYER_JUDAS] = true,
+	[PlayerType.PLAYER_BLACKJUDAS] = true
+}
+
 ---Used to add some interactions to Judas' Birthright effect
 ---@param p EntityPlayer
 function Player.IsJudasWithBirthright(p)
-	return p:GetPlayerType() == PlayerType.PLAYER_JUDAS and Player.PlayerHasBirthright(p)
+	return JudasTypes[p:GetPlayerType()] == true and Player.PlayerHasBirthright(p)
 end
 
 ---@param p EntityPlayer
