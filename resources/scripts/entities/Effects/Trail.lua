@@ -55,7 +55,6 @@ function Trail:TrailManagement(player)
     if not Player.IsEdith(player, true) then return end
     if not SaveManager then return end
 
-
     local TEdithSettings = Helpers.GetConfigData("TEdithData")    
 
     if not TEdithSettings then return end
