@@ -20,8 +20,10 @@ local CRemixPath = scriptsPath .. "compat.contentModules.CommunityRemix.scripts.
 
 include(scriptsPath .. "libs.customhealthapi.core")
 
+include(CRemixPath .. "Enums")
 include(CRemixPath .. "Unlock")
 include(CRemixPath .. "Health")
+include(CRemixPath .. "Replace")
 
 Isaac.DebugString(message)
 print(message)

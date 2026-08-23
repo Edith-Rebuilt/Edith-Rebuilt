@@ -2,12 +2,13 @@ if not CustomHealthAPI then return end
 if not CustomHealthAPI.Library then return end
 
 local mod = EdithRebuilt
-local enums = mod.Enums
+local mainEnums = mod.Enums
+local enums = EdithRebuilt_SaltHearts.Enums
 local SubType = Isaac.GetEntitySubTypeByName("Salt Heart (pickup)")
-local sounds = enums.SoundEffect
+local sounds = mainEnums.SoundEffect
 local saveManager = mod.SaveManager
 local StatusEffect = mod.Modules.STATUS_EFFECTS
-local effects = enums.EdithStatusEffects
+local effects = mainEnums.EdithStatusEffects
 
 local flashColor = 170/255
 
@@ -25,7 +26,7 @@ CustomHealthAPI.Library.RegisterSoulHealth(
         CollectSound = { ID = sounds.SOUND_SALT_SHAKER, Volume = 1.0, Pitch = 1.0 },
 	    PrioritizeHealing = true,
         PickupEntities = {
-            {ID = EntityType.ENTITY_PICKUP, Var = PickupVariant.PICKUP_HEART, Sub = SubType}
+            {ID = EntityType.ENTITY_PICKUP, Var = PickupVariant.PICKUP_HEART, Sub = enums.HeartSubType.SALT_HEART}
         },
         SumptoriumSubType = 20,  -- immortal heart clot
         SumptoriumSplatColor = Color(1.00, 1.00, 1.00, 1.00, 214/255, 228/255, 1.00),
@@ -41,7 +42,7 @@ CustomHealthAPI.Library.RegisterSoulHealth(
     }
 )
 
-CustomHealthAPI.Library.RegisterHeartPickup(PickupVariant.PICKUP_HEART, SubType, {
+CustomHealthAPI.Library.RegisterHeartPickup(PickupVariant.PICKUP_HEART, enums.HeartSubType.SALT_HEART, {
 	HealthKeys = {"HEART_SALT"},
 	HealthAmount = 3,
 	DropSound = sounds.SOUND_SALT_SHAKER,
