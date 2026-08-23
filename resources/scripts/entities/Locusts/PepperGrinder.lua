@@ -44,16 +44,3 @@ mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function (_, ent, amount, flags
     SpawnPepperCloud(fam, fam:GetDropRNG())
     TriggerEnemyDamage(fam)
 end)
-
-
--- ---@param fam EntityFamiliar
--- ---@param col Entity
--- mod:AddCallback(ModCallbacks.ION, function(_, fam, col)
---     if not Helpers.IsModItemLocust(fam, items.COLLECTIBLE_PEPPERGRINDER) then return end
---     if not Helpers.IsEnemy(col) then return end
-
---     local rng = fam:GetDropRNG()
-
---     SpawnPepperCloud(fam, rng)
---     -- statusEffects.SetStatusEffect(enums.EdithStatusEffects.SALTED, col, 120, fam.Player)
--- end)

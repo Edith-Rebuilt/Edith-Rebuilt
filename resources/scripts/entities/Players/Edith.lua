@@ -117,11 +117,9 @@ local function ManageStretchSquashScale(player, pData)
 end
 
 ---@param player EntityPlayer
-local function ManageJumpStretchSquash(player)
+---@param pData table
+local function ManageJumpStretchSquash(player, pData)
 	if Jump.IsJumping(player) then return end
-
-	local pData = data(player)
-
 	if not pData.InitJump then return end
 
 	local jumpParams = params(player)
@@ -203,7 +201,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 
 	if not state.isPitfall then
 		SetInitJumpState(player)
-		ManageJumpStretchSquash(player)
+		ManageJumpStretchSquash(player, pData)
 		HandleEdithInit(player)
 		HandleTargetSpawn(player, state)
 		TriggerEdithJumpAnim(player)
@@ -262,6 +260,7 @@ end
 
 ---@param player EntityPlayer
 local function ResetEdithScale(player)
+	if Jump.IsJumping(player) then return end
 	player.SpriteScale = data(player).BaseSpriteScale
 end	
 
@@ -284,7 +283,6 @@ mod:AddCallback(JumpLib.Callbacks.ENTITY_LAND, function(_, player, jumpData, pit
 
 	if Player.IsInTrapdoor(player) then return end
 
-
 	Land.TriggerLandAnimation(player)
 	Land.LandFeedbackManager(player, Land.GetLandSoundTable(false), player.Color, jumpData)
     ExecuteStompSequence(player, jumpParams)
@@ -299,7 +297,7 @@ end, JumpParams.EdithJump)
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
 	if not Player.IsEdith(player, false) then return end
-	
+
 	local jumpParams = params(player)
 
 	if jumpParams.RocketLaunch then return end
@@ -323,12 +321,13 @@ end)
 local function JumpInitScale(player)
 	local frame = Jump.GetJumpFrame(player)
 	local VecScale = FrameScale.AfterJump[frame]
+	local pData = data(player)
 
 	if not VecScale then 
-		player.SpriteScale = data(player).BaseSpriteScale	
+		player.SpriteScale = pData.BaseSpriteScale
 		return
 	end
-	player.SpriteScale = data(player).BaseSpriteScale * VecScale
+	player.SpriteScale = pData.BaseSpriteScale * VecScale
 end
 
 ---@param player EntityPlayer

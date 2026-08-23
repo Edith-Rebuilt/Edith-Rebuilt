@@ -20,6 +20,7 @@ end)
 ---@param flags DamageFlag
 ---@param source EntityRef
 ---@param countdown integer
+---@return boolean|table?
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function (_, entity, amount, flags, source, countdown)
     local ent = source.Entity
 
