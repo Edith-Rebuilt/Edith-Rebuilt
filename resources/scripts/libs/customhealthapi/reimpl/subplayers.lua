@@ -2,7 +2,7 @@ function CustomHealthAPI.Helper.SplitSubPlayerInfo(player)
 	-- THIS FUNCTION HAS BEEN WRITTEN ASSUMING THE PLAYER IS THE FORGOTTEN
 	-- IF THEY ARE NOT, WELL FUCK
 	
-	--[[local maindata = player:GetData().CustomHealthAPISavedata
+	--[[local maindata = CustomHealthAPI.Helper.GetSavedata(player)
 	maindata.SubPlayerInfo = {}
 	local subdata = maindata.SubPlayerInfo
 	
@@ -40,7 +40,7 @@ function CustomHealthAPI.Helper.CollapseSubPlayerInfo(player)
 	-- THIS FUNCTION HAS BEEN WRITTEN ASSUMING THE PLAYER WAS THE FORGOTTEN
 	-- IF THEY ARE NOT, WELL FUCK
 	
-	--[[local maindata = player:GetData().CustomHealthAPISavedata
+	--[[local maindata = CustomHealthAPI.Helper.GetSavedata(player)
 	local subdata = maindata.SubPlayerInfo
 	
 	if maindata.MainPlayerType == PlayerType.PLAYER_THESOUL then
@@ -78,7 +78,7 @@ function CustomHealthAPI.Helper.CollapseSubPlayerInfo(player)
 		end
 	end
 	
-	player:GetData().CustomHealthAPISavedata = maindata
+	CustomHealthAPI.Helper.GetSavedata(player) = maindata
 	maindata.SubPlayerInfo = nil
 	maindata.MainPlayerIndex = nil
 	maindata.SubPlayerIndex = nil
@@ -87,8 +87,8 @@ function CustomHealthAPI.Helper.CollapseSubPlayerInfo(player)
 end
 
 function CustomHealthAPI.Helper.CheckIfSwapSubPlayerInfo(player)
-	local maindata = player:GetData().CustomHealthAPISavedata
-	local subdata = player:GetSubPlayer():GetData().CustomHealthAPISavedata
+	local maindata = CustomHealthAPI.Helper.GetSavedata(player)
+	local subdata = CustomHealthAPI.Helper.GetSavedata(player:GetSubPlayer())
 	
 	local expectedPlayerType = maindata.PlayerType
 	local expectedSubplayerType = subdata.PlayerType
@@ -97,8 +97,8 @@ function CustomHealthAPI.Helper.CheckIfSwapSubPlayerInfo(player)
 	local actualSubplayerType = player:GetSubPlayer():GetPlayerType()
 	
 	if expectedPlayerType == actualSubplayerType and expectedSubplayerType == actualPlayerType then
-		player:GetData().CustomHealthAPISavedata = subdata
-		player:GetSubPlayer():GetData().CustomHealthAPISavedata = maindata
+		CustomHealthAPI.Helper.SetSavedata(player, subdata)
+		CustomHealthAPI.Helper.SetSavedata(player:GetSubPlayer(), maindata)
 		
 		local mainqueued = maindata.CurrentQueuedItem
 		local subqueued = subdata.CurrentQueuedItem
@@ -106,18 +106,18 @@ function CustomHealthAPI.Helper.CheckIfSwapSubPlayerInfo(player)
 		maindata.CurrentQueuedItem = subqueued
 		subdata.CurrentQueuedItem = mainqueued
 		
-		local mainotherdata = player:GetData().CustomHealthAPIOtherData
-		local subotherdata = player:GetSubPlayer():GetData().CustomHealthAPIOtherData
+		local mainotherdata = CustomHealthAPI.Helper.GetOtherData(player)
+		local subotherdata = CustomHealthAPI.Helper.GetOtherData(player:GetSubPlayer())
 		
-		player:GetData().CustomHealthAPIOtherData = subotherdata
-		player:GetSubPlayer():GetData().CustomHealthAPIOtherData = mainotherdata
+		CustomHealthAPI.Helper.SetOtherData(player, subotherdata)
+		CustomHealthAPI.Helper.SetOtherData(player:GetSubPlayer(), mainotherdata)
 	end
 end
 
 function CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
 	if CustomHealthAPI.Helper.PlayerIsIgnored(player) then return end
 
-	local data = player:GetData().CustomHealthAPISavedata
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
 	--[[if player:GetSubPlayer() ~= nil and data.SubPlayerInfo == nil then
 		CustomHealthAPI.Helper.SplitSubPlayerInfo(player)
 	elseif player:GetSubPlayer() == nil and data.SubPlayerInfo ~= nil then
@@ -125,7 +125,7 @@ function CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
 	end]]--
 	
 	local subplayer = player:GetSubPlayer()
-	if subplayer ~= nil and subplayer:GetData().CustomHealthAPISavedata ~= nil then
+	if subplayer ~= nil and CustomHealthAPI.Helper.GetSavedata(subplayer) ~= nil then
 		CustomHealthAPI.Helper.CheckIfSwapSubPlayerInfo(player)
 	end
 end

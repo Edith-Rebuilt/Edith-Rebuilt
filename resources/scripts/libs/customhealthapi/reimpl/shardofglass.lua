@@ -40,7 +40,7 @@ function CustomHealthAPI.Mod:UpdateShardOfGlassCallback(player)
 end
 
 function CustomHealthAPI.Helper.UpdateShardOfGlassColor(player)
-	local data = player:GetData().CustomHealthAPISavedata
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
 	if data and data.ShardBleedTimer ~= nil then
 		local timer = data.ShardBleedTimer
 		local tint = 1.0
@@ -72,7 +72,7 @@ function CustomHealthAPI.Helper.UpdateShardOfGlassColor(player)
 end
 
 function CustomHealthAPI.Helper.UpdateShardOfGlass(player)
-	local data = player:GetData().CustomHealthAPISavedata
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
 	
 	if player:HasEntityFlags(EntityFlag.FLAG_BLEED_OUT) then
 		player:ClearEntityFlags(EntityFlag.FLAG_BLEED_OUT)
@@ -89,10 +89,9 @@ function CustomHealthAPI.Helper.UpdateShardOfGlass(player)
 	end
 	
 	if data and data.ShardBleedTimer ~= nil then
-		player:GetData().CustomHealthAPIOtherData = player:GetData().CustomHealthAPIOtherData or {}
-		if player:GetData().CustomHealthAPIOtherData.LastBleedTick ~= Game():GetFrameCount() then
+		if CustomHealthAPI.Helper.GetOtherData(player).LastBleedTick ~= Game():GetFrameCount() then
 			data.ShardBleedTimer = data.ShardBleedTimer - 2
-			player:GetData().CustomHealthAPIOtherData.LastBleedTick = Game():GetFrameCount()
+			CustomHealthAPI.Helper.GetOtherData(player).LastBleedTick = Game():GetFrameCount()
 			
 			if math.random() <= 0.25 and not player:GetEffects():HasCollectibleEffect(CollectibleType.COLLECTIBLE_SCISSORS) then
 				local aim = player:GetAimDirection()
@@ -115,6 +114,8 @@ function CustomHealthAPI.Helper.UpdateShardOfGlass(player)
 			
 			if math.random() <= 0.20 and not player:GetEffects():HasCollectibleEffect(CollectibleType.COLLECTIBLE_ANEMIC) then
 				local creep = Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.PLAYER_CREEP_RED, 0, player.Position, Vector.Zero, player):ToEffect()
+				local creepScale = math.random() * 0.5 + 0.2
+				creep.SpriteScale = Vector(creepScale, creepScale)
 				creep:Update()
 			end
 		end
@@ -131,21 +132,20 @@ function CustomHealthAPI.Helper.UpdateShardOfGlass(player)
 end
 
 function CustomHealthAPI.Helper.RenderShardOfGlass(player, offset)
-	local data = player:GetData().CustomHealthAPISavedata
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
 	
 	if data and data.ShardBleedTimer ~= nil then
-		player:GetData().CustomHealthAPIOtherData = player:GetData().CustomHealthAPIOtherData or {}
-		if player:GetData().CustomHealthAPIOtherData.BleedSpriteFrame == nil then
-			player:GetData().CustomHealthAPIOtherData.BleedSpriteFrame = 0
-			player:GetData().CustomHealthAPIOtherData.LastBleedSpriteUpdate = Game():GetFrameCount()
+		if CustomHealthAPI.Helper.GetOtherData(player).BleedSpriteFrame == nil then
+			CustomHealthAPI.Helper.GetOtherData(player).BleedSpriteFrame = 0
+			CustomHealthAPI.Helper.GetOtherData(player).LastBleedSpriteUpdate = Game():GetFrameCount()
 		end
 		
-		player:GetData().CustomHealthAPIOtherData.BleedSpriteFrame = player:GetData().CustomHealthAPIOtherData.BleedSpriteFrame + 
-		                                                             (Game():GetFrameCount() - player:GetData().CustomHealthAPIOtherData.BleedSpriteFrame)
-		player:GetData().CustomHealthAPIOtherData.LastBleedSpriteUpdate = Game():GetFrameCount()
+		CustomHealthAPI.Helper.GetOtherData(player).BleedSpriteFrame = CustomHealthAPI.Helper.GetOtherData(player).BleedSpriteFrame + 
+		                                                             (Game():GetFrameCount() - CustomHealthAPI.Helper.GetOtherData(player).BleedSpriteFrame)
+		CustomHealthAPI.Helper.GetOtherData(player).LastBleedSpriteUpdate = Game():GetFrameCount()
 		
 		bleedingSprite.Scale = player.SpriteScale
-		bleedingSprite:SetFrame("BleedingOut", player:GetData().CustomHealthAPIOtherData.BleedSpriteFrame % 18)
+		bleedingSprite:SetFrame("BleedingOut", CustomHealthAPI.Helper.GetOtherData(player).BleedSpriteFrame % 18)
 		bleedingSprite:Render(Isaac.WorldToRenderPosition(player.Position) + offset + Vector(0,-35) * player.SpriteScale.Y, Vector.Zero, Vector.Zero)
 	end
 end

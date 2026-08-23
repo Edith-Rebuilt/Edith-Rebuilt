@@ -32,8 +32,8 @@ function CustomHealthAPI.Helper.IsPlayerUsingHorsePill(player, pillEffect, usefl
 	end
 
 	-- now we borrow from rep+ instead weeeee
-	player:GetData().CustomHealthAPIPersistent = player:GetData().CustomHealthAPIPersistent or {}
-	local pillColor = player:GetData().CustomHealthAPIPersistent.CurrentlyHeldPill
+	local pdata = CustomHealthAPI.Helper.GetPersistentData(player, true)
+	local pillColor = pdata.CurrentlyHeldPill
 	
 	if pillColor and pillColor >= PillColor.PILL_GIANT_FLAG then
 		local isHorsePillForThisEffect = (Game():GetItemPool():GetPillEffect(pillColor, player) == pillEffect)
@@ -60,8 +60,8 @@ end
 table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveCurrentlyHeldPillCallback)
 
 function CustomHealthAPI.Mod:CurrentlyHeldPillCallback(player)
-	player:GetData().CustomHealthAPIPersistent = player:GetData().CustomHealthAPIPersistent or {}
-	player:GetData().CustomHealthAPIPersistent.CurrentlyHeldPill = player:GetPill(0)
+	local pdata = CustomHealthAPI.Helper.GetPersistentData(player, true)
+	pdata.CurrentlyHeldPill = player:GetPill(0)
 end
 
 function CustomHealthAPI.Helper.AddCurrentlyHeldPillForAllCallback()
@@ -146,17 +146,6 @@ function CustomHealthAPI.Mod:UsePillCallback(pill, player, useflags, pillColour)
 			else
 				local key = "SOUL_HEART"
 				local hp = 1
-				
-				--[[local prevent = false
-				local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.PRE_HORSE_HEALTH_DOWN_HEAL)
-				for _, callback in ipairs(callbacks) do
-					local newKey, newHP = callback.Function(player, key, hp)
-					if newKey ~= nil or newHP ~= nil then
-						key = newKey or key
-						hp = newHP or hp
-					end
-				end]]--
-				
 				CustomHealthAPI.Helper.UpdateHealthMasks(player, key, hp)
 			end
 		end
@@ -175,5 +164,18 @@ function CustomHealthAPI.Mod:UsePillCallback(pill, player, useflags, pillColour)
 		CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
 	elseif pill == PillEffect.PILLEFFECT_EXPERIMENTAL then
 		-- not implemented; no way to discern what stats were changed
+	elseif pill == PillEffect.PILLEFFECT_PERCS then
+		if doubled and CustomHealthAPI.REPPLUS_V1_9_7_13 then
+			-- full heal
+			CustomHealthAPI.Helper.UpdateHealthMasks(player, "RED_HEART", 99, true, false, false, true)
+			CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
+		end
+	elseif pill == PillEffect.PILLEFFECT_ADDICTED then
+		if doubled and CustomHealthAPI.REPPLUS_V1_9_7_13 then
+			-- gives a broken heart
+			local hp = 1
+			CustomHealthAPI.Helper.UpdateHealthMasks(player, "BROKEN_HEART", hp)
+			CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
+		end
 	end
 end

@@ -1,8 +1,8 @@
 function CustomHealthAPI.Helper.HandleAbaddon(player)
 	-- remove all maxhp 0 containers, add an equal number of black hearts + 2
-	local data = player:GetData().CustomHealthAPISavedata
-	local redMasks = data.RedHealthMasks
-	local otherMasks = data.OtherHealthMasks
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	local redMasks = data.RedHealthMasks or {}
+	local otherMasks = data.OtherHealthMasks or {}
 	
 	for i = 1, #redMasks do
 		local mask = redMasks[i]

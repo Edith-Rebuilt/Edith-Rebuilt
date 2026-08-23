@@ -33,11 +33,7 @@ function CustomHealthAPI.Helper.PreChangePlayerType(player, playertype, dontManu
 	if oldplayertype == playertype then
 		if not dontManuallyChange then 
 			CustomHealthAPI.PersistentData.OverriddenFunctions.ChangePlayerType(player, playertype)
-			
-			local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_CHANGE_PLAYER_TYPE)
-			for _, callback in ipairs(callbacks) do
-				callback.Function(player)
-			end
+			Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_CHANGE_PLAYER_TYPE, playertype, player)
 		end
 		
 		return false
@@ -46,11 +42,7 @@ function CustomHealthAPI.Helper.PreChangePlayerType(player, playertype, dontManu
 	if CustomHealthAPI.Helper.IsFoundSoul(player) or player:IsCoopGhost() then
 		if not dontManuallyChange then 
 			CustomHealthAPI.PersistentData.OverriddenFunctions.ChangePlayerType(player, playertype)
-			
-			local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_CHANGE_PLAYER_TYPE)
-			for _, callback in ipairs(callbacks) do
-				callback.Function(player)
-			end
+			Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_CHANGE_PLAYER_TYPE, playertype, player)
 		end
 		
 		return false
@@ -64,11 +56,7 @@ function CustomHealthAPI.Helper.PreChangePlayerType(player, playertype, dontManu
 	then
 		if not dontManuallyChange then 
 			CustomHealthAPI.PersistentData.OverriddenFunctions.ChangePlayerType(player, playertype)
-			
-			local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_CHANGE_PLAYER_TYPE)
-			for _, callback in ipairs(callbacks) do
-				callback.Function(player)
-			end
+			Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_CHANGE_PLAYER_TYPE, playertype, player)
 		end
 		
 		return false
@@ -80,18 +68,14 @@ function CustomHealthAPI.Helper.PreChangePlayerType(player, playertype, dontManu
 	   playertype == PlayerType.PLAYER_KEEPER_B or
 	   playertype == PlayerType.PLAYER_THESOUL_B
 	then
-		player:GetData().CustomHealthAPISavedata = nil
+		CustomHealthAPI.Helper.ClearSavedata(player)
 		if player:GetSubPlayer() ~= nil then
-			player:GetSubPlayer():GetData().CustomHealthAPISavedata = nil
+			CustomHealthAPI.Helper.ClearSavedata(player:GetSubPlayer())
 		end
 		
 		if not dontManuallyChange then 
 			CustomHealthAPI.PersistentData.OverriddenFunctions.ChangePlayerType(player, playertype)
-			
-			local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_CHANGE_PLAYER_TYPE)
-			for _, callback in ipairs(callbacks) do
-				callback.Function(player)
-			end
+			Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_CHANGE_PLAYER_TYPE, playertype, player)
 		end
 		
 		return false
@@ -99,27 +83,21 @@ function CustomHealthAPI.Helper.PreChangePlayerType(player, playertype, dontManu
 	
 	local soulCharges = player:GetSoulCharge()
 	if oldplayertype == PlayerType.PLAYER_THEFORGOTTEN then
-		CustomHealthAPI.Helper.HandleHealthOnConvertFromForgotten(player)
+		CustomHealthAPI.Helper.HandleHealthOnConvertFromForgotten(player, playertype)
 	elseif oldplayertype == PlayerType.PLAYER_THESOUL then
-		CustomHealthAPI.Helper.HandleHealthOnConvertFromTheSoul(player)
+		CustomHealthAPI.Helper.HandleHealthOnConvertFromTheSoul(player, playertype)
 	elseif oldplayertype == PlayerType.PLAYER_THEFORGOTTEN_B or oldplayertype == PlayerType.PLAYER_JACOB then
 		CustomHealthAPI.Helper.HandleHealthOnConvertFromTwin(player)
 	end
 	
-	local data = player:GetData().CustomHealthAPISavedata
-	local eternals = data.Overlays["ETERNAL_HEART"]
-	local golds = data.Overlays["GOLDEN_HEART"]
-	data.Overlays["ETERNAL_HEART"] = 0
-	data.Overlays["GOLDEN_HEART"] = 0
-	
 	--drain eternal/gold hp from player
+	CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth + 1
 	CustomHealthAPI.Helper.AddBasegameGoldenHealthWithoutModifiers(player, -99)
 	CustomHealthAPI.Helper.AddBasegameEternalHealthWithoutModifiers(player, -99)
+	CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth - 1
 	
-	player:GetData().CustomHealthAPITemp = {}
-	player:GetData().CustomHealthAPITemp.SoulCharges = soulCharges 
-	player:GetData().CustomHealthAPITemp.Eternals = eternals 
-	player:GetData().CustomHealthAPITemp.Golds = golds 
+	CustomHealthAPI.Helper.GetEntityData(player).CustomHealthAPITemp = {}
+	CustomHealthAPI.Helper.GetEntityData(player).CustomHealthAPITemp.SoulCharges = soulCharges
 	
 	return true
 end
@@ -130,25 +108,24 @@ function CustomHealthAPI.Helper.PostChangePlayerType(player, playertype)
 	   playertype == PlayerType.PLAYER_THELOST_B or
 	   playertype == PlayerType.PLAYER_KEEPER_B or
 	   playertype == PlayerType.PLAYER_THESOUL_B or
-	   player:GetData().CustomHealthAPISavedata == nil
+	   CustomHealthAPI.Helper.HasSavedata(player)
 	then
-		player:GetData().CustomHealthAPISavedata = nil
-		
-		local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_CHANGE_PLAYER_TYPE)
-		for _, callback in ipairs(callbacks) do
-			callback.Function(player)
-		end
-		
+		CustomHealthAPI.Helper.ClearSavedata(player)
+		Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_CHANGE_PLAYER_TYPE, playertype, player)
 		return
 	end
 	
-	local soulCharges = player:GetData().CustomHealthAPITemp.SoulCharges
-	local eternals = player:GetData().CustomHealthAPITemp.Eternals
-	local golds = player:GetData().CustomHealthAPITemp.Golds
-	player:GetData().CustomHealthAPITemp = nil
+	local soulCharges = CustomHealthAPI.Helper.GetEntityData(player).CustomHealthAPITemp.SoulCharges
+	CustomHealthAPI.Helper.GetEntityData(player).CustomHealthAPITemp = nil
 	
-	local data = player:GetData().CustomHealthAPISavedata
-	player:GetData().CustomHealthAPISavedata.PlayerType = playertype
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	if not data then
+		CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+		CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+		CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+		data = CustomHealthAPI.Helper.GetSavedata(player)
+	end
+	CustomHealthAPI.Helper.GetSavedata(player).PlayerType = playertype
 	
 	if playertype == PlayerType.PLAYER_THEFORGOTTEN then
 		CustomHealthAPI.Helper.HandleHealthOnConvertToForgotten(player, soulCharges)
@@ -164,27 +141,27 @@ function CustomHealthAPI.Helper.PostChangePlayerType(player, playertype)
 		CustomHealthAPI.Helper.HandleHealthOnConvertToGeneric(player, soulCharges)
 	end
 	
-	CustomHealthAPI.Helper.HandleEternalHeartsPostChange(player, eternals)
-	CustomHealthAPI.Helper.HandleGoldenHeartsPostChange(player, playertype, golds)
-	
-	local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_CHANGE_PLAYER_TYPE)
-	for _, callback in ipairs(callbacks) do
-		callback.Function(player)
-	end
+	Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_CHANGE_PLAYER_TYPE, playertype, player)
 end
 
 function CustomHealthAPI.Helper.ChangePlayerType(player, playertype)
-	if CustomHealthAPI.Helper.PreChangePlayerType(player, playertype) then
+	if CustomHealthAPI.Helper.PreChangePlayerType(player, playertype, false) then
 		CustomHealthAPI.PersistentData.OverriddenFunctions.ChangePlayerType(player, playertype)
 		CustomHealthAPI.Helper.PostChangePlayerType(player, playertype)
 	end
 end
 
 function CustomHealthAPI.Helper.RestrictBrokenHearts(player, limit)
-	local data = player:GetData().CustomHealthAPISavedata
-	local otherMasks = data.OtherHealthMasks
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	if not data then
+		CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+		CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+		CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+		data = CustomHealthAPI.Helper.GetSavedata(player)
+	end
+	local otherMasks = data.OtherHealthMasks or {}
 
-	while CustomHealthAPI.Helper.GetTotalKeys(player, "BROKEN_HEART", true) > limit do
+	while CustomHealthAPI.Helper.GetTotalBrokenHP(player, true) > limit do
 		local lowestPriorityHealth
 		local lowestPriority
 		local maskIndexOfLowestPriority
@@ -215,8 +192,14 @@ function CustomHealthAPI.Helper.RestrictBrokenHearts(player, limit)
 end
 
 function CustomHealthAPI.Helper.RestrictBoneHearts(player)
-	local data = player:GetData().CustomHealthAPISavedata
-	local otherMasks = data.OtherHealthMasks
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	if not data then
+		CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+		CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+		CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+		data = CustomHealthAPI.Helper.GetSavedata(player)
+	end
+	local otherMasks = data.OtherHealthMasks or {}
 
 	while CustomHealthAPI.Helper.GetRoomForOtherKeys(player) < 0 and 
 	      CustomHealthAPI.Helper.GetTotalMaxHP(player, true) + CustomHealthAPI.Helper.GetTotalBoneHP(player, true, true) > 0 
@@ -254,8 +237,14 @@ function CustomHealthAPI.Helper.RestrictBoneHearts(player)
 end
 
 function CustomHealthAPI.Helper.RestrictSoulHearts(player)
-	local data = player:GetData().CustomHealthAPISavedata
-	local otherMasks = data.OtherHealthMasks
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	if not data then
+		CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+		CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+		CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+		data = CustomHealthAPI.Helper.GetSavedata(player)
+	end
+	local otherMasks = data.OtherHealthMasks or {}
 
 	while CustomHealthAPI.Helper.GetRoomForOtherKeys(player) < 0 and 
 	      CustomHealthAPI.Helper.GetTotalSoulHP(player, true, nil, true) > 0 
@@ -290,8 +279,14 @@ function CustomHealthAPI.Helper.RestrictSoulHearts(player)
 end
 
 function CustomHealthAPI.Helper.RestrictHeartContainers(player)
-	local data = player:GetData().CustomHealthAPISavedata
-	local otherMasks = data.OtherHealthMasks
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	if not data then
+		CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+		CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+		CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+		data = CustomHealthAPI.Helper.GetSavedata(player)
+	end
+	local otherMasks = data.OtherHealthMasks or {}
 
 	while CustomHealthAPI.Helper.GetRoomForOtherKeys(player) < 0 and 
 	      CustomHealthAPI.Helper.GetTotalMaxHP(player, true) + CustomHealthAPI.Helper.GetTotalBoneHP(player, true, true) > 0 
@@ -329,11 +324,17 @@ function CustomHealthAPI.Helper.RestrictHeartContainers(player)
 end
 
 function CustomHealthAPI.Helper.RestrictRedHearts(player)
-	local data = player:GetData().CustomHealthAPISavedata
-	local redMasks = data.RedHealthMasks
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	if not data then
+		CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+		CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+		CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+		data = CustomHealthAPI.Helper.GetSavedata(player)
+	end
+	local redMasks = data.RedHealthMasks or {}
 	
 	while CustomHealthAPI.Helper.GetTotalRedHP(player, true, nil, true) > CustomHealthAPI.Helper.GetRedCapacity(player) do
-		local redMasks = data.RedHealthMasks
+		local redMasks = data.RedHealthMasks or {}
 		
 		local lowestPriorityHealth
 		local lowestPriority
@@ -367,37 +368,58 @@ function CustomHealthAPI.Helper.RestrictRedHearts(player)
 	end
 end
 
+-- Transfers overlay health from one player to another, for twins and subplayers.
+-- If the optional RNG is provided, only half of the overlays will be shared, using the RNG for handling odd amounts.
+function CustomHealthAPI.Helper.TransferOverlays(sourcePlayer, targetPlayer, transferHalfRNG)
+	local sourceData = CustomHealthAPI.Helper.GetSavedata(sourcePlayer)
+	local targetData = CustomHealthAPI.Helper.GetSavedata(targetPlayer)
+	
+	local transferNext = true
+	local overlaysToTransfer = {}
+	
+	if transferHalfRNG then
+		transferNext = transferHalfRNG:RandomInt(2) == 0
+	end
+	
+	for overlayLayerIndex, overlayLayer in ipairs(sourceData.OverlayHealthMaskLayers) do
+		for overlayMaskIndex, overlayIndexInMask, overlay in CustomHealthAPI.Helper.GetHealthMasksIterator(overlayLayer, true) do
+			if transferNext then
+				table.insert(overlaysToTransfer, overlay)
+				table.remove(sourceData.OverlayHealthMaskLayers[overlayLayerIndex][overlayMaskIndex], overlayIndexInMask)
+			end
+			if transferHalfRNG then
+				transferNext = not transferNext
+			end
+		end
+	end
+	
+	for i = #overlaysToTransfer, 1, -1 do
+		local overlay = overlaysToTransfer[i]
+		CustomHealthAPI.Helper.PlusOverlayMain(targetPlayer, overlay.Key, math.max(1, overlay.HP), true, true)
+	end
+	
+	CustomHealthAPI.Helper.HandleExcessOverlays(targetPlayer)
+	CustomHealthAPI.Helper.HandleEternalHearts(targetPlayer)
+end
+
 function CustomHealthAPI.Helper.HandleHealthOnConvertToForgotten(player, soulCharges)
 	-- convert containers to bone hearts, refund bone if necessary, give all soul hearts to subplayer (if they exist)
-	local data = player:GetData().CustomHealthAPISavedata
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	if not data then
+		CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+		CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+		CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+		data = CustomHealthAPI.Helper.GetSavedata(player)
+	end
 	
 	-- initialize subplayer
 	local subplayer = player:GetSubPlayer()
 	if subplayer then
-		subplayer:GetData().CustomHealthAPISavedata = {}
-		local sdata = subplayer:GetData().CustomHealthAPISavedata
-		
-		local redorder = CustomHealthAPI.Helper.GetRedHealthOrder()
-		sdata.RedHealthMasks = {}
-		for i = 1, #redorder do
-			sdata.RedHealthMasks[i] = {}
-		end
-		
-		local otherorder = CustomHealthAPI.Helper.GetOtherHealthOrder()
-		sdata.OtherHealthMasks = {}
-		for i = 1, #otherorder do
-			sdata.OtherHealthMasks[i] = {}
-		end
-		
-		sdata.Overlays = {}
-		sdata.Overlays["ETERNAL_HEART"] = 0
-		sdata.Overlays["GOLDEN_HEART"] = 0
-		
-		sdata.PlayerType = subplayer:GetPlayerType()
+		CustomHealthAPI.Helper.InitializeEmptyHealthMasks(subplayer)
 	end
 	
 	-- give soul hearts to subplayer (or remove if no subplayer)
-	local otherMasks = data.OtherHealthMasks
+	local otherMasks = data.OtherHealthMasks or {}
 	for i = #otherMasks, 1, -1 do
 		local mask = otherMasks[i]
 		for j = #mask, 1, -1 do
@@ -405,7 +427,7 @@ function CustomHealthAPI.Helper.HandleHealthOnConvertToForgotten(player, soulCha
 			
 			if CustomHealthAPI.PersistentData.HealthDefinitions[health.Key].Type == CustomHealthAPI.Enums.HealthTypes.SOUL then
 				if subplayer then
-					local sdata = subplayer:GetData().CustomHealthAPISavedata
+					local sdata = CustomHealthAPI.Helper.GetSavedata(subplayer)
 					table.insert(sdata.OtherHealthMasks[i], 1, health)
 				end
 				table.remove(mask, j)
@@ -466,27 +488,20 @@ end
 
 function CustomHealthAPI.Helper.HandleHealthOnConvertToTheSoul(player, soulCharges)
 	-- remove all containers, refund soul if necessary, give all red hearts and bone hearts + 2 to subplayer (if they exist)
-	local data = player:GetData().CustomHealthAPISavedata
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	if not data then
+		CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+		CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+		CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+		data = CustomHealthAPI.Helper.GetSavedata(player)
+	end
 	
 	-- initialize subplayer and give red hearts to them
 	local subplayer = player:GetSubPlayer()
 	if subplayer then
-		subplayer:GetData().CustomHealthAPISavedata = {}
-		local sdata = subplayer:GetData().CustomHealthAPISavedata
-		
+		CustomHealthAPI.Helper.InitializeEmptyHealthMasks(subplayer)
+		local sdata = CustomHealthAPI.Helper.GetSavedata(subplayer)
 		sdata.RedHealthMasks = data.RedHealthMasks
-		
-		local otherorder = CustomHealthAPI.Helper.GetOtherHealthOrder()
-		sdata.OtherHealthMasks = {}
-		for i = 1, #otherorder do
-			sdata.OtherHealthMasks[i] = {}
-		end
-		
-		sdata.Overlays = {}
-		sdata.Overlays["ETERNAL_HEART"] = 0
-		sdata.Overlays["GOLDEN_HEART"] = 0
-		
-		sdata.PlayerType = subplayer:GetPlayerType()
 	end
 	
 	-- clear red hearts
@@ -497,7 +512,7 @@ function CustomHealthAPI.Helper.HandleHealthOnConvertToTheSoul(player, soulCharg
 	end
 	
 	-- give bone hearts to subplayer (or remove if no subplayer) and remove containers
-	local otherMasks = data.OtherHealthMasks
+	local otherMasks = data.OtherHealthMasks or {}
 	for i = #otherMasks, 1, -1 do
 		local mask = otherMasks[i]
 		for j = #mask, 1, -1 do
@@ -507,7 +522,7 @@ function CustomHealthAPI.Helper.HandleHealthOnConvertToTheSoul(player, soulCharg
 			   CustomHealthAPI.PersistentData.HealthDefinitions[health.Key].KindContained ~= CustomHealthAPI.Enums.HealthKinds.NONE
 			then
 				if subplayer and CustomHealthAPI.PersistentData.HealthDefinitions[health.Key].MaxHP > 0 then
-					local sdata = subplayer:GetData().CustomHealthAPISavedata
+					local sdata = CustomHealthAPI.Helper.GetSavedata(subplayer)
 					table.insert(sdata.OtherHealthMasks[i], 1, health)
 				end
 				table.remove(mask, j)
@@ -547,13 +562,19 @@ end
 
 function CustomHealthAPI.Helper.HandleHealthOnConvertToBethany(player, soulCharges)
 	-- convert soul hearts to soul charges, refund full container if necessary
-	local data = player:GetData().CustomHealthAPISavedata
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	if not data then
+		CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+		CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+		CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+		data = CustomHealthAPI.Helper.GetSavedata(player)
+	end
 	
 	-- clear current soul charge
 	player:AddSoulCharge(-1 * player:GetSoulCharge())
 	
 	-- convert soul hearts to soul charges
-	local otherMasks = data.OtherHealthMasks
+	local otherMasks = data.OtherHealthMasks or {}
 	for i = #otherMasks, 1, -1 do
 		local mask = otherMasks[i]
 		for j = #mask, 1, -1 do
@@ -594,33 +615,27 @@ function CustomHealthAPI.Helper.HandleHealthOnConvertToJacobEsau(player, soulCha
 		local rng = RNG()
 		rng:SetSeed(twin.InitSeed, 5)
 		
-		local data = player:GetData().CustomHealthAPISavedata
-		local redMasks = data.RedHealthMasks
-		local otherMasks = data.OtherHealthMasks
+		local data = CustomHealthAPI.Helper.GetSavedata(player)
+		if not data then
+			CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+			CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+			CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+			data = CustomHealthAPI.Helper.GetSavedata(player)
+		end
+		local redMasks = data.RedHealthMasks or {}
+		local otherMasks = data.OtherHealthMasks or {}
 		
 		-- initialize other twin
-		twin:GetData().CustomHealthAPISavedata = {}
-		local tdata = twin:GetData().CustomHealthAPISavedata
-		
-		local redorder = CustomHealthAPI.Helper.GetRedHealthOrder()
-		tdata.RedHealthMasks = {}
-		for i = 1, #redorder do
-			tdata.RedHealthMasks[i] = {}
+		CustomHealthAPI.Helper.InitializeEmptyHealthMasks(twin)
+		local tdata = CustomHealthAPI.Helper.GetSavedata(twin)
+		if not tdata then
+			CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+			CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(twin)
+			CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(twin)
+			tdata = CustomHealthAPI.Helper.GetSavedata(twin)
 		end
 		local twinRedMasks = tdata.RedHealthMasks
-		
-		local otherorder = CustomHealthAPI.Helper.GetOtherHealthOrder()
-		tdata.OtherHealthMasks = {}
-		for i = 1, #otherorder do
-			tdata.OtherHealthMasks[i] = {}
-		end
 		local twinOtherMasks = tdata.OtherHealthMasks
-		
-		tdata.Overlays = {}
-		tdata.Overlays["ETERNAL_HEART"] = 0
-		tdata.Overlays["GOLDEN_HEART"] = 0
-		
-		tdata.PlayerType = twin:GetPlayerType()
 		
 		-- duplicate broken hearts to other twin
 		CustomHealthAPI.Helper.UpdateHealthMasks(twin, "BROKEN_HEART", 
@@ -893,6 +908,8 @@ function CustomHealthAPI.Helper.HandleHealthOnConvertToJacobEsau(player, soulCha
 			end
 		end
 		
+		CustomHealthAPI.Helper.TransferOverlays(player, twin, rng)
+		
 		-- restrict hearts of player
 		CustomHealthAPI.Helper.RestrictBrokenHearts(player, 12)
 		CustomHealthAPI.Helper.RestrictBoneHearts(player)
@@ -963,10 +980,16 @@ end
 
 function CustomHealthAPI.Helper.HandleHealthOnConvertToSoulHpPlayer(player, soulCharges)
 	-- remove all containers and red, refund half a soul heart if necessary
-	local data = player:GetData().CustomHealthAPISavedata
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	if not data then
+		CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+		CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+		CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+		data = CustomHealthAPI.Helper.GetSavedata(player)
+	end
 	
 	-- clear red hearts
-	local redMasks = data.RedHealthMasks
+	local redMasks = data.RedHealthMasks or {}
 	for i = #redMasks, 1, -1 do
 		local mask = redMasks[i]
 		for j = #mask, 1, -1 do
@@ -975,7 +998,7 @@ function CustomHealthAPI.Helper.HandleHealthOnConvertToSoulHpPlayer(player, soul
 	end
 	
 	-- remove all containers
-	local otherMasks = data.OtherHealthMasks
+	local otherMasks = data.OtherHealthMasks or {}
 	for i = #otherMasks, 1, -1 do
 		local mask = otherMasks[i]
 		for j = #mask, 1, -1 do
@@ -1010,9 +1033,15 @@ function CustomHealthAPI.Helper.HandleHealthOnConvertToSoulHpPlayer(player, soul
 end
 
 function CustomHealthAPI.Helper.HandleHealthOnConvertToGeneric(player, soulCharges)
-	local data = player:GetData().CustomHealthAPISavedata
-	local redMasks = data.RedHealthMasks
-	local otherMasks = data.OtherHealthMasks
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	if not data then
+		CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+		CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+		CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+		data = CustomHealthAPI.Helper.GetSavedata(player)
+	end
+	local redMasks = data.RedHealthMasks or {}
+	local otherMasks = data.OtherHealthMasks or {}
 	
 	-- restrict hearts
 	CustomHealthAPI.Helper.RestrictBrokenHearts(player, 12)
@@ -1038,13 +1067,25 @@ function CustomHealthAPI.Helper.HandleHealthOnConvertToGeneric(player, soulCharg
 	if subplayer then CustomHealthAPI.Helper.UpdateBasegameHealthState(subplayer) end
 end
 
-function CustomHealthAPI.Helper.HandleHealthOnConvertFromForgotten(player)
+function CustomHealthAPI.Helper.HandleHealthOnConvertFromForgotten(player, playertype)
 	local subplayer = player:GetSubPlayer()
 	if subplayer then
-		local data = player:GetData().CustomHealthAPISavedata
-		local sdata = subplayer:GetData().CustomHealthAPISavedata
-		local otherMasksOfPlayer = data.OtherHealthMasks
-		local otherMasksOfSubplayer = sdata.OtherHealthMasks
+		local data = CustomHealthAPI.Helper.GetSavedata(player)
+		if not data then
+			CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+			CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+			CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+			data = CustomHealthAPI.Helper.GetSavedata(player)
+		end
+		local sdata = CustomHealthAPI.Helper.GetSavedata(subplayer)
+		if not sdata then
+			CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+			CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(subplayer)
+			CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(subplayer)
+			sdata = CustomHealthAPI.Helper.GetSavedata(subplayer)
+		end
+		local otherMasksOfPlayer = data.OtherHealthMasks or {}
+		local otherMasksOfSubplayer = sdata.OtherHealthMasks or {}
 		
 		--append subplayer soul hp to end of player hp (broken hearts are ignored)
 		for i = #otherMasksOfSubplayer, 1, -1 do
@@ -1063,26 +1104,39 @@ function CustomHealthAPI.Helper.HandleHealthOnConvertFromForgotten(player)
 			end
 		end
 		
-		--transfer over subplayer eternal and gold hp
-		data.Overlays["ETERNAL_HEART"] = data.Overlays["ETERNAL_HEART"] + sdata.Overlays["ETERNAL_HEART"]
-		data.Overlays["GOLDEN_HEART"] = data.Overlays["GOLDEN_HEART"] + sdata.Overlays["GOLDEN_HEART"]
+		--transfer overlays
+		CustomHealthAPI.Helper.TransferOverlays(subplayer, player)
 		
 		--delete subplayer hp
-		subplayer:GetData().CustomHealthAPISavedata = nil
+		CustomHealthAPI.Helper.ClearSavedata(subplayer)
 		
 		--drain eternal/gold hp from subplayer
+		CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth + 1
 		CustomHealthAPI.Helper.AddBasegameGoldenHealthWithoutModifiers(subplayer, -99)
 		CustomHealthAPI.Helper.AddBasegameEternalHealthWithoutModifiers(subplayer, -99)
+		CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth - 1
 	end
 end
 
-function CustomHealthAPI.Helper.HandleHealthOnConvertFromTheSoul(player)
+function CustomHealthAPI.Helper.HandleHealthOnConvertFromTheSoul(player, playertype)
 	local subplayer = player:GetSubPlayer()
 	if subplayer then
-		local data = player:GetData().CustomHealthAPISavedata
-		local sdata = subplayer:GetData().CustomHealthAPISavedata
-		local otherMasksOfPlayer = data.OtherHealthMasks
-		local otherMasksOfSubplayer = sdata.OtherHealthMasks
+		local data = CustomHealthAPI.Helper.GetSavedata(player)
+		if not data then
+			CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+			CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+			CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+			data = CustomHealthAPI.Helper.GetSavedata(player)
+		end
+		local sdata = CustomHealthAPI.Helper.GetSavedata(subplayer)
+		if not sdata then
+			CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+			CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(subplayer)
+			CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(subplayer)
+			sdata = CustomHealthAPI.Helper.GetSavedata(subplayer)
+		end
+		local otherMasksOfPlayer = data.OtherHealthMasks or {}
+		local otherMasksOfSubplayer = sdata.OtherHealthMasks or {}
 		
 		--append subplayer bone hp to end of player hp (broken hearts are ignored)
 		for i = #otherMasksOfSubplayer, 1, -1 do
@@ -1109,30 +1163,37 @@ function CustomHealthAPI.Helper.HandleHealthOnConvertFromTheSoul(player)
 		end
 		
 		--transfer over subplayer red hp to player hp
-		data.RedHealthMasks = sdata.RedHealthMasks
+		data.RedHealthMasks = sdata.RedHealthMasks or {}
 		
-		--transfer over subplayer eternal and gold hp
-		data.Overlays["ETERNAL_HEART"] = data.Overlays["ETERNAL_HEART"] + sdata.Overlays["ETERNAL_HEART"]
-		data.Overlays["GOLDEN_HEART"] = data.Overlays["GOLDEN_HEART"] + sdata.Overlays["GOLDEN_HEART"]
+		--transfer overlays
+		CustomHealthAPI.Helper.TransferOverlays(subplayer, player)
 		
 		--delete subplayer hp
-		subplayer:GetData().CustomHealthAPISavedata = nil
+		CustomHealthAPI.Helper.ClearSavedata(subplayer)
 		
 		--drain eternal/gold hp from subplayer
+		CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth + 1
 		CustomHealthAPI.Helper.AddBasegameGoldenHealthWithoutModifiers(subplayer, -99)
 		CustomHealthAPI.Helper.AddBasegameEternalHealthWithoutModifiers(subplayer, -99)
+		CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth - 1
 	end
 end
 
 function CustomHealthAPI.Helper.HandleHealthOnConvertFromTwin(player)
 	local twin = player:GetOtherTwin()
 	if twin then
-		local data = player:GetData().CustomHealthAPISavedata
+		local data = CustomHealthAPI.Helper.GetSavedata(player)
+		if not data then
+			CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+			CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(player)
+			CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
+			data = CustomHealthAPI.Helper.GetSavedata(player)
+		end
 		
 		local twintype = twin:GetPlayerType()
 		if twintype == PlayerType.PLAYER_KEEPER or twintype == PlayerType.PLAYER_KEEPER_B then
 			--add heart containers to player hp
-			local otherMasksOfPlayer = data.OtherHealthMasks
+			local otherMasksOfPlayer = data.OtherHealthMasks or {}
 			local emptyContainingMask = otherMasksOfPlayer[CustomHealthAPI.PersistentData.HealthDefinitions["EMPTY_HEART"].MaskIndex]
 			
 			local heartContainersToAdd = CustomHealthAPI.PersistentData.OverriddenFunctions.GetMaxHearts(twin)
@@ -1142,7 +1203,7 @@ function CustomHealthAPI.Helper.HandleHealthOnConvertFromTwin(player)
 			end
 			
 			--add red hearts to player hp
-			local redMasksOfPlayer = data.RedHealthMasks
+			local redMasksOfPlayer = data.RedHealthMasks or {}
 			local redContainingMask = redMasksOfPlayer[CustomHealthAPI.PersistentData.HealthDefinitions["RED_HEART"].MaskIndex]
 			
 			local redHeartsToAdd = CustomHealthAPI.PersistentData.OverriddenFunctions.GetHearts(twin)
@@ -1154,19 +1215,25 @@ function CustomHealthAPI.Helper.HandleHealthOnConvertFromTwin(player)
 			
 			--add gold hearts to player hp
 			local goldenHeartsToAdd = CustomHealthAPI.PersistentData.OverriddenFunctions.GetGoldenHearts(twin)
-			data.Overlays["GOLDEN_HEART"] = data.Overlays["GOLDEN_HEART"] + goldenHeartsToAdd
+			CustomHealthAPI.Helper.TryHealingOverlayHP(player, "GOLDEN_HEART", goldenHeartsToAdd, 0, true)
 		elseif twintype == PlayerType.PLAYER_THELOST or twintype == PlayerType.PLAYER_THELOST_B or twintype == PlayerType.PLAYER_THESOUL_B then
 			--add a half soul heart to player hp
 			local remainingSoul = CustomHealthAPI.Helper.HealSoulAnywhere(player, 1)
 			if remainingSoul > 0 then
-				local otherMasksOfPlayer = data.OtherHealthMasks
+				local otherMasksOfPlayer = data.OtherHealthMasks or {}
 				local soulContainingMask = otherMasksOfPlayer[CustomHealthAPI.PersistentData.HealthDefinitions["SOUL_HEART"].MaskIndex]
 				table.insert(soulContainingMask, {Key = "SOUL_HEART", HP = 1})
 			end
 		else
-			local tdata = twin:GetData().CustomHealthAPISavedata
-			local redMasksOfTwin = tdata.RedHealthMasks
-			local otherMasksOfTwin = tdata.OtherHealthMasks
+			local tdata = CustomHealthAPI.Helper.GetSavedata(twin)
+			if not tdata then
+				CustomHealthAPI.Helper.CheckIfHealthOrderSet()
+				CustomHealthAPI.Helper.CheckHealthIsInitializedForPlayer(twin)
+				CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(twin)
+				tdata = CustomHealthAPI.Helper.GetSavedata(twin)
+			end
+			local redMasksOfTwin = tdata.RedHealthMasks or {}
+			local otherMasksOfTwin = tdata.OtherHealthMasks or {}
 			
 			--append twin other hp to end of player other hp
 			for i = 1, #otherMasksOfTwin do
@@ -1200,48 +1267,29 @@ function CustomHealthAPI.Helper.HandleHealthOnConvertFromTwin(player)
 				end
 			end
 		
-			--transfer over twin eternal and gold hp
-			data.Overlays["ETERNAL_HEART"] = data.Overlays["ETERNAL_HEART"] + tdata.Overlays["ETERNAL_HEART"]
-			data.Overlays["GOLDEN_HEART"] = data.Overlays["GOLDEN_HEART"] + tdata.Overlays["GOLDEN_HEART"]
+			--transfer overlays
+			CustomHealthAPI.Helper.TransferOverlays(twin, player)
 		end
 		
 		--delete twin hp
-		twin:GetData().CustomHealthAPISavedata = nil
+		CustomHealthAPI.Helper.ClearSavedata(twin)
 		
 		--drain eternal/gold hp from twin
+		CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth + 1
 		CustomHealthAPI.Helper.AddBasegameGoldenHealthWithoutModifiers(twin, -99)
 		CustomHealthAPI.Helper.AddBasegameEternalHealthWithoutModifiers(twin, -99)
+		CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth - 1
 	end
 end
 
+-- [legacy]
 function CustomHealthAPI.Helper.HandleEternalHeartsPostChange(player, eternals)
-	local data = player:GetData().CustomHealthAPISavedata
-	data.Overlays["ETERNAL_HEART"] = eternals
-	
-	if data.Overlays["ETERNAL_HEART"] >= 2 then
-		CustomHealthAPI.Helper.AddBasegameEternalHealthWithoutModifiers(player, 2) -- Play eternal heart animation
-		
-		local hpToAdd = data.Overlays["ETERNAL_HEART"] - (data.Overlays["ETERNAL_HEART"] % 2)
-		if player:GetPlayerType() == PlayerType.PLAYER_THESOUL then
-			CustomHealthAPI.Helper.UpdateHealthMasks(player, "SOUL_HEART", hpToAdd)
-		else
-			CustomHealthAPI.Helper.UpdateHealthMasks(player, "EMPTY_HEART", hpToAdd)
-			CustomHealthAPI.Helper.UpdateHealthMasks(player, "RED_HEART", hpToAdd)
-		end
-		
-		data.Overlays["ETERNAL_HEART"] = data.Overlays["ETERNAL_HEART"] % 2
-		CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
-	end
+	CustomHealthAPI.Helper.AddOverlayMain(player, "ETERNAL_HEART", eternals)
+	CustomHealthAPI.Helper.HandleEternalHearts(player)
 end
-
 function CustomHealthAPI.Helper.HandleGoldenHeartsPostChange(player, playertype, golds)
 	if playertype == PlayerType.PLAYER_JACOB and player:GetOtherTwin() then
-		-- give half of golden hearts to other twin, if odd randomly decide who gets the remainder, account for golden room
-		local data = player:GetData().CustomHealthAPISavedata
-		data.Overlays["GOLDEN_HEART"] = golds
-		
 		local twin = player:GetOtherTwin()
-		local tdata = twin:GetData().CustomHealthAPISavedata
 		
 		local rng = RNG()
 		rng:SetSeed(twin.InitSeed, 6)
@@ -1253,23 +1301,9 @@ function CustomHealthAPI.Helper.HandleGoldenHeartsPostChange(player, playertype,
 			goldToTransfer = math.floor(goldToTransfer)
 		end
 		
-		while (goldToTransfer > 0 or CustomHealthAPI.Helper.GetNumOverlayableHearts(player) < data.Overlays["GOLDEN_HEART"]) and
-		      CustomHealthAPI.Helper.GetNumOverlayableHearts(twin) > tdata.Overlays["GOLDEN_HEART"]
-		do
-			data.Overlays["GOLDEN_HEART"] = data.Overlays["GOLDEN_HEART"] - 1
-			tdata.Overlays["GOLDEN_HEART"] = (tdata.Overlays["GOLDEN_HEART"] or 0) + 1
-			goldToTransfer = goldToTransfer - 1
-		end
-		
-		CustomHealthAPI.Helper.HandleGoldenRoom(player, true)
-		CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
-		
-		CustomHealthAPI.Helper.HandleGoldenRoom(twin, true)
-		CustomHealthAPI.Helper.UpdateBasegameHealthState(twin)
+		CustomHealthAPI.Helper.AddOverlayMain(player, "GOLDEN_HEART", golds - goldToTransfer)
+		CustomHealthAPI.Helper.AddOverlayMain(twin, "GOLDEN_HEART", goldToTransfer)
 	else
-		local data = player:GetData().CustomHealthAPISavedata
-		data.Overlays["GOLDEN_HEART"] = golds
-		CustomHealthAPI.Helper.HandleGoldenRoom(player, true)
-		CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
+		CustomHealthAPI.Helper.AddOverlayMain(player, "GOLDEN_HEART", golds)
 	end
 end

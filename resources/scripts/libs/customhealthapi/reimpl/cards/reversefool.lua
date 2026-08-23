@@ -11,6 +11,8 @@ function CustomHealthAPI.Helper.HandleReverseFool(player)
 	local halfSoulHearts = {}
 	local blackHearts = {}
 	local boneHearts = {}
+	local eternalHearts = {}
+	local goldHearts = {}
 	
 	for _, heart in ipairs(hearts) do
 		if heart.FrameCount == 0 and
@@ -34,13 +36,17 @@ function CustomHealthAPI.Helper.HandleReverseFool(player)
 				table.insert(blackHearts, heart)
 			elseif heart.SubType == HeartSubType.HEART_BONE then
 				table.insert(boneHearts, heart)
+			elseif heart.SubType == HeartSubType.HEART_ETERNAL then
+				table.insert(eternalHearts, heart)
+			elseif heart.SubType == HeartSubType.HEART_GOLDEN then
+				table.insert(goldHearts, heart)
 			end
 		end
 	end
 	
-	local data = player:GetData().CustomHealthAPISavedata
-	local redMasks = data.RedHealthMasks
-	local otherMasks = data.OtherHealthMasks
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	local redMasks = data.RedHealthMasks or {}
+	local otherMasks = data.OtherHealthMasks or {}
 	
 	local redTotals = {}
 	local highestPriorityRedKey
@@ -102,6 +108,16 @@ function CustomHealthAPI.Helper.HandleReverseFool(player)
 		end
 	end
 	
+	local overlayTotals = {}
+	for overlayLayerIndex, overlayLayer in ipairs(data.OverlayHealthMaskLayers) do
+		for overlayMaskIndex, overlayIndexInMask, overlay in CustomHealthAPI.Helper.GetHealthMasksIterator(overlayLayer, true) do
+			if overlay.Key == "GOLDEN_HEART" or overlay.Key == "ETERNAL_HEART" or CustomHealthAPI.PersistentData.HealthDefinitions[overlay.Key].PickupEntities ~= nil then
+				overlayTotals[overlay.Key] = (overlayTotals[overlay.Key] or 0) + math.max(1, overlay.HP)
+				table.remove(overlayLayer[overlayMaskIndex], overlayIndexInMask)
+			end
+		end
+	end
+	
 	if hasMax and highestPriorityRedKey ~= nil then
 		if CustomHealthAPI.Library.GetInfoOfKey(highestPriorityRedKey, "MaxHP") <= 1 then
 			CustomHealthAPI.Helper.UpdateHealthMasks(player, highestPriorityRedKey, 2, true, false, true, true, true)
@@ -120,9 +136,6 @@ function CustomHealthAPI.Helper.HandleReverseFool(player)
 		end
 		soulTotals[highestPrioritySoulKey] = soulTotals[highestPrioritySoulKey] - 1
 	end
-	
-	data.Overlays["ETERNAL_HEART"] = 0
-	data.Overlays["GOLDEN_HEART"] = 0
 	
 	if redTotals["RED_HEART"] ~= nil then
 		while redTotals["RED_HEART"] > 0 do
@@ -265,6 +278,40 @@ function CustomHealthAPI.Helper.HandleReverseFool(player)
 		boneTotals["BONE_HEART"] = nil
 	end
 	
+	if overlayTotals["ETERNAL_HEART"] ~= nil then
+		while overlayTotals["ETERNAL_HEART"] > 0 do
+			if #eternalHearts > 0 then
+				table.remove(eternalHearts)
+			else
+				Isaac.Spawn(EntityType.ENTITY_PICKUP, 
+				            PickupVariant.PICKUP_HEART, 
+				            HeartSubType.HEART_ETERNAL, 
+				            room:FindFreePickupSpawnPosition(player.Position, 40, true), 
+				            Vector.Zero, 
+				            player)
+			end
+			overlayTotals["ETERNAL_HEART"] = overlayTotals["ETERNAL_HEART"] - 1
+		end
+		overlayTotals["ETERNAL_HEART"] = nil
+	end
+	
+	if overlayTotals["GOLDEN_HEART"] ~= nil then
+		while overlayTotals["GOLDEN_HEART"] > 0 do
+			if #goldHearts > 0 then
+				table.remove(goldHearts)
+			else
+				Isaac.Spawn(EntityType.ENTITY_PICKUP, 
+				            PickupVariant.PICKUP_HEART, 
+				            HeartSubType.HEART_GOLDEN, 
+				            room:FindFreePickupSpawnPosition(player.Position, 40, true), 
+				            Vector.Zero, 
+				            player)
+			end
+			overlayTotals["GOLDEN_HEART"] = overlayTotals["GOLDEN_HEART"] - 1
+		end
+		overlayTotals["GOLDEN_HEART"] = nil
+	end
+	
 	-- get rid of leftovers
 	for i = 1, #redHearts do
 		redHearts[i]:Remove()
@@ -288,6 +335,12 @@ function CustomHealthAPI.Helper.HandleReverseFool(player)
 		blackHearts[i]:Remove()
 	end
 	for i = 1, #boneHearts do
+		boneHearts[i]:Remove()
+	end
+	for i = 1, #eternalHearts do
+		eternalHearts[i]:Remove()
+	end
+	for i = 1, #goldHearts do
 		boneHearts[i]:Remove()
 	end
 	
@@ -348,6 +401,29 @@ function CustomHealthAPI.Helper.HandleReverseFool(player)
 	for key, hp in pairs(boneTotals) do
 		local maxHP = CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP")
 		local pickups = CustomHealthAPI.PersistentData.HealthDefinitions[key].PickupEntities
+		
+		local hpToSpawn = hp
+		while hpToSpawn > 0 do
+			for i = maxHP, 1, -1 do
+				if pickups[i] ~= nil then
+					Isaac.Spawn(pickups[i].ID, 
+					            pickups[i].Var, 
+					            pickups[i].Sub, 
+					            room:FindFreePickupSpawnPosition(player.Position, 40, true), 
+					            Vector.Zero, 
+					            player)
+					break
+				end
+			end
+			
+			hpToSpawn = hpToSpawn - 1
+		end
+	end
+	
+	for key, hp in pairs(overlayTotals) do
+		local healthDef = CustomHealthAPI.PersistentData.HealthDefinitions[key]
+		local maxHP = math.max(healthDef.MaxHP, 1)
+		local pickups = healthDef.PickupEntities
 		
 		local hpToSpawn = hp
 		while hpToSpawn > 0 do

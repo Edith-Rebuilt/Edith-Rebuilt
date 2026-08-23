@@ -1,10 +1,34 @@
--- ADD PROPER HALFCAPACITY CONTAINER SUPPORT (+ RED HP HANDLING OF CAPACITY)
--- ADD ACTUAL SUPPORT FOR CONTAINER HP / HEALING
--- HANDLE ETERNAL/GOLD HP WHEN RED/OTHER HP IS REMOVED
--- NEED BETTER CONTAINER CONVERSION LOGIC MAYBE
--- REVISE FOR HALFCAPACITY / CONTAINER HP
+function CustomHealthAPI.Helper.RunPreAddHealthCallback(iter, player, k, h)
+	local iterator = iter
+	if iterator == nil then
+		local t = Isaac.GetCallbacks(CustomHealthAPI.Enums.Callbacks.PRE_ADD_HEALTH)
+		local k = nil
+		iterator = function()
+			local v
+			k, v = next(t, k)
+			return v
+		end
+	end
+	
+	local playerType = player:GetPlayerType()
+	local key = k
+	local hp = h
+	for callback in iterator do
+		if not callback.Param or callback.Param == playerType then
+			local returnA, returnB = callback.Function(callback.Mod, player, key, hp)
+			if returnA == true then
+				return true
+			elseif returnA ~= nil and returnB ~= nil then
+				key = returnA
+				hp = returnB
+			end
+		end
+	end
+	return key, hp
+end
+CustomHealthAPI.Enums.RunCallbackFuncs[CustomHealthAPI.Enums.Callbacks.PRE_ADD_HEALTH] = CustomHealthAPI.Helper.RunPreAddHealthCallback
 
-function CustomHealthAPI.Library.AddHealth(player, k, h, ignoreTaintedMaggieDoubling, ignoreBethanyCharges, avoidRemovingBone, ignoreStrength, ignoreAlabasterBox, ignoreHaveAHeart, ignoreShardOfGlass, ignoreSpiritShackles, skipRgonPreAddHearts)
+function CustomHealthAPI.Library.AddHealth(player, k, h, ignoreTaintedMaggieDoubling, ignoreBethanyCharges, avoidRemovingBone, ignoreStrength, ignoreAlabasterBox, ignoreHaveAHeart, ignoreShardOfGlass, ignoreSpiritShackles, skipRgonCallbacks)
 	if player:GetPlayerType() == PlayerType.PLAYER_THESOUL_B then
 		if player:GetOtherTwin() ~= nil then
 			return CustomHealthAPI.Library.AddHealth(player:GetOtherTwin(), k, h, ignoreTaintedMaggieDoubling, ignoreBethanyCharges, avoidRemovingBone, ignoreStrength, ignoreAlabasterBox, ignoreHaveAHeart, ignoreShardOfGlass, ignoreSpiritShackles)
@@ -22,19 +46,17 @@ function CustomHealthAPI.Library.AddHealth(player, k, h, ignoreTaintedMaggieDoub
 	CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
 	CustomHealthAPI.Helper.ResyncHealthOfPlayer(player)
 	
+	local playerType = player:GetPlayerType()
 	CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing + 1
 	local key = k
 	local hp = h
-	local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.PRE_ADD_HEALTH)
-	for _, callback in ipairs(callbacks) do
-		local returnA, returnB = callback.Function(player, key, hp)
-		if returnA == true then
-			CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing - 1
-			return
-		elseif returnA ~= nil and returnB ~= nil then
-			key = returnA
-			hp = returnB
-		end
+	local returnA, returnB = CustomHealthAPI.Helper.RunPreAddHealthCallback(nil, player, key, hp)
+	if returnA == true then
+		CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing - 1
+		return
+	elseif returnA ~= nil and returnB ~= nil then
+		key = returnA
+		hp = returnB
 	end
 	
 	if math.ceil(hp) == 0 then
@@ -45,7 +67,12 @@ function CustomHealthAPI.Library.AddHealth(player, k, h, ignoreTaintedMaggieDoub
 	local rgonAddHealthType = CustomHealthAPI.Helper.GetRepentogonAddHealthType(key)
 	
 	if REPENTOGON then
-		if rgonAddHealthType and (not skipRgonPreAddHearts or k ~= key) then
+		local originalRgonAddHealthType = CustomHealthAPI.Helper.GetRepentogonAddHealthType(k)
+		if skipRgonCallbacks and rgonAddHealthType ~= originalRgonAddHealthType then
+			skipRgonCallbacks = false
+		end
+		
+		if rgonAddHealthType and not skipRgonCallbacks then
 			CustomHealthAPI.PersistentData.AllowAddHeartsCallback = CustomHealthAPI.PersistentData.AllowAddHeartsCallback + 1
 			hp = Isaac.RunCallbackWithParam(ModCallbacks.MC_PRE_PLAYER_ADD_HEARTS, rgonAddHealthType, player, hp, rgonAddHealthType, false) or hp
 			if math.ceil(hp) == 0 then
@@ -60,7 +87,6 @@ function CustomHealthAPI.Library.AddHealth(player, k, h, ignoreTaintedMaggieDoub
 	end
 	
 	local healthType = CustomHealthAPI.PersistentData.HealthDefinitions[key].Type
-	local playerType = player:GetPlayerType()
 	if healthType == CustomHealthAPI.Enums.HealthTypes.RED then
 		if not ignoreHaveAHeart and Game().Challenge == Challenge.CHALLENGE_HAVE_A_HEART then
 			CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing - 1
@@ -94,7 +120,7 @@ function CustomHealthAPI.Library.AddHealth(player, k, h, ignoreTaintedMaggieDoub
 		CustomHealthAPI.Helper.AddRedMain(player, key, hpToAdd)
 		
 		if not ignoreShardOfGlass then
-			player:GetData().CustomHealthAPISavedata.ShardBleedTimer = nil
+			CustomHealthAPI.Helper.GetSavedata(player).ShardBleedTimer = nil
 		end
 	elseif healthType == CustomHealthAPI.Enums.HealthTypes.SOUL then
 		if playerType == PlayerType.PLAYER_BETHANY then
@@ -105,21 +131,24 @@ function CustomHealthAPI.Library.AddHealth(player, k, h, ignoreTaintedMaggieDoub
 				if numShacklesDisabled > 0 and hpToAdd > 0 then
 					hpToAdd = math.max(0, hpToAdd - CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP"))
 					player:GetEffects():RemoveNullEffect(NullItemID.ID_SPIRIT_SHACKLES_DISABLED, numShacklesDisabled)
-					player:GetData().CustomHealthAPIOtherData.ShacklesDisabled = false
+					CustomHealthAPI.Helper.GetOtherData(player).ShacklesDisabled = false
 				end
 			end
 			
 			if not ignoreAlabasterBox then
+				local alabasterPlayer = CustomHealthAPI.Helper.GetAlabasterBoxOwner(player)
 				local alabasterChargesToAdd = 0
 				for i = 0, 2 do
-					if player:GetActiveItem(i) == CollectibleType.COLLECTIBLE_ALABASTER_BOX then
-						alabasterChargesToAdd = alabasterChargesToAdd + (12 - player:GetActiveCharge(i))
+					if alabasterPlayer:GetActiveItem(i) == CollectibleType.COLLECTIBLE_ALABASTER_BOX then
+						alabasterChargesToAdd = alabasterChargesToAdd + (12 - alabasterPlayer:GetActiveCharge(i))
 					end
 				end
 				if alabasterChargesToAdd > 0 and hpToAdd > 0 then
 					local hpCharging = math.min(alabasterChargesToAdd, hpToAdd)
-					CustomHealthAPI.Helper.AddSoulHeartsKissesFix(player, hpCharging)
-					player:GetData().CustomHealthAPIOtherData.AlabasterChargesToAdd = math.max(0, alabasterChargesToAdd - hpCharging)
+					CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth + 1
+					CustomHealthAPI.Helper.AddSoulHeartsKissesFix(alabasterPlayer, hpCharging)
+					CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth - 1
+					CustomHealthAPI.Helper.GetOtherData(alabasterPlayer).AlabasterChargesToAdd = math.max(0, alabasterChargesToAdd - hpCharging)
 					hpToAdd = math.max(0, hpToAdd - hpCharging)
 				end
 			end
@@ -145,28 +174,29 @@ function CustomHealthAPI.Library.AddHealth(player, k, h, ignoreTaintedMaggieDoub
 		
 		local hpToAdd = math.ceil(hp)
 		
-		player:GetData().CustomHealthAPIOtherData = player:GetData().CustomHealthAPIOtherData or {}
-		
 		if not ignoreSpiritShackles then
 			local numShacklesDisabled = player:GetEffects():GetNullEffectNum(NullItemID.ID_SPIRIT_SHACKLES_DISABLED)
 			if numShacklesDisabled > 0 and hpToAdd > 0 then
 				hpToAdd = math.max(0, hpToAdd - CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP"))
 				player:GetEffects():RemoveNullEffect(NullItemID.ID_SPIRIT_SHACKLES_DISABLED, numShacklesDisabled)
-				player:GetData().CustomHealthAPIOtherData.ShacklesDisabled = false
+				CustomHealthAPI.Helper.GetOtherData(player).ShacklesDisabled = false
 			end
 		end
 		
 		if not ignoreAlabasterBox then
+			local alabasterPlayer = CustomHealthAPI.Helper.GetAlabasterBoxOwner(player)
 			local alabasterChargesToAdd = 0
 			for i = 0, 2 do
-				if player:GetActiveItem(i) == CollectibleType.COLLECTIBLE_ALABASTER_BOX then
-					alabasterChargesToAdd = alabasterChargesToAdd + (12 - player:GetActiveCharge(i))
+				if alabasterPlayer:GetActiveItem(i) == CollectibleType.COLLECTIBLE_ALABASTER_BOX then
+					alabasterChargesToAdd = alabasterChargesToAdd + (12 - alabasterPlayer:GetActiveCharge(i))
 				end
 			end
 			if alabasterChargesToAdd > 0 and hpToAdd > 0 then
 				local hpCharging = math.min(alabasterChargesToAdd, hpToAdd)
-				CustomHealthAPI.Helper.AddSoulHeartsKissesFix(player, hpCharging)
-				player:GetData().CustomHealthAPIOtherData.AlabasterChargesToAdd = math.max(0, alabasterChargesToAdd - hpCharging)
+				CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth + 1
+				CustomHealthAPI.Helper.AddSoulHeartsKissesFix(alabasterPlayer, hpCharging)
+				CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth - 1
+				CustomHealthAPI.Helper.GetOtherData(alabasterPlayer).AlabasterChargesToAdd = math.max(0, alabasterChargesToAdd - hpCharging)
 				hpToAdd = math.max(0, hpToAdd - hpCharging)
 			end
 		end
@@ -244,18 +274,15 @@ function CustomHealthAPI.Library.AddHealth(player, k, h, ignoreTaintedMaggieDoub
 		CustomHealthAPI.Helper.AddOverlayMain(player, key, hpToAdd)
 	end
 	
-	CustomHealthAPI.Helper.HandleGoldenRoom(player, true)
+	CustomHealthAPI.Helper.HandleExcessOverlays(player)
 	CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
 	
-	if REPENTOGON and rgonAddHealthType then
+	if REPENTOGON and rgonAddHealthType and not skipRgonCallbacks then
 		CustomHealthAPI.PersistentData.AllowAddHeartsCallback = CustomHealthAPI.PersistentData.AllowAddHeartsCallback + 1
 		Isaac.RunCallbackWithParam(ModCallbacks.MC_POST_PLAYER_ADD_HEARTS, rgonAddHealthType, player, hp, rgonAddHealthType, false)
 	end
 	
-	local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_ADD_HEALTH)
-	for _, callback in ipairs(callbacks) do
-		callback.Function(player, key, hp)
-	end
+	Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_ADD_HEALTH, playerType, player, key, hp)
 	CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing - 1
 end
 
@@ -279,9 +306,9 @@ function CustomHealthAPI.Library.RemoveRedKey(player, index, ignoreResyncing)
 		return
 	end
 	
-	local data = player:GetData().CustomHealthAPISavedata
-	local redMasks = data.RedHealthMasks
-	local otherMasks = data.OtherHealthMasks
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	local redMasks = data.RedHealthMasks or {}
+	local otherMasks = data.OtherHealthMasks or {}
 	
 	local redOrder = {}
 	for i = 1, #redMasks do
@@ -325,7 +352,7 @@ function CustomHealthAPI.Library.RemoveRedKey(player, index, ignoreResyncing)
 		end
 	end
 	
-	CustomHealthAPI.Helper.HandleGoldenRoom(player, false)
+	CustomHealthAPI.Helper.HandleExcessOverlays(player)
 	CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
 	
 	return healthOrder
@@ -351,8 +378,8 @@ function CustomHealthAPI.Library.RemoveOtherKey(player, index, ignoreResyncing)
 		return
 	end
 	
-	local data = player:GetData().CustomHealthAPISavedata
-	local otherMasks = data.OtherHealthMasks
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	local otherMasks = data.OtherHealthMasks or {}
 		
 	local healthOrder = {}
 	for i = 1, #otherMasks do
@@ -376,7 +403,7 @@ function CustomHealthAPI.Library.RemoveOtherKey(player, index, ignoreResyncing)
 		end
 	end
 	
-	CustomHealthAPI.Helper.HandleGoldenRoom(player, false)
+	CustomHealthAPI.Helper.HandleExcessOverlays(player)
 	CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
 	
 	return healthOrder
@@ -398,8 +425,8 @@ function CustomHealthAPI.Library.TryConvertOtherKey(player, index, key, force)
 		return
 	end
 	
-	local data = player:GetData().CustomHealthAPISavedata
-	local otherMasks = data.OtherHealthMasks
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	local otherMasks = data.OtherHealthMasks or {}
 		
 	local healthOrder = {}
 	for i = 1, #otherMasks do
@@ -464,7 +491,7 @@ function CustomHealthAPI.Library.TryConvertOtherKey(player, index, key, force)
 		end
 	end
 	
-	CustomHealthAPI.Helper.HandleGoldenRoom(player, false)
+	CustomHealthAPI.Helper.HandleExcessOverlays(player)
 	CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
 	
 	return healthOrder
@@ -485,19 +512,17 @@ function CustomHealthAPI.Helper.UpdateHealthMasks(player, k, h, ignoreTaintedMag
 	CustomHealthAPI.Helper.CheckSubPlayerInfoOfPlayer(player)
 	CustomHealthAPI.Helper.FinishDamageDesync(player)
 	
+	local playerType = player:GetPlayerType()
 	CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing + 1
 	local key = k
 	local hp = h
-	local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.PRE_ADD_HEALTH)
-	for _, callback in ipairs(callbacks) do
-		local returnA, returnB = callback.Function(player, key, hp)
-		if returnA == true then
-			CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing - 1
-			return
-		elseif returnA ~= nil and returnB ~= nil then
-			key = returnA
-			hp = returnB
-		end
+	local returnA, returnB = CustomHealthAPI.Helper.RunPreAddHealthCallback(nil, player, key, hp)
+	if returnA == true then
+		CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing - 1
+		return
+	elseif returnA ~= nil and returnB ~= nil then
+		key = returnA
+		hp = returnB
 	end
 	
 	if math.ceil(hp) == 0 then
@@ -523,7 +548,6 @@ function CustomHealthAPI.Helper.UpdateHealthMasks(player, k, h, ignoreTaintedMag
 	end
 	
 	local healthType = CustomHealthAPI.PersistentData.HealthDefinitions[key].Type
-	local playerType = player:GetPlayerType()
 	if healthType == CustomHealthAPI.Enums.HealthTypes.RED then
 		if not ignoreHaveAHeart and Game().Challenge == Challenge.CHALLENGE_HAVE_A_HEART then
 			CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing - 1
@@ -552,7 +576,7 @@ function CustomHealthAPI.Helper.UpdateHealthMasks(player, k, h, ignoreTaintedMag
 		CustomHealthAPI.Helper.AddRedMain(player, key, hpToAdd)
 		
 		if not ignoreShardOfGlass then
-			player:GetData().CustomHealthAPISavedata.ShardBleedTimer = nil
+			CustomHealthAPI.Helper.GetSavedata(player).ShardBleedTimer = nil
 		end
 	elseif healthType == CustomHealthAPI.Enums.HealthTypes.SOUL then
 		if playerType == PlayerType.PLAYER_BETHANY then
@@ -570,21 +594,20 @@ function CustomHealthAPI.Helper.UpdateHealthMasks(player, k, h, ignoreTaintedMag
 			
 		local hpToAdd = math.ceil(hp)
 		
-		player:GetData().CustomHealthAPIOtherData = player:GetData().CustomHealthAPIOtherData or {}
-		
 		if not ignoreSpiritShackles then
-			if player:GetData().CustomHealthAPIOtherData.ShacklesDisabled and hpToAdd > 0 then
+			if CustomHealthAPI.Helper.GetOtherData(player).ShacklesDisabled and hpToAdd > 0 then
 				hpToAdd = math.max(0, hpToAdd - math.max(2, CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP")))
 				local numShacklesDisabled = player:GetEffects():GetNullEffectNum(NullItemID.ID_SPIRIT_SHACKLES_DISABLED)
 				player:GetEffects():RemoveNullEffect(NullItemID.ID_SPIRIT_SHACKLES_DISABLED, numShacklesDisabled)
-				player:GetData().CustomHealthAPIOtherData.ShacklesDisabled = false
+				CustomHealthAPI.Helper.GetOtherData(player).ShacklesDisabled = false
 			end
 		end
 		
 		if not ignoreAlabasterBox then
-			local alabasterChargesAdded = player:GetData().CustomHealthAPIOtherData.AlabasterChargesAdded
+			local alabasterPlayer = CustomHealthAPI.Helper.GetAlabasterBoxOwner(player)
+			local alabasterChargesAdded = CustomHealthAPI.Helper.GetOtherData(alabasterPlayer).AlabasterChargesAdded
 			if alabasterChargesAdded ~= nil and alabasterChargesAdded > 0 and hpToAdd > 0 then
-				player:GetData().CustomHealthAPIOtherData.AlabasterChargesAdded = math.max(0, alabasterChargesAdded - hpToAdd)
+				CustomHealthAPI.Helper.GetOtherData(alabasterPlayer).AlabasterChargesAdded = math.max(0, alabasterChargesAdded - hpToAdd)
 				hpToAdd = math.max(0, hpToAdd - alabasterChargesAdded)
 			end
 		end
@@ -658,9 +681,9 @@ function CustomHealthAPI.Helper.UpdateHealthMasks(player, k, h, ignoreTaintedMag
 		CustomHealthAPI.Helper.AddOverlayMain(player, key, hpToAdd)
 	end
 	
-	CustomHealthAPI.Helper.HandleGoldenRoom(player, false)
-	if player:GetData().CustomHealthAPISavedata then
-		player:GetData().CustomHealthAPISavedata.Cached = {}
+	CustomHealthAPI.Helper.HandleExcessOverlays(player)
+	if CustomHealthAPI.Helper.GetSavedata(player) then
+		CustomHealthAPI.Helper.GetSavedata(player).Cached = {}
 	end
 	
 	if REPENTOGON and rgonAddHealthType then
@@ -668,10 +691,7 @@ function CustomHealthAPI.Helper.UpdateHealthMasks(player, k, h, ignoreTaintedMag
 		Isaac.RunCallbackWithParam(ModCallbacks.MC_POST_PLAYER_ADD_HEARTS, rgonAddHealthType, player, hp, rgonAddHealthType, false)
 	end
 	
-	local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_ADD_HEALTH)
-	for _, callback in ipairs(callbacks) do
-		callback.Function(player, key, hp)
-	end
+	Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_ADD_HEALTH, playerType, player, key, hp)
 	CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing - 1
 end
 
@@ -694,14 +714,14 @@ function CustomHealthAPI.Helper.UseOverriddenAddFunctionForKeeperAndLost(player,
 		CustomHealthAPI.PersistentData.OverriddenFunctions.AddEternalHearts(player, hp)
 	elseif key == "GOLDEN_HEART" then
 		CustomHealthAPI.PersistentData.OverriddenFunctions.AddGoldenHearts(player, hp)
-	elseif key == "BROKEN_HEART" then
-		CustomHealthAPI.PersistentData.OverriddenFunctions.AddBrokenHearts(player, hp)
 	elseif healthtype == CustomHealthAPI.Enums.HealthTypes.RED then
 		CustomHealthAPI.PersistentData.OverriddenFunctions.AddHearts(player, hp)
 	elseif healthtype == CustomHealthAPI.Enums.HealthTypes.SOUL then
 		CustomHealthAPI.PersistentData.OverriddenFunctions.AddSoulHearts(player, hp)
 	elseif healthtype == CustomHealthAPI.Enums.HealthTypes.CONTAINER then
-		if CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP") >= 1 then
+		if CustomHealthAPI.Library.GetInfoOfKey(key, "KindContained") == CustomHealthAPI.Enums.HealthKinds.NONE then
+			CustomHealthAPI.PersistentData.OverriddenFunctions.AddBrokenHearts(player, hp)
+		elseif CustomHealthAPI.Library.GetInfoOfKey(key, "MaxHP") >= 1 then
 			CustomHealthAPI.PersistentData.OverriddenFunctions.AddBoneHearts(player, hp)
 		elseif CustomHealthAPI.PersistentData.HealthDefinitions[key].CanHaveHalfCapacity then
 			CustomHealthAPI.PersistentData.OverriddenFunctions.AddMaxHearts(player, hp)

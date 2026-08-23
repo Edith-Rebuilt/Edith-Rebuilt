@@ -68,42 +68,38 @@ function CustomHealthAPI.Mod:SumptoriumPreSpawnCallback(typ, var, subt, pos, vel
 		end
 		
 		-- handling for PRE_SUMPTORIUM_CLOT_SELECT callback
-		local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.PRE_SUMPTORIUM_CLOT_SELECT)
-		for _, callback in ipairs(callbacks) do
-			local returnVals = callback.Function(typ, var, subt, pos, vel, spawner, seed)
-			if returnVals ~= nil then
-				local allowBasegameHpChange = returnVals.AllowBasegameHpChange
-				if allowBasegameHpChange == false then
-					local player
-					for i = 0, Game():GetNumPlayers() - 1 do
-						local p = Isaac.GetPlayer(i)
-						local subp = p:GetSubPlayer()
-						if p.Index == spawner.Index and p.InitSeed == spawner.InitSeed then
-							player = p
-							break
-						end
-						if subp ~= nil and subp.Index == spawner.Index and subp.InitSeed == spawner.InitSeed then
-							player = subp
-							break
-						end
+		local returnVals = Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.PRE_SUMPTORIUM_CLOT_SELECT, subt, typ, var, subt, pos, vel, spawner, seed)
+		if returnVals ~= nil then
+			if returnVals.AllowBasegameHpChange == false then
+				local player
+				for i = 0, Game():GetNumPlayers() - 1 do
+					local p = Isaac.GetPlayer(i)
+					local subp = p:GetSubPlayer()
+					if p.Index == spawner.Index and p.InitSeed == spawner.InitSeed then
+						player = p
+						break
 					end
-					
-					if player ~= nil and not CustomHealthAPI.Helper.PlayerIsIgnored(player) then
-						CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
+					if subp ~= nil and subp.Index == spawner.Index and subp.InitSeed == spawner.InitSeed then
+						player = subp
+							break
 					end
 				end
 				
-				local newType = returnVals.Type
-				local newVariant = returnVals.Variant
-				local newSubType = returnVals.SubType
-				local newSeed = returnVals or seed
-				if newType == nil or newVariant == nil or newSubType == nil then
-					newType = typ
-					newVariant = var
-					newSubType = subt
+				if player ~= nil and not CustomHealthAPI.Helper.PlayerIsIgnored(player) then
+					CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
 				end
-				return {newType, newVariant, newSubType, newSeed}
 			end
+			
+			local newType = returnVals.Type
+			local newVariant = returnVals.Variant
+			local newSubType = returnVals.SubType
+			local newSeed = returnVals or seed
+			if newType == nil or newVariant == nil or newSubType == nil then
+				newType = typ
+				newVariant = var
+				newSubType = subt
+			end
+			return {newType, newVariant, newSubType, newSeed}
 		end
 		
 		if spawner and 
@@ -126,10 +122,48 @@ function CustomHealthAPI.Mod:SumptoriumPreSpawnCallback(typ, var, subt, pos, vel
 			end
 			
 			if player ~= nil and not CustomHealthAPI.Helper.PlayerIsIgnored(player) then
-				local data = player:GetData().CustomHealthAPISavedata
+				local data = CustomHealthAPI.Helper.GetSavedata(player)
+				
+				-- Check overlays first if not Lil Clot
+				if subt ~= 7 then
+					for i = #data.OverlayHealthMaskLayers, 1, -1 do
+						local overlayLayer = data.OverlayHealthMaskLayers[i]
+						for overlayMaskIndex, overlayIndexInMask, overlay in CustomHealthAPI.Helper.GetHealthMasksIterator(overlayLayer, true) do
+							local eternalOrGold = false
+							local newSubt = CustomHealthAPI.PersistentData.HealthDefinitions[overlay.Key].SumptoriumSubType
+							if newSubt == nil then
+								if overlay.Key == "ETERNAL_HEART" then
+									newSubt = 3
+									eternalOrGold = true
+								elseif overlay.Key == "GOLDEN_HEART" then
+									newSubt = 4
+									eternalOrGold = true
+								end
+							end
+							if newSubt ~= nil then
+								overlay.HP = math.max(0, overlay.HP - 1)
+								if overlay.HP <= 0 then
+									table.remove(overlayLayer[overlayMaskIndex], overlayIndexInMask)
+								end
+								
+								CustomHealthAPI.Helper.GetOtherData(player).SpawningSumptorium = true
+								
+								CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
+								
+								CustomHealthAPI.Helper.GetOtherData(player).SpawningSumptorium = nil
+								
+								if not eternalOrGold then
+									keyOfNextOverlapClotSpawned = overlay.Key
+								end
+								return {EntityType.ENTITY_FAMILIAR, FamiliarVariant.BLOOD_BABY, newSubt, seed}
+							end
+						end
+					end
+				end
+				
 				if subt == 0 or subt == 6 then
 					-- select the red heart needed to replace red/rotten clot subtype with and update hp to match
-					local redMasks = data.RedHealthMasks
+					local redMasks = data.RedHealthMasks or {}
 					
 					local earliestKey
 					for i = #redMasks, 1, -1 do
@@ -148,12 +182,11 @@ function CustomHealthAPI.Mod:SumptoriumPreSpawnCallback(typ, var, subt, pos, vel
 						if doneSearching then break end
 					end
 					
-					player:GetData().CustomHealthAPIOtherData = player:GetData().CustomHealthAPIOtherData or {}
-					player:GetData().CustomHealthAPIOtherData.SpawningSumptorium = true
+					CustomHealthAPI.Helper.GetOtherData(player).SpawningSumptorium = true
 					
 					CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
 					
-					player:GetData().CustomHealthAPIOtherData.SpawningSumptorium = nil
+					CustomHealthAPI.Helper.GetOtherData(player).SpawningSumptorium = nil
 					
 					if earliestKey == nil then
 						-- for some reason no red hearts were found to adjust clot to
@@ -172,11 +205,17 @@ function CustomHealthAPI.Mod:SumptoriumPreSpawnCallback(typ, var, subt, pos, vel
 					else
 						-- the red heart selected has no custom clot set, just default to the original subtype passed in
 						keyOfNextOverlapClotSpawned = nil
+						if earliestKey == "ROTTEN_HEART" then
+							return {EntityType.ENTITY_FAMILIAR, FamiliarVariant.BLOOD_BABY, 6, seed}
+						else
+							-- just default to RED_HEART
+							return {EntityType.ENTITY_FAMILIAR, FamiliarVariant.BLOOD_BABY, 0, seed}
+						end
 						return
 					end
 				elseif subt == 1 or subt == 2 or subt == 5 then
 					-- select the soul/bone heart needed to replace soul/black/bone clot subtype with and update hp to match
-					local otherMasks = data.OtherHealthMasks
+					local otherMasks = data.OtherHealthMasks or {}
 					
 					local earliestKey
 					for i = #otherMasks, 1, -1 do
@@ -205,12 +244,11 @@ function CustomHealthAPI.Mod:SumptoriumPreSpawnCallback(typ, var, subt, pos, vel
 						if doneSearching then break end
 					end
 					
-					player:GetData().CustomHealthAPIOtherData = player:GetData().CustomHealthAPIOtherData or {}
-					player:GetData().CustomHealthAPIOtherData.SpawningSumptorium = true
+					CustomHealthAPI.Helper.GetOtherData(player).SpawningSumptorium = true
 					
 					CustomHealthAPI.Helper.UpdateBasegameHealthState(player)
 					
-					player:GetData().CustomHealthAPIOtherData.SpawningSumptorium = nil
+					CustomHealthAPI.Helper.GetOtherData(player).SpawningSumptorium = nil
 					
 					if earliestKey == nil then
 						-- for some reason no soul/bone hearts were found to adjust clot to
@@ -229,6 +267,14 @@ function CustomHealthAPI.Mod:SumptoriumPreSpawnCallback(typ, var, subt, pos, vel
 					else
 						-- the soul/bone heart selected has no custom clot set, just default to the original subtype passed in
 						keyOfNextOverlapClotSpawned = nil
+						if CustomHealthAPI.Library.GetInfoOfKey(earliestKey, "Type") == CustomHealthAPI.Enums.HealthTypes.CONTAINER then
+							return {EntityType.ENTITY_FAMILIAR, FamiliarVariant.BLOOD_BABY, 5, seed}
+						elseif earliestKey == "BLACK_HEART" then
+							return {EntityType.ENTITY_FAMILIAR, FamiliarVariant.BLOOD_BABY, 2, seed}
+						else
+							-- just default to SOUL_HEART
+							return {EntityType.ENTITY_FAMILIAR, FamiliarVariant.BLOOD_BABY, 1, seed}
+						end
 						return
 					end
 				end
@@ -247,18 +293,36 @@ function CustomHealthAPI.Helper.RemoveSumptoriumInitCallback()
 end
 table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveSumptoriumInitCallback)
 
-function CustomHealthAPI.Mod:SumptoriumInitCallback(fam)
-	local key = CustomHealthAPI.PersistentData.SumptoriumSubTypeToKey[fam.SubType]
-	
-	local skipSplat = false
-	local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.PRE_SUMPTORIUM_CLOT_INIT)
-	for _, callback in ipairs(callbacks) do
-		local callbackSkipsSplat = callback.Function(fam, keyOfNextOverlapClotSpawned or key)
-		skipSplat = (callbackSkipsSplat ~= nil) or skipSplat
+function CustomHealthAPI.Helper.RunPreSumptoriumClotInitCallback(iter, fam, key)
+	local iterator = iter
+	if iterator == nil then
+		local t = Isaac.GetCallbacks(CustomHealthAPI.Enums.Callbacks.PRE_SUMPTORIUM_CLOT_INIT)
+		local k = nil
+		iterator = function()
+			local v
+			k, v = next(t, k)
+			return v
+		end
 	end
 	
+	local skipSplat = nil
+	for callback in iterator do
+		if not callback.Param or callback.Param == key then
+			local callbackSkipsSplat = callback.Function(callback.Mod, fam, key)
+			if callbackSkipsSplat ~= nil then
+				skipSplat = true
+			end
+		end
+	end
+	return skipSplat
+end
+CustomHealthAPI.Enums.RunCallbackFuncs[CustomHealthAPI.Enums.Callbacks.PRE_SUMPTORIUM_CLOT_INIT] = CustomHealthAPI.Helper.RunPreSumptoriumClotInitCallback
+
+function CustomHealthAPI.Mod:SumptoriumInitCallback(fam)
+	local key = CustomHealthAPI.PersistentData.SumptoriumSubTypeToKey[fam.SubType]
+	local skipSplat = CustomHealthAPI.Helper.RunPreSumptoriumClotInitCallback(nil, fam, keyOfNextOverlapClotSpawned or key)
 	if keyOfNextOverlapClotSpawned then
-		fam:GetData().TrueKeyOfClot = keyOfNextOverlapClotSpawned
+		CustomHealthAPI.Helper.GetEntityData(fam).TrueKeyOfClot = keyOfNextOverlapClotSpawned
 		key = keyOfNextOverlapClotSpawned
 	elseif key ~= nil and (not skipSplat) and CustomHealthAPI.PersistentData.SaveDataLoaded then
 		local splatColor = CustomHealthAPI.PersistentData.HealthDefinitions[key].SumptoriumSplatColor
@@ -275,10 +339,7 @@ function CustomHealthAPI.Mod:SumptoriumInitCallback(fam)
 	end
 	keyOfNextOverlapClotSpawned = nil
 	
-	local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_INIT)
-	for _, callback in ipairs(callbacks) do
-		callback.Function(fam, key)
-	end
+	Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_INIT, key, fam, key)
 end
 
 function CustomHealthAPI.Helper.AddSumptoriumUpdateCallback()
@@ -295,13 +356,13 @@ function CustomHealthAPI.Mod:SumptoriumUpdateCallback(fam)
 	if CustomHealthAPI.PersistentData.SumptoriumSubTypeToKey[fam.SubType] ~= nil then
 		local key = CustomHealthAPI.PersistentData.SumptoriumSubTypeToKey[fam.SubType]
 		
-		if not fam:GetData().Init then
+		if not CustomHealthAPI.Helper.GetEntityData(fam).Init then
 			local splatColor = CustomHealthAPI.PersistentData.HealthDefinitions[key].SumptoriumSplatColor
 			if splatColor ~= nil then
 				fam.SplatColor = splatColor
 			end
 			
-			fam:GetData().Init = true
+			CustomHealthAPI.Helper.GetEntityData(fam).Init = true
 		end
 		
 		if fam.State >= 89 and 
@@ -309,12 +370,9 @@ function CustomHealthAPI.Mod:SumptoriumUpdateCallback(fam)
 		   (fam.Position - fam.Player.Position):Length() <= 20.0 
 		then
 			local skipAbsorb = false
-			local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.PRE_SUMPTORIUM_CLOT_ABSORB)
-			for _, callback in ipairs(callbacks) do
-				local callbackSkipsAbsorb = callback.Function(fam, key)
-				if callbackSkipsAbsorb ~= nil then
-					skipAbsorb = true
-				end
+			local callbackSkipsAbsorb = Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.PRE_SUMPTORIUM_CLOT_ABSORB, key, fam, key)
+			if callbackSkipsAbsorb ~= nil then
+				skipAbsorb = true
 			end
 			
 			if (not skipAbsorb) and CustomHealthAPI.Helper.CanPickKey(fam.Player, key) then
@@ -328,41 +386,30 @@ function CustomHealthAPI.Mod:SumptoriumUpdateCallback(fam)
 				else
 					CustomHealthAPI.Library.AddHealth(fam.Player, key, 1)
 				end
-				
-				local collectSoundSettings = CustomHealthAPI.PersistentData.HealthDefinitions[key].SumptoriumCollectSoundSettings
-				if collectSoundSettings ~= nil then
-					SFXManager():Play(collectSoundSettings.ID, 
-							 collectSoundSettings.Volume or 1.0, 
-							 collectSoundSettings.FrameDelay or 2, 
-							 collectSoundSettings.Loop or false, 
-							 collectSoundSettings.Pitch or 1.0, 
-							 collectSoundSettings.Pan or 0)
-				end
-	
-				local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB)
-				for _, callback in ipairs(callbacks) do
-					callback.Function(fam, key)
-				end
-				
+
+				local def = CustomHealthAPI.PersistentData.HealthDefinitions[key]
+				CustomHealthAPI.Helper.PlaySound(def.SumptoriumCollectSoundSettings or def.CollectSound)
+
+				Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB, key, fam, key)
 				fam:Remove()
 			end
 		end
 	elseif fam.SubType >= 0 and fam.SubType <= 6 then
 		if fam.State == -2 or fam.State > 0 then
-			if fam:GetData().TrueKeyOfClot then
-				fam.SubType = CustomHealthAPI.PersistentData.BasegameOverlapSumptoriumSubType[fam:GetData().TrueKeyOfClot]
+			if CustomHealthAPI.Helper.GetEntityData(fam).TrueKeyOfClot then
+				fam.SubType = CustomHealthAPI.PersistentData.BasegameOverlapSumptoriumSubType[CustomHealthAPI.Helper.GetEntityData(fam).TrueKeyOfClot]
 			else
 				fam.SubType = fam.SubType + 900
 			end
-		elseif fam:GetData().ReenableVisible then
+		elseif CustomHealthAPI.Helper.GetEntityData(fam).ReenableVisible then
 			fam.Visible = true
-			fam:GetData().ReenableVisible = false
+			CustomHealthAPI.Helper.GetEntityData(fam).ReenableVisible = false
 		end
 	elseif (fam.SubType >= 900 and fam.SubType <= 906) or CustomHealthAPI.PersistentData.BasegameOverlapSumptoriumSubTypeToKey[fam.SubType] then
 		if fam.State == -1000 then
 			fam.SubType = (fam.SubType - 900) % 7
 			fam.Visible = false
-			fam:GetData().ReenableVisible = true
+			CustomHealthAPI.Helper.GetEntityData(fam).ReenableVisible = true
 		elseif fam.State >= 89 and 
 		   fam.Player and 
 		   (fam.Position - fam.Player.Position):Length() <= 20.0 
@@ -388,12 +435,9 @@ function CustomHealthAPI.Mod:SumptoriumUpdateCallback(fam)
 					keyForCallback = "ROTTEN_HEART"
 				end
 			end
-			local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.PRE_SUMPTORIUM_CLOT_ABSORB)
-			for _, callback in ipairs(callbacks) do
-				local callbackSkipsAbsorb = callback.Function(fam, keyForCallback)
-				if callbackSkipsAbsorb ~= nil then
-					skipAbsorb = true
-				end
+			local callbackSkipsAbsorb = Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.PRE_SUMPTORIUM_CLOT_ABSORB, keyForCallback, fam, keyForCallback)
+			if callbackSkipsAbsorb ~= nil then
+				skipAbsorb = true
 			end
 			
 			if not skipAbsorb then
@@ -408,92 +452,46 @@ function CustomHealthAPI.Mod:SumptoriumUpdateCallback(fam)
 					else
 						CustomHealthAPI.Library.AddHealth(fam.Player, overlapKey, 1)
 					end
-					
-					local collectSoundSettings = CustomHealthAPI.PersistentData.HealthDefinitions[overlapKey].SumptoriumCollectSoundSettings
-					if collectSoundSettings ~= nil then
-						SFXManager():Play(collectSoundSettings.ID, 
-								 collectSoundSettings.Volume or 1.0, 
-								 collectSoundSettings.FrameDelay or 2, 
-								 collectSoundSettings.Loop or false, 
-								 collectSoundSettings.Pitch or 1.0, 
-								 collectSoundSettings.Pan or 0)
-					end
-		
-					local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB)
-					for _, callback in ipairs(callbacks) do
-						callback.Function(fam, overlapKey)
-					end
-					
+
+					local def = CustomHealthAPI.PersistentData.HealthDefinitions[overlapKey]
+					CustomHealthAPI.Helper.PlaySound(def.SumptoriumCollectSoundSettings or def.CollectSound)
+
+					Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB, overlapKey, fam, overlapKey)
 					fam:Remove()
 				elseif fam.SubType == 900 and CustomHealthAPI.Helper.CanPickKey(fam.Player, "RED_HEART") then
 					CustomHealthAPI.Library.AddHealth(fam.Player, "RED_HEART", 1)
 					SFXManager():Play(SoundEffect.SOUND_BOSS2_BUBBLES, 1, 0, false, 1.0)
-		
-					local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB)
-					for _, callback in ipairs(callbacks) do
-						callback.Function(fam, "RED_HEART")
-					end
-					
+					Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB, "RED_HEART", fam, "RED_HEART")
 					fam:Remove()
 				elseif fam.SubType == 901 and CustomHealthAPI.Helper.CanPickKey(fam.Player, "SOUL_HEART") then
 					CustomHealthAPI.Library.AddHealth(fam.Player, "SOUL_HEART", 1)
 					SFXManager():Play(SoundEffect.SOUND_HOLY, 1, 0, false, 1.0)
-		
-					local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB)
-					for _, callback in ipairs(callbacks) do
-						callback.Function(fam, "SOUL_HEART")
-					end
-					
+					Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB, "SOUL_HEART", fam, "SOUL_HEART")
 					fam:Remove()
 				elseif fam.SubType == 902 and CustomHealthAPI.Helper.CanPickKey(fam.Player, "BLACK_HEART") then
 					CustomHealthAPI.Library.AddHealth(fam.Player, "BLACK_HEART", 1)
 					SFXManager():Play(SoundEffect.SOUND_UNHOLY, 1, 0, false, 1.0)
-		
-					local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB)
-					for _, callback in ipairs(callbacks) do
-						callback.Function(fam, "BLACK_HEART")
-					end
-					
+					Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB, "BLACK_HEART", fam, "BLACK_HEART")
 					fam:Remove()
 				elseif fam.SubType == 903 and CustomHealthAPI.Helper.CanPickKey(fam.Player, "ETERNAL_HEART") then
 					CustomHealthAPI.Library.AddHealth(fam.Player, "ETERNAL_HEART", 1)
 					SFXManager():Play(SoundEffect.SOUND_SUPERHOLY, 1, 0, false, 1.0)
-		
-					local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB)
-					for _, callback in ipairs(callbacks) do
-						callback.Function(fam, "ETERNAL_HEART")
-					end
-					
+					Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB, "ETERNAL_HEART", fam, "ETERNAL_HEART")
 					fam:Remove()
 				elseif fam.SubType == 904 and CustomHealthAPI.Helper.CanPickKey(fam.Player, "GOLDEN_HEART") then
 					CustomHealthAPI.Library.AddHealth(fam.Player, "GOLDEN_HEART", 1)
 					SFXManager():Play(SoundEffect.SOUND_GOLD_HEART, 1, 0, false, 1.0)
-		
-					local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB)
-					for _, callback in ipairs(callbacks) do
-						callback.Function(fam, "GOLDEN_HEART")
-					end
-					
+					Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB, "GOLDEN_HEART", fam, "GOLDEN_HEART")
 					fam:Remove()
 				elseif fam.SubType == 905 and CustomHealthAPI.Helper.CanPickKey(fam.Player, "BONE_HEART") then
 					CustomHealthAPI.Library.AddHealth(fam.Player, "BONE_HEART", 1)
 					SFXManager():Play(SoundEffect.SOUND_BONE_HEART, 1, 0, false, 1.0)
-		
-					local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB)
-					for _, callback in ipairs(callbacks) do
-						callback.Function(fam, "BONE_HEART")
-					end
-					
+					Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB, "BONE_HEART", fam, "BONE_HEART")
 					fam:Remove()
 				elseif fam.SubType == 906 and CustomHealthAPI.Helper.CanPickKey(fam.Player, "ROTTEN_HEART") then
 					CustomHealthAPI.Library.AddHealth(fam.Player, "ROTTEN_HEART", 2)
 					SFXManager():Play(SoundEffect.SOUND_ROTTEN_HEART, 1, 0, false, 1.0)
-		
-					local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB)
-					for _, callback in ipairs(callbacks) do
-						callback.Function(fam, "ROTTEN_HEART")
-					end
-					
+					Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.POST_SUMPTORIUM_CLOT_ABSORB, "ROTTEN_HEART", fam, "ROTTEN_HEART")
 					fam:Remove()
 				end
 			end
@@ -545,4 +543,34 @@ function CustomHealthAPI.Mod:SumptoriumUpdateCallback(fam)
 			trail:GetSprite().Color = color
 		end
 	end
+end
+
+if REPENTOGON then
+function CustomHealthAPI.Helper.AddPreSumptoriumBandaidFixCallback()
+	Isaac.AddPriorityCallback(CustomHealthAPI.Mod, ModCallbacks.MC_POST_PLAYER_ADD_EFFECT, -1 * math.huge, CustomHealthAPI.Mod.PreSumptoriumBandaidFixCallback, Isaac.GetItemConfig():GetNullItem(NullItemID.ID_BLOODY_BABYLON))
+end
+table.insert(CustomHealthAPI.CallbacksToAdd, CustomHealthAPI.Helper.AddPreSumptoriumBandaidFixCallback)
+
+function CustomHealthAPI.Helper.RemovePreSumptoriumBandaidFixCallback()
+	CustomHealthAPI.Mod:RemoveCallback(ModCallbacks.MC_POST_PLAYER_ADD_EFFECT, CustomHealthAPI.Mod.PreSumptoriumBandaidFixCallback)
+end
+table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemovePreSumptoriumBandaidFixCallback)
+
+function CustomHealthAPI.Mod:PreSumptoriumBandaidFixCallback(player, config)
+	CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing + 1
+end
+
+function CustomHealthAPI.Helper.AddPostSumptoriumBandaidFixCallback()
+	Isaac.AddPriorityCallback(CustomHealthAPI.Mod, ModCallbacks.MC_POST_PLAYER_ADD_EFFECT, math.huge, CustomHealthAPI.Mod.PostSumptoriumBandaidFixCallback, Isaac.GetItemConfig():GetNullItem(NullItemID.ID_BLOODY_BABYLON))
+end
+table.insert(CustomHealthAPI.CallbacksToAdd, CustomHealthAPI.Helper.AddPostSumptoriumBandaidFixCallback)
+
+function CustomHealthAPI.Helper.RemovePostSumptoriumBandaidFixCallback()
+	CustomHealthAPI.Mod:RemoveCallback(ModCallbacks.MC_POST_PLAYER_ADD_EFFECT, CustomHealthAPI.Mod.PostSumptoriumBandaidFixCallback)
+end
+table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemovePostSumptoriumBandaidFixCallback)
+
+function CustomHealthAPI.Mod:PostSumptoriumBandaidFixCallback(player, config)
+	CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing - 1
+end
 end

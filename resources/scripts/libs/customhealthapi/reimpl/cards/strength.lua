@@ -6,14 +6,7 @@ function CustomHealthAPI.Helper.HandleTemporaryHP(player, datakey)
 	elseif CustomHealthAPI.Helper.PlayerIsBoneHeartOnly(player) then
 		key = "BONE_HEART"
 	else
-		local callbacks = CustomHealthAPI.Helper.GetCallbacks(CustomHealthAPI.Enums.Callbacks.GET_MAX_HP_CONVERSION)
-		for _, callback in ipairs(callbacks) do
-			local newKey = callback.Function(player, key)
-			if newKey ~= nil then
-				key = newKey
-				break
-			end
-		end
+		key = Isaac.RunCallbackWithParam(CustomHealthAPI.Enums.Callbacks.GET_MAX_HP_CONVERSION, player:GetPlayerType(), player, key) or key
 	end
 	
 	local hp
@@ -65,8 +58,10 @@ function CustomHealthAPI.Helper.HandleTemporaryHP(player, datakey)
 		end
 	end
 	
-	player:GetData().CustomHealthAPISavedata[datakey] = player:GetData().CustomHealthAPISavedata[datakey] or {}
-	table.insert(player:GetData().CustomHealthAPISavedata[datakey], {Key = key, HP = hpAfter - hpBefore})
+	if hpAfter - hpBefore > 0 then
+		CustomHealthAPI.Helper.GetSavedata(player)[datakey] = CustomHealthAPI.Helper.GetSavedata(player)[datakey] or {}
+		table.insert(CustomHealthAPI.Helper.GetSavedata(player)[datakey], {Key = key, HP = hpAfter - hpBefore})
+	end
 end
 
 function CustomHealthAPI.Helper.HandleStrength(player)
@@ -81,8 +76,8 @@ function CustomHealthAPI.Helper.HandleReverseEmpress(player, doubled)
 end
 
 function CustomHealthAPI.Helper.SubtractTemporaryHP(player, key, hpDiff)
-	local strengthHP = player:GetData().CustomHealthAPISavedata.StrengthHPToRemove or {}
-	local empressHP = player:GetData().CustomHealthAPISavedata.ReverseEmpressHPToRemove or {}
+	local strengthHP = CustomHealthAPI.Helper.GetSavedata(player).StrengthHPToRemove or {}
+	local empressHP = CustomHealthAPI.Helper.GetSavedata(player).ReverseEmpressHPToRemove or {}
 	
 	local typ = CustomHealthAPI.Library.GetInfoOfKey(key, "Type")
 	local hpToRemove = math.abs(hpDiff)
@@ -157,7 +152,7 @@ function CustomHealthAPI.Helper.SubtractTemporaryHP(player, key, hpDiff)
 end
 
 function CustomHealthAPI.Helper.RemoveTemporaryHP(player, datakey)
-	local strengthHP = player:GetData().CustomHealthAPISavedata[datakey]
+	local strengthHP = CustomHealthAPI.Helper.GetSavedata(player)[datakey]
 	
 	for i = 1, #strengthHP do
 		local key = strengthHP[i].Key
@@ -195,17 +190,19 @@ function CustomHealthAPI.Helper.RemoveTemporaryHP(player, datakey)
 			--do nothing
 		else
 			CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing + 1
+			CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth + 1
 			CustomHealthAPI.Library.AddHealth(player, key, hpPer * -1, false, false, false, true)
 			CustomHealthAPI.PersistentData.PreventResyncing = CustomHealthAPI.PersistentData.PreventResyncing - 1
+			CustomHealthAPI.PersistentData.IsTechnicalAddHealth = CustomHealthAPI.PersistentData.IsTechnicalAddHealth - 1
 		end
 	end
 	
-	player:GetData().CustomHealthAPISavedata[datakey] = nil
+	CustomHealthAPI.Helper.GetSavedata(player)[datakey] = nil
 end
 
 function CustomHealthAPI.Helper.AddHandleStrengthOnNewRoomCallback()
 ---@diagnostic disable-next-line: param-type-mismatch
-	Isaac.AddPriorityCallback(CustomHealthAPI.Mod, ModCallbacks.MC_POST_NEW_ROOM, CallbackPriority.IMPORTANT, CustomHealthAPI.Mod.HandleStrengthOnNewRoomCallback, -1)
+	Isaac.AddPriorityCallback(CustomHealthAPI.Mod, ModCallbacks.MC_POST_NEW_ROOM, -1 * math.huge, CustomHealthAPI.Mod.HandleStrengthOnNewRoomCallback, -1)
 end
 table.insert(CustomHealthAPI.CallbacksToAdd, CustomHealthAPI.Helper.AddHandleStrengthOnNewRoomCallback)
 
@@ -218,22 +215,22 @@ function CustomHealthAPI.Mod:HandleStrengthOnNewRoomCallback()
 	for i = 0, Game():GetNumPlayers() - 1 do
 		local player = Isaac.GetPlayer(i)
 		
-		if player:GetData().CustomHealthAPISavedata and 
-		   #(player:GetData().CustomHealthAPISavedata.StrengthHPToRemove or {}) > 0 and
+		if CustomHealthAPI.Helper.GetSavedata(player) and 
+		   #(CustomHealthAPI.Helper.GetSavedata(player).StrengthHPToRemove or {}) > 0 and
 		   not player:GetEffects():HasCollectibleEffect(CollectibleType.COLLECTIBLE_MAGIC_MUSHROOM)
 		then
 			CustomHealthAPI.Helper.RemoveTemporaryHP(player, "StrengthHPToRemove")
 		end
 		
-		if player:GetSubPlayer() and player:GetSubPlayer():GetData().CustomHealthAPISavedata and 
-		   #(player:GetSubPlayer():GetData().CustomHealthAPISavedata.StrengthHPToRemove or {}) > 0 and
+		if player:GetSubPlayer() and CustomHealthAPI.Helper.GetSavedata(player:GetSubPlayer()) and 
+		   #(CustomHealthAPI.Helper.GetSavedata(player:GetSubPlayer()).StrengthHPToRemove or {}) > 0 and
 		   not player:GetSubPlayer():GetEffects():HasCollectibleEffect(CollectibleType.COLLECTIBLE_MAGIC_MUSHROOM)
 		then
 			CustomHealthAPI.Helper.RemoveTemporaryHP(player:GetSubPlayer(), "StrengthHPToRemove")
 		end
 		
-		if player:GetOtherTwin() and player:GetOtherTwin():GetData().CustomHealthAPISavedata and 
-		   #(player:GetOtherTwin():GetData().CustomHealthAPISavedata.StrengthHPToRemove or {}) > 0 and
+		if player:GetOtherTwin() and CustomHealthAPI.Helper.GetSavedata(player:GetOtherTwin()) and 
+		   #(CustomHealthAPI.Helper.GetSavedata(player:GetOtherTwin()).StrengthHPToRemove or {}) > 0 and
 		   not player:GetOtherTwin():GetEffects():HasCollectibleEffect(CollectibleType.COLLECTIBLE_MAGIC_MUSHROOM)
 		then
 			CustomHealthAPI.Helper.RemoveTemporaryHP(player:GetOtherTwin(), "StrengthHPToRemove")
@@ -242,22 +239,22 @@ function CustomHealthAPI.Mod:HandleStrengthOnNewRoomCallback()
 end
 
 function CustomHealthAPI.Helper.HandleReverseEmpressOnRemove(player)
-	if player:GetData().CustomHealthAPISavedata and 
-	   #(player:GetData().CustomHealthAPISavedata.ReverseEmpressHPToRemove or {}) > 0 and
+	if CustomHealthAPI.Helper.GetSavedata(player) and 
+	   #(CustomHealthAPI.Helper.GetSavedata(player).ReverseEmpressHPToRemove or {}) > 0 and
 	   not player:GetEffects():HasNullEffect(NullItemID.ID_REVERSE_EMPRESS)
 	then
 		CustomHealthAPI.Helper.RemoveTemporaryHP(player, "ReverseEmpressHPToRemove")
 	end
 	
-	if player:GetSubPlayer() and player:GetSubPlayer():GetData().CustomHealthAPISavedata and 
-	   #(player:GetSubPlayer():GetData().CustomHealthAPISavedata.ReverseEmpressHPToRemove or {}) > 0 and
+	if player:GetSubPlayer() and CustomHealthAPI.Helper.GetSavedata(player:GetSubPlayer()) and 
+	   #(CustomHealthAPI.Helper.GetSavedata(player:GetSubPlayer()).ReverseEmpressHPToRemove or {}) > 0 and
 	   not player:GetSubPlayer():GetEffects():HasNullEffect(NullItemID.ID_REVERSE_EMPRESS)
 	then
 		CustomHealthAPI.Helper.RemoveTemporaryHP(player:GetSubPlayer(), "ReverseEmpressHPToRemove")
 	end
 	
-	if player:GetOtherTwin() and player:GetOtherTwin():GetData().CustomHealthAPISavedata and 
-	   #(player:GetOtherTwin():GetData().CustomHealthAPISavedata.ReverseEmpressHPToRemove or {}) > 0 and
+	if player:GetOtherTwin() and CustomHealthAPI.Helper.GetSavedata(player:GetOtherTwin()) and 
+	   #(CustomHealthAPI.Helper.GetSavedata(player:GetOtherTwin()).ReverseEmpressHPToRemove or {}) > 0 and
 	   not player:GetOtherTwin():GetEffects():HasNullEffect(NullItemID.ID_REVERSE_EMPRESS)
 	then
 		CustomHealthAPI.Helper.RemoveTemporaryHP(player:GetOtherTwin(), "ReverseEmpressHPToRemove")

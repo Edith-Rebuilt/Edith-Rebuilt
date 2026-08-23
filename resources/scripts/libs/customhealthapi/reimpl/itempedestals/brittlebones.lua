@@ -1,8 +1,8 @@
 function CustomHealthAPI.Helper.HandleBrittleBonesCollection(player)
 	-- convert up to 6 maxhp 0 containers to bone hearts, remove any extra, add more bone hearts if necessary to reach 6 added total
-	local data = player:GetData().CustomHealthAPISavedata
-	local redMasks = data.RedHealthMasks
-	local otherMasks = data.OtherHealthMasks
+	local data = CustomHealthAPI.Helper.GetSavedata(player)
+	local redMasks = data.RedHealthMasks or {}
+	local otherMasks = data.OtherHealthMasks or {}
 	
 	for i = 1, #redMasks do
 		local mask = redMasks[i]
@@ -79,8 +79,7 @@ function CustomHealthAPI.Helper.HandleBrittleBonesOnBreak(player)
 		tear:Update()
 	end
 	
-	player:GetData().CustomHealthAPIPersistent = player:GetData().CustomHealthAPIPersistent or {}
-	local pdata = player:GetData().CustomHealthAPIPersistent
+	local pdata = CustomHealthAPI.Helper.GetPersistentData(player, true)
 	pdata.FakeBrittleBonesTears = (pdata.FakeBrittleBonesTears or 0) + 1
 end
 
@@ -154,33 +153,32 @@ local function getFireRateMultiplier(player)
 		multi = multi * 4
 	end
 	
-	if player:GetData().CustomHealthAPIOtherData then
-		local odata = player:GetData().CustomHealthAPIOtherData
-		if not REPENTOGON or CustomHealthAPI.PersistentData.DoManualHallowedGroundChecking then
-			if (odata.InHallowAura or 0) > 0 or 
-			   (odata.InHallowDipAura or 0) > 0 or 
-			   (odata.InBethlehemAura or 0) > 0 or
-			   (odata.InHallowSpellAura or 0) > 0
-			then
-				multi = multi * 2.5
-			end
+	local odata = CustomHealthAPI.Helper.GetOtherData(player)
+	
+	if not REPENTOGON or CustomHealthAPI.PersistentData.DoManualHallowedGroundChecking then
+		if (odata.InHallowAura or 0) > 0 or 
+		   (odata.InHallowDipAura or 0) > 0 or 
+		   (odata.InBethlehemAura or 0) > 0 or
+		   (odata.InHallowSpellAura or 0) > 0
+		then
+			multi = multi * 2.5
 		end
-		
-		if player:HasCollectible(CollectibleType.COLLECTIBLE_EPIPHORA) then
-			local fireDirection = player:GetFireDirection()
-			if fireDirection == Direction.NO_DIRECTION or
-			   (odata.PreviousEpiphoraDirection ~= Direction.NO_DIRECTION and fireDirection ~= odata.PreviousEpiphoraDirection)
-			then
-				odata.EpiphoraStart = Game():GetFrameCount()
-			elseif Game():GetFrameCount() - (odata.EpiphoraStart or 0) >= 270 then
-				multi = multi * 2
-			elseif Game():GetFrameCount() - (odata.EpiphoraStart or 0) >= 180 then
-				multi = multi * 1.66
-			elseif Game():GetFrameCount() - (odata.EpiphoraStart or 0) >= 90 then
-				multi = multi * 1.33
-			end
-			odata.PreviousEpiphoraDirection = fireDirection
+	end
+	
+	if player:HasCollectible(CollectibleType.COLLECTIBLE_EPIPHORA) then
+		local fireDirection = player:GetFireDirection()
+		if fireDirection == Direction.NO_DIRECTION or
+		   (odata.PreviousEpiphoraDirection ~= Direction.NO_DIRECTION and fireDirection ~= odata.PreviousEpiphoraDirection)
+		then
+			odata.EpiphoraStart = Game():GetFrameCount()
+		elseif Game():GetFrameCount() - (odata.EpiphoraStart or 0) >= 270 then
+			multi = multi * 2
+		elseif Game():GetFrameCount() - (odata.EpiphoraStart or 0) >= 180 then
+			multi = multi * 1.66
+		elseif Game():GetFrameCount() - (odata.EpiphoraStart or 0) >= 90 then
+			multi = multi * 1.33
 		end
+		odata.PreviousEpiphoraDirection = fireDirection
 	end
 	
 	if REPENTOGON and not CustomHealthAPI.PersistentData.DoManualHallowedGroundChecking then
@@ -213,9 +211,7 @@ function CustomHealthAPI.Mod:HallowPoopCallback(poop)
 	if poop:GetVariant() == 6 and poop.State ~= 1000 then
 		for i = 0, Game():GetNumPlayers() - 1 do
 			local player = Isaac.GetPlayer(i)
-			
-			player:GetData().CustomHealthAPIOtherData = player:GetData().CustomHealthAPIOtherData or {}
-			local data = player:GetData().CustomHealthAPIOtherData
+			local data = CustomHealthAPI.Helper.GetOtherData(player)
 	
 			if player.Position:Distance(poop.Position) <= 80.0 then
 				data.InHallowAura = 4
@@ -244,8 +240,7 @@ end
 table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveHallowPlayerCallback)
 
 function CustomHealthAPI.Mod:HallowPlayerCallback(player)
-	player:GetData().CustomHealthAPIOtherData = player:GetData().CustomHealthAPIOtherData or {}
-	local data = player:GetData().CustomHealthAPIOtherData
+	local data = CustomHealthAPI.Helper.GetOtherData(player)
 	
 	local game = Game()
 	local room = game:GetRoom()
@@ -311,9 +306,8 @@ table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveHal
 
 function CustomHealthAPI.Mod:HallowPeffectCallback(player)
 	local game = Game()
-
-	player:GetData().CustomHealthAPIOtherData = player:GetData().CustomHealthAPIOtherData or {}
-	local data = player:GetData().CustomHealthAPIOtherData
+	
+	local data = CustomHealthAPI.Helper.GetOtherData(player)
 	
 	data.InHallowAura = math.max((data.InHallowAura or 0) - 1, 0)
 	
@@ -376,8 +370,7 @@ end
 table.insert(CustomHealthAPI.CallbacksToRemove, CustomHealthAPI.Helper.RemoveBrittleBonesCacheCallback)
 
 function CustomHealthAPI.Mod:BrittleBonesCacheCallback(player, flag)
-	player:GetData().CustomHealthAPIPersistent = player:GetData().CustomHealthAPIPersistent or {}
-	local pdata = player:GetData().CustomHealthAPIPersistent
+	local pdata = CustomHealthAPI.Helper.GetPersistentData(player, true)
 	
 	if flag == CacheFlag.CACHE_FIREDELAY and pdata.FakeBrittleBonesTears ~= nil and pdata.FakeBrittleBonesTears > 0 then
 		local fireRateUp = 0.4 * pdata.FakeBrittleBonesTears * getFireRateMultiplier(player)
