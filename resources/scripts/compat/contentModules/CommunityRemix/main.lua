@@ -15,7 +15,13 @@ EdithRebuilt_SaltHearts.Version = "v" .. version[1].. "." .. version[2] .. "." .
 
 local message = "Edith Rebuilt Salt Hearts module " .. EdithRebuilt_SaltHearts.Version .. " loaded correctly"
 
-include("resources.scripts.libs.customhealthapi.core")
+local scriptsPath = "resources.scripts."
+local CRemixPath = scriptsPath .. "compat.contentModules.CommunityRemix.scripts."
+
+include(scriptsPath .. "libs.customhealthapi.core")
+
+include(CRemixPath .. "Unlock")
+include(CRemixPath .. "Health")
 
 Isaac.DebugString(message)
 print(message)
