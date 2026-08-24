@@ -80,5 +80,4 @@ EdithRebuilt.Version = "v" .. version[1].. "." .. version[2] .. "." .. version[3
 Isaac.DebugString("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
 print("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
 
-
-include("resources.scripts.compat.contentModules.CommunityRemix.main")
+include("resources.scripts.compat.main")
