@@ -37,5 +37,5 @@
     <achievement name="Thank You" gfx="achievement_ThankYou.png" />
 
     <!-- Community Remix -->
-    <achievement name="Salt Hearts"/>
+    <achievement name="Salt Hearts" gfx="CRemix/achievement_salthearts.png"/>
 </achievements>
