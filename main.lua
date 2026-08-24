@@ -1,4 +1,4 @@
-EdithRebuilt = RegisterMod("Edith: Rebuilt", 1) --[[@as ModReference]]
+EdithRebuilt = RegisterMod("Edith: Rebuilt", 1) --[[@as table|ModReference]]
 local mod = EdithRebuilt
 local font = Font()
 font:Load("font/pftempestasevencondensed.fnt")
