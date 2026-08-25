@@ -18,7 +18,6 @@ local enums = mod.Enums
 
 mod:AddCallback(ModCallbacks.MC_POST_MODS_LOADED, function ()
     if not RunicTablet then return end
-
     RunicTablet.Collectible.RunicTablet.CUSTOM_EFFECTS[enums.Card.CARD_SOUL_EDITH] = true
 end)
 
