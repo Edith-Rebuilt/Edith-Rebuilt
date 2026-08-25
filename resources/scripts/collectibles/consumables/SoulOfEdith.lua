@@ -38,10 +38,13 @@ end
 ---@param jumpData JumpData
 mod:AddCallback(JumpLib.Callbacks.ENTITY_LAND, function (_, player, jumpData)
 	local stompParams = EdithMod.GetJumpStompParams(player)
+	local hasRunicTablet = RunicTablet and player:HasCollectible(RunicTablet.Collectible.RunicTablet.ID)
 
-	stompParams.Damage = ((damageBase + player.Damage) / 1.5)
-	stompParams.Radius = 50
-	stompParams.Knockback = 20
+	local runicMult = hasRunicTablet and 1.5 or 1
+
+	stompParams.Damage = ((damageBase + player.Damage) / 1.5) * runicMult
+	stompParams.Radius = 50 * runicMult
+	stompParams.Knockback = 20 * runicMult
 
 	Land.EdithStomp(player, stompParams, true)
 	Land.LandFeedbackManager(player, Land.GetLandSoundTable(false), Color(1, 1, 1, 0), jumpData)

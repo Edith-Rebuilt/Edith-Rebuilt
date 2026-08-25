@@ -12,12 +12,13 @@
 ]]
 
 ---@diagnostic disable: undefined-global
-if not RunicTablet then return end
-local RT = {}
+
 local mod = EdithRebuilt
 local enums = mod.Enums
 
-function RT:OnModLoad()
+mod:AddCallback(ModCallbacks.MC_POST_MODS_LOADED, function ()
+    if not RunicTablet then return end
+
     RunicTablet.Collectible.RunicTablet.CUSTOM_EFFECTS[enums.Card.CARD_SOUL_EDITH] = true
-end
-mod:AddCallback(ModCallbacks.MC_POST_MODS_LOADED, RT.OnModLoad)
+end)
+
