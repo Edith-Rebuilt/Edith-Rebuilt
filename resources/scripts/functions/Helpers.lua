@@ -194,7 +194,7 @@ end
 ---@param ent Entity
 ---@return boolean
 function Helpers.IsEnemy(ent)
-	return (ent:IsEnemy() and ent:IsActiveEnemy() and ent:IsVulnerableEnemy())
+	return (not ent:HasEntityFlags(EntityFlag.FLAG_CHARM) and ent:IsEnemy() and ent:IsActiveEnemy() and ent:IsVulnerableEnemy())
 end
 
 function Helpers.IsVestigeChallenge()
