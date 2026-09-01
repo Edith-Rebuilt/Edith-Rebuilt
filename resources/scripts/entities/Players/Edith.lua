@@ -391,7 +391,7 @@ end)
 
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function(_, player)
 	if not Player.IsEdith(player, false) then return end
-	if data(player).JumpCount <= 0 then return end
+	if data(player).JumpCount and data(player).JumpCount <= 0 then return end
 
 	return false
 end)
