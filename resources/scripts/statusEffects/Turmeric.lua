@@ -18,7 +18,7 @@ end
 local function SetTurmeric(entity)
     for _, enemy in ipairs(Isaac.FindInRadius(entity.Position, 60, EntityPartition.ENEMY)) do
         if not Helpers.IsEnemy(enemy) then goto continue end
-        if not ModRNG.RandomBoolean(rng, 0.35) then goto continue end
+        if not ModRNG.RandomBoolean(rng, 0.4) then goto continue end
 
         SpawnTurmericCloud(entity)
         Status.SetStatusEffect(effects.TURMERIC, enemy, 90, entity)
@@ -29,10 +29,10 @@ end
 ---@param entity Entity
 ---@param amount number
 ---@param flags DamageFlag
----@param source EntityRef
 ---@param Cooldown integer
-mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, entity, amount, flags, source, Cooldown)
+---@return boolean|table?
+mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, entity, amount, flags, _, Cooldown)
     if not Status.EntHasStatusEffect(entity, effects.TURMERIC) then return end
     SetTurmeric(entity)
-    return {Damage = amount * 1.2, DamageFlags = flags, DamageCountdown = Cooldown}
+    return {Damage = amount * 1.25, DamageFlags = flags, DamageCountdown = Cooldown}
 end)
