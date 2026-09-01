@@ -439,6 +439,7 @@ mod:AddCallback(JumpLib.Callbacks.ENTITY_UPDATE_60, function(_, fam, jumpData)
 
 	if EdithMod.GetJumpStompParams(player).IsDefensiveStomp then return end
 	if not player.CanFly then return end
+	if helpers.IsVestigeChallenge() then return end
 
 	EdithMod.ApplyFallPhysics(fam, jumpData)
 end, {

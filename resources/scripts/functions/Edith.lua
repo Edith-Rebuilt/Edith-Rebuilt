@@ -212,10 +212,13 @@ end
 ---@param jumpdata JumpData
 ---@param jumpParams EdithJumpStompParams
 function Edith.FlightFallBehavior(player, jumpdata, jumpParams)
+	local modules = mod.Modules
+
+	if modules.HELPERS.IsVestigeChallenge() then return end
     if jumpParams.IsDefensiveStomp then return end
     if not player.CanFly then return end
 
-    local distance = mod.Modules.TARGET_ARROW.GetEdithTargetDistanceSquared(player)
+    local distance = modules.TARGET_ARROW.GetEdithTargetDistanceSquared(player)
     if not ShouldTriggerFall(player, distance) then return end
     if not JumpLib:IsFalling(player) then return end
 
