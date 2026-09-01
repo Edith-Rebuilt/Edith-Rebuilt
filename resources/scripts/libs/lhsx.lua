@@ -19,8 +19,7 @@
 
 --]]
 
-local min, max, abs = math.min, math.max, math.abs
-
+local abs = math.abs
 local Hsx = {}
 
 ---@param r number
@@ -30,12 +29,21 @@ local Hsx = {}
 ---@return number
 ---@return number
 function Hsx.rgb2hsv( r, g, b )
-	local M, m = max( r, g, b ), min( r, g, b )
+	local M = r
+	if g > M then M = g end
+	if b > M then M = b end
+
+	local m = r
+	if g < m then m = g end
+	if b < m then m = b end
+
 	local C = M - m
-	local K = 1.0/(6.0 * C)
 	local h = 0.0
 	if C ~= 0.0 then
-		if M == r then     h = ((g - b) * K) % 1.0
+		local K = 1.0/(6.0 * C)
+		if M == r then
+			h = (g - b) * K
+			if h < 0.0 then h = h + 1.0 end
 		elseif M == g then h = (b - r) * K + 1.0/3.0
 		else               h = (r - g) * K + 2.0/3.0
 		end
@@ -67,6 +75,7 @@ function Hsx.hsv2rgb( h, s, v )
 	end
 	return r, g, b
 end
+
 return Hsx
 
 --[[
