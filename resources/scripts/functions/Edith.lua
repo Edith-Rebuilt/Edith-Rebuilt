@@ -283,10 +283,13 @@ end
 ---@param jumpParams EdithJumpStompParams
 ---@param bomb? EntityBomb
 function Edith.ExplosionRecoil(player, jumpParams, bomb)
-	if not mod.Modules.JUMP.IsJumping(player) then return end
+	local modules = mod.Modules
+
+	if not modules.JUMP.IsJumping(player) then return end
+	if modules.HELPERS.IsVestigeChallenge() then return end
 
 	local edithFlags = jumpFlags.EdithJump
-	local newFlags = mod.Modules.BIT_MASK.RemoveBitFlags(edithFlags, JumpLib.Flags.GRIDCOLL_NO_WALLS)
+	local newFlags = modules.BIT_MASK.RemoveBitFlags(edithFlags, JumpLib.Flags.GRIDCOLL_NO_WALLS)
 
 	JumpLib:Jump(player, {
 		Height = 15,
