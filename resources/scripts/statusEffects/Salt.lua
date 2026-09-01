@@ -6,11 +6,11 @@ local Status = modules.STATUS_EFFECTS
 ---@param entity Entity
 ---@param amount number
 ---@param flags DamageFlag
----@param source EntityRef
 ---@param Cooldown integer
-mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, entity, amount, flags, source, Cooldown)
+---@return boolean|table?
+mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, entity, amount, flags, _, Cooldown)
     if not Status.EntHasStatusEffect(entity, effects.SALTED) then return end
-    return {Damage = amount * 1.2, DamageFlags = flags, DamageCountdown = Cooldown}
+    return {Damage = amount * 1.35, DamageFlags = flags, DamageCountdown = Cooldown}
 end)
 
 mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, function (_, npc)
