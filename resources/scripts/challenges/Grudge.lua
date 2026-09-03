@@ -5,6 +5,7 @@ local modules = mod.Modules
 local Helpers = modules.HELPERS
 local TEdithMod = modules.TEDITH
 local Player = modules.PLAYER
+local data = mod.DataHolder.GetEntityData
 
 local function HandleFireplaceCollision(collider)
     if not (collider.Type == EntityType.ENTITY_FIREPLACE and collider.Variant ~= 4) then return end
@@ -17,6 +18,7 @@ end
 local function HandleGrudgeDashDamage(player, collider, hopParams)
     if not hopParams.GrudgeDash then return end
     if not Helpers.IsEnemy(collider) then return end
+    if data(player).IsRedirectioningMove then return end
 
     local speed = player.Velocity:Length()
     local damage = (
