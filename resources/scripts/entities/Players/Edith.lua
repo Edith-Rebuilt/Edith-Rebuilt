@@ -12,7 +12,9 @@ local helpers = modules.HELPERS
 local Player = modules.PLAYER
 local ModRNG = modules.RNG
 local Jump = modules.JUMP
+local room = enums.Utils.Room
 local StatusEffects = modules.STATUS_EFFECTS
+local jumpCallbacks = JumpLib.Callbacks
 local data = mod.DataHolder.GetEntityData
 local params = EdithMod.GetJumpStompParams
 
@@ -214,7 +216,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 end)
 
 ---@param player EntityPlayer
-mod:AddCallback(JumpLib.Callbacks.POST_ENTITY_JUMP, function(_, player)
+mod:AddCallback(jumpCallbacks.POST_ENTITY_JUMP, function(_, player)
 	local jumpParams = params(player)
 
 	jumpParams.JumpStartPos = player.Position
@@ -262,12 +264,29 @@ end
 local function ResetEdithScale(player)
 	if Jump.IsJumping(player) then return end
 	player.SpriteScale = data(player).BaseSpriteScale
-end	
+end
+
+---@param player EntityPlayer
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
+	if not JumpLib:IsPitfalling(player) then return end
+
+	local sprite = player:GetSprite()
+	local anim = sprite:GetAnimation()
+
+	if anim ~= "JumpOut" then return end
+	if sprite:GetFrame() > 1 then return end
+
+	player:MultiplyFriction(0)
+	local newPos = room:FindFreePickupSpawnPosition(player.Position, 0, true, false)
+	local jumpIntData = JumpLib.Internal:GetData(player)
+	jumpIntData.PitPos = newPos
+	jumpIntData.JumpPos = newPos
+end)
 
 ---@param player EntityPlayer
 ---@param jumpData JumpData
 ---@param pitfall boolean
-mod:AddCallback(JumpLib.Callbacks.ENTITY_LAND, function(_, player, jumpData, pitfall)
+mod:AddCallback(jumpCallbacks.ENTITY_LAND, function(_, player, jumpData, pitfall)
     local edithTarget = TargetArrow.GetEdithTarget(player)
 	ResetEdithScale(player)
 
@@ -347,7 +366,7 @@ end
 
 ---@param player EntityPlayer
 ---@param jumpdata JumpData
-mod:AddCallback(JumpLib.Callbacks.ENTITY_UPDATE_60, function (_, player, jumpdata)
+mod:AddCallback(jumpCallbacks.ENTITY_UPDATE_60, function (_, player, jumpdata)
 	if not Player.IsEdith(player, false) then return end
 
 	local jumpParams = params(player)
@@ -433,7 +452,7 @@ end)
 
 ---@param fam EntityFamiliar
 ---@param jumpData JumpData
-mod:AddCallback(JumpLib.Callbacks.ENTITY_UPDATE_60, function(_, fam, jumpData)
+mod:AddCallback(jumpCallbacks.ENTITY_UPDATE_60, function(_, fam, jumpData)
 	if not JumpLib:IsFalling(fam) then return end
 	local player = fam:ToFamiliar().Player
 
