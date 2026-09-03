@@ -104,7 +104,7 @@ function TEdith.ParryCooldownManager(player, HopParams)
 		sfx:Play(SoundEffect.SOUND_STONE_IMPACT, 0.5, 0, false, 1.3)
 		player:SetColor(Color(1, 1, 1, 1, colorChange + 0.3, 0, 0), 5, 100, true, false)
 	end
-	
+
 	if ParryCooldown == 1 and player.FrameCount > 20 then
 		player:SetColor(Color(1, 1, 1, 1, 0.5 + colorChange), 5, 100, true, false)
 		sfx:Play(SoundEffect.SOUND_STONE_IMPACT)
@@ -156,7 +156,7 @@ local function ArrowVelocityManager(player, arrow, arrowVel, hopParams)
 
 	hopParams.HopDirection = posDifNorm
 
-    if posDifLength >= maxDist then
+    if posDif:LengthSquared() >= maxDist * maxDist then
         targetVel = targetVel - (posDifNorm * (posDifLength / maxDist))
     end
 
