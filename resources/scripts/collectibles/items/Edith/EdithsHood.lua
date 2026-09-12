@@ -17,7 +17,6 @@ local Creeps = modules.CREEPS
 local Jump = modules.JUMP
 local utils = enums.Utils
 local sfx = utils.SFX
-local game = utils.Game
 local room = utils.Room
 local data = mod.DataHolder.GetEntityData
 
