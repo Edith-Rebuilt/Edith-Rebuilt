@@ -2,7 +2,6 @@ local mod = EdithRebuilt
 local enums = mod.Enums
 local tables = enums.Tables
 local utils = enums.Utils
-local game = utils.Game
 local pool = utils.ItemPool
 local room = utils.Room
 local modules = mod.Modules
