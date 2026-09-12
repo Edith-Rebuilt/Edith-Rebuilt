@@ -203,6 +203,7 @@ local function TriggerPickupCollide(player, pickup)
 
 	if pickup:IsDead() then return end
 	if pickup:IsShopItem() then return end
+	if pickup.SubType == 0 then return end
 
 	if IsStopAnimPickup or IsEternalHeart then
 		StopStompAnim(player)
@@ -247,7 +248,7 @@ local function SlotLandManager(parent, ent)
 	if not mod.Modules.HELPERS.When(ent.Variant, tables.TriggerDamageSlots, false) then return end
 
 	parent:ForceCollide(ent, false)
-	parent:TakeDamage(1, 0, EntityRef(ent), 0)
+	parent:TakeDamage(1, DamageFlag.DAMAGE_RED_HEARTS, EntityRef(ent), 0)
 end
 
 local stompBehavior = {
