@@ -94,6 +94,8 @@ local function TEdithCooling(player)
 	TEdithMod.AddParryHeat(player, -decreaser)
 end
 
+local rotation = 20
+
 ---@param player EntityPlayer
 local function TEdithHeatColor(player)
 	local heat = TEdithMod.GetParryHeat(player)
@@ -101,6 +103,27 @@ local function TEdithHeatColor(player)
 	if heat <= 0 then return end
 
 	player:SetColor(Color(1, 1, 1, 1, 0.5 * heat, 0.1 * heat), 1, 10, true, false)
+
+	if player.FrameCount % (10 - (math.ceil(5 * heat))) == 0 then
+		local smoke = Isaac.Spawn(
+			EntityType.ENTITY_EFFECT, 
+			EffectVariant.POOF02, 2, 
+			player.Position - Vector(0, 30), 
+			Vector(0, -1) * (3 * heat), 
+			player):
+		ToEffect() ---@cast smoke EntityEffect
+
+		local rng = smoke:GetDropRNG()
+		local smokeColorize = 0.8 - (0.25 * heat)
+
+		sfx:Play(SoundEffect.SOUND_STEAM_HALFSEC, 0.15, 2, false, 0.5 + (0.8 * heat))
+
+		local smokeSize = 0.4 + (0.1 * heat)
+
+		smoke.Color = Color(1, 1, 1, 1, 0, 0, 0, smokeColorize, smokeColorize, smokeColorize, 1)
+		smoke.SpriteScale = Vector(smokeSize, smokeSize) * modules.RNG.RandomFloat(rng, 0.9, 1.1)
+		smoke:GetSprite().PlaybackSpeed = 1 + (0.3 * heat)
+	end
 end
 
 ---@param player EntityPlayer
