@@ -410,7 +410,7 @@ EdithRebuilt.Enums = {
 			[FamiliarVariant.SAMSONS_CHAINS] = true,
 			[FamiliarVariant.PUNCHING_BAG] = true,
 			[FamiliarVariant.CUBE_BABY] = true,
-		} --[[@as FamiliarVariant[]],
+		} --[[@as FamiliarVariant]],
 		CooldownSounds = {
 			[1] = {
 				SoundID = SoundEffect.SOUND_STONE_IMPACT,
