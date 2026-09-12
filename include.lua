@@ -3,24 +3,13 @@ local col = "collectibles/"
 local ent = "entities/"
 local syn = "synergies/"
 local funcs = "functions/"
-local compat = "compat/"
 local libs = "libs/"
 local misc = "misc/"
 local effects = "statusEffects/"
 
 local includeFiles = {
 	-- Cosas necesarias
-	-- compat .. "EID",
-	-- compat .. "Birthcake",
-	-- compat .. "RunicTablet",
-	-- compat .. "TheFuture",
-	-- compat .. "Birthwrong/Edith",
-	-- compat .. "Birthwrong/TEdith",
-	libs .. "prenpckillcallback",
 	libs .. "CustomShockwaveAPI",
-	libs .. "lhsx",
-	funcs .. "functions",
-	funcs .. "unlock_functions",
 	misc .. "ImGui",
 	misc .. "UnlockManager",
 
