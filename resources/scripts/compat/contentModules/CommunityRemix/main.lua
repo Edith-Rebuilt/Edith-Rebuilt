@@ -1,9 +1,10 @@
+---@diagnostic disable: undefined-global
 local scriptsPath = "resources.scripts."
 local CRemixPath = scriptsPath .. "compat.contentModules.CommunityRemix.scripts."
 
-if not communityRemix then 
+if not communityRemix then
     include(CRemixPath .. "Failsafe")
-    return 
+    return
 end
 
 EdithRebuilt_SaltHearts = RegisterMod("Edith: Rebuilt (Salt Hearts)", 1) --[[@as ModReference]]
