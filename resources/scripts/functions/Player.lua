@@ -197,11 +197,13 @@ end
 ---@param p EntityPlayer
 ---@return boolean
 function Player.IsPlayerShooting(p)
+	local ci = p.ControllerIndex
+
 	local shoot = {
-        l = Input.IsActionPressed(ButtonAction.ACTION_SHOOTLEFT, p.ControllerIndex),
-        r = Input.IsActionPressed(ButtonAction.ACTION_SHOOTRIGHT, p.ControllerIndex),
-        u = Input.IsActionPressed(ButtonAction.ACTION_SHOOTUP, p.ControllerIndex),
-        d = Input.IsActionPressed(ButtonAction.ACTION_SHOOTDOWN, p.ControllerIndex)
+        l = Input.IsActionPressed(ButtonAction.ACTION_SHOOTLEFT, ci),
+        r = Input.IsActionPressed(ButtonAction.ACTION_SHOOTRIGHT, ci),
+        u = Input.IsActionPressed(ButtonAction.ACTION_SHOOTUP, ci),
+        d = Input.IsActionPressed(ButtonAction.ACTION_SHOOTDOWN, ci)
     }
 	return (shoot.l or shoot.r or shoot.u or shoot.d)
 end
@@ -265,7 +267,6 @@ function Player.SetCustomSprite(player, tainted)
 	if not mod.Modules.HELPERS.IsModChallenge() then return end
 
 	local Helpers = mod.Modules.HELPERS
-
 	local challenge = Isaac.GetChallenge()
 
 	if Player.IsEdith(player, false) and Helpers.GetConfigData("EdithData").EnableVestigeMode == true then
@@ -276,7 +277,7 @@ function Player.SetCustomSprite(player, tainted)
 
 	if challenge ~= Challenge.CHALLENGE_NULL then
 		local hoodPath = tainted and enums.Misc.GrudgeHoodPath or enums.Misc.VestigeHoodPath
-	
+
 		Player.SetChallengeSprite(player, challenge)
 		Player.SetHoodSprite(player, hoodPath)
 	end
