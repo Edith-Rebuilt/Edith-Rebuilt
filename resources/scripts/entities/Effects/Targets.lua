@@ -120,7 +120,7 @@ end
 ---@param player EntityPlayer
 local function HandleVestigeDrag(effect, player)
 	if not (Helpers.IsVestigeChallenge() and Jump.IsJumping(player)) then return end
-	effect.Velocity = effect.Velocity * 0.6
+	effect.Velocity = effect.Velocity * 1
 end
 
 ---@param effect EntityEffect
@@ -156,7 +156,6 @@ local function SyncMarkedTarget(effect, player)
 	markedTarget.Velocity = Vector.Zero
 	markedTarget.Visible = false
 end
-
 ---@param effect EntityEffect
 ---@param player EntityPlayer
 local function EdithTargetManagement(effect, player)
@@ -171,6 +170,46 @@ local function EdithTargetManagement(effect, player)
 	HandleVestigeDrag(effect, player)
 	HandleDungeonTeleport(effect, player, isBeastRoom, RoomName)
 	SyncMarkedTarget(effect, player)
+end
+
+---@param charge number
+---@param isRedirect boolean
+---@param sprite Sprite
+local function FullChargeArrow(charge, isRedirect, sprite)
+	if charge < 100 then return end
+	if isRedirect then return end
+	if sprite:IsPlaying("Charged") then return end
+
+	sprite:Play("Charged", true)
+end
+
+---@param effect EntityEffect
+---@param player EntityPlayer
+local function ArrowUpdate(effect, player)
+	if effect.Variant ~= Vars.EFFECT_EDITH_B_TARGET then return end
+
+	local playerData = data(player)
+	local effectData = data(effect)
+
+	local charge = modules.TEDITH.GetHopDashCharge(player, false, false)
+	local sprite = effect:GetSprite()
+	local isRedirect = playerData.IsRedirectioningMove
+
+	if not isRedirect then
+		local XMod = 0.4 * (charge / 100)
+
+		effect.SpriteScale = Vector(0.6 + XMod, 1)
+	else
+		if not effectData.TriggeredIdle then
+			sprite:Play("Pop")
+		end
+
+		if sprite:IsEventTriggered("TriggerIdle") then
+			sprite:Play("Idle", true)
+			effectData.TriggeredIdle = true
+		end
+	end
+	FullChargeArrow(charge, isRedirect, sprite)
 end
 
 mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, function (_, npc)
@@ -249,12 +288,14 @@ local function UpdateArrowRotation(effect, player, saveData)
 	effect:GetSprite().Rotation = TEdith.GetHopParryParams(player).HopDirection:GetAngleDegrees()
 end
 
+
 ---@param effect EntityEffect
 ---@param player EntityPlayer
 ---@param saveData TEdithData
 local function TaintedEdithArrowRender(effect, player, saveData)
     local effectData = data(effect)
-    effectData.RGBState = effectData.RGBState or 0
+
+	effectData.RGBState = effectData.RGBState or 0
     effect.Visible = effect.FrameCount > 1
 
     UpdateArrowRotation(effect, player, saveData)
@@ -277,6 +318,7 @@ mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, function(_, effect)
     if not player then return end
 	targetArrow.TargetDoorManager(effect, player, radius)
     EdithTargetManagement(effect, player)
+	ArrowUpdate(effect, player)
 end)
 
 ---@param effect EntityEffect
