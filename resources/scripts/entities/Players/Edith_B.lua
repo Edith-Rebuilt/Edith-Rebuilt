@@ -86,6 +86,24 @@ local function SetEdithSprite(player)
 end
 
 ---@param player EntityPlayer
+local function TEdithCooling(player)
+	if player.FrameCount % 5 ~= 0 then return end
+
+	local decreaser = TEdithMod.GetHopParryParams(player).IsHoping and 0.02 or 0.01
+
+	TEdithMod.AddParryHeat(player, -decreaser)
+end
+
+---@param player EntityPlayer
+local function TEdithHeatColor(player)
+	local heat = TEdithMod.GetParryHeat(player)
+
+	if heat <= 0 then return end
+
+	player:SetColor(Color(1, 1, 1, 1, 0.5 * heat, 0.1 * heat), 1, 10, true, false)
+end
+
+---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
 	if not Player.IsEdith(player, true) then return end	
 	if Helpers.IsDSSMenuOpen() then return end
@@ -93,10 +111,14 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
 	local HopParams = TEdithMod.GetHopParryParams(player)
 	local arrow = TargetArrow.GetEdithTarget(player, true)
 
+	TEdithCooling(player)
 	SetEdithSprite(player)
 	ManageLeoEffect(player)
+	TEdithHeatColor(player)
 	ManageHopDashCharge(player, arrow, HopParams)
 	TEdithMod.ParryCooldownManager(player, HopParams)
+
+	-- print(TEdithMod.GetParryHeat(player))
 end)
 
 ---@param player EntityPlayer
@@ -331,16 +353,32 @@ local function OnParryLand(player, jumpData, params)
 	land.LandFeedbackManager(player, land.GetLandSoundTable(true, perfectParry), misc.BurntSaltColor, jumpData, perfectParry)
 end
 
-local ParryTypeBonusCharge = {
-	[parryTypes.IMPRECISE] = 15,
-	[parryTypes.PERFECT] = 25,
+---@param player EntityPlayer
+---@param parryType ParryTypes
+local function ParryHopDashChargeBonus(player, parryType)
+	if parryType ~= parryTypes.PERFECT then return end
+	TEdithMod.AddHopDashCharge(player, 25, 0.75)
+end
+
+local HeatAdders = {
+	[parryTypes.IMPRECISE] = 0.1,
+	[parryTypes.PERFECT] = 0.25,
 }
+
+---@param player EntityPlayer
+---@param parryType ParryTypes
+local function OverHeatManager(player, parryType)
+	local adder = Helpers.When(parryType, HeatAdders)
+	if not adder then return end
+
+	TEdithMod.AddParryHeat(player, adder)
+end
 
 mod:AddCallback(enums.Callbacks.POST_PARRY_LAND, function(_, player)
 	local parryType = TEdithMod.GetParryType(TEdithMod.GetHopParryParams(player))
-	local chargeBonus = Helpers.When(parryType, ParryTypeBonusCharge, 0)
 
-	TEdithMod.AddHopDashCharge(player, chargeBonus, 0.75)
+	ParryHopDashChargeBonus(player, parryType)
+	OverHeatManager(player, parryType)
 end)
 
 ---@param ent Entity

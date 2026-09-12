@@ -940,17 +940,22 @@ local function CalcParryDamage(player, hopParams, isTaintedEdith)
     local damageFormula = (rawFormula * birthrightMult) * (hasBirthcake and 1.15 or 1) * multishotMult
 
     if isTaintedEdith then
-        local damageIncrease = 1 + (hopParams.HopStaticCharge + hopParams.HopStaticBRCharge) / 400
-        damageFormula = damageFormula * damageIncrease
+		local heat = hopParams.ParryHeat
+		local heatBonus = 1 + (1.5 + heat) / 3
+
+		-- local damageIncrease = 1 + (hopParams.HopStaticCharge + hopParams.HopStaticBRCharge) / 400
+
+
+        damageFormula = damageFormula * heatBonus
     end
     return damageFormula, hasBirthcake
 end
 
-local function CalcParryCooldown(isTaintedEdith, perfectParry, hasBirthcake, staticChargeCooldownBonus)
+local function CalcParryCooldown(isTaintedEdith, perfectParry, hasBirthcake)
     if not isTaintedEdith then return 0 end
-    if not perfectParry then return 15 end
+    if not perfectParry then return 25 end
     local base = hasBirthcake and 10 or 12
-    return base - staticChargeCooldownBonus
+    return base
 end
 
 local function ProcessParryHits(player, hopParams, isTaintedEdith, capsules)
@@ -996,8 +1001,8 @@ function Land.ParryLandManager(player, hopParams, isTaintedEdith)
         tear = Capsule(player.Position, Vector.One, 0, misc.TearParryRadius),
     }
 
-    local damageFormula, hasBirthcake = CalcParryDamage(player, hopParams, isTaintedEdith)
-    hopParams.ParryDamage = damageFormula
+    local damageFormula, hasBirthcake = CalcParryDamage(player, hopParams, isTaintedEdith) 
+    hopParams.ParryDamage = damageFormula 
     hopParams.ParriedEnemies = Isaac.FindInCapsule(capsules.perfect, misc.ParryPartitions)
     hopParams.ImpreciseParriedEnemies = Isaac.FindInCapsule(capsules.imprecise, misc.ParryPartitions)
 
@@ -1008,7 +1013,6 @@ function Land.ParryLandManager(player, hopParams, isTaintedEdith)
     TriggerParryKnockback(player, hopParams.ImpreciseParriedEnemies, hopParams.ParryKnockback)
     TriggerParryKnockback(player, hopParams.ParriedEnemies, hopParams.ParryKnockback)
 
-    local staticChargeCooldownBonus = math.ceil(4 * (hopParams.HopStaticCharge / 100))
     local iFrames = (perfectParry and 30 or 25) + math.ceil((hopParams.HopStaticCharge + hopParams.HopStaticBRCharge * 0.25) / 4)
 
     player:SetMinDamageCooldown(iFrames)
@@ -1020,7 +1024,10 @@ function Land.ParryLandManager(player, hopParams, isTaintedEdith)
         Helpers.TriggerPerfectParryFlash(player)
     end
 
-    hopParams.ParryCooldown = CalcParryCooldown(isTaintedEdith, perfectParry, hasBirthcake, staticChargeCooldownBonus)
+	local heatAdd = math.ceil(5 * (4 * hopParams.ParryHeat))
+
+    hopParams.ParryCooldown = CalcParryCooldown(isTaintedEdith, perfectParry, hasBirthcake) + heatAdd
+
     data(player).MaxParryCooldown = hopParams.ParryCooldown or 0
     hopParams.IsParryJump = false
     hopParams.ParriedEnemies = {}

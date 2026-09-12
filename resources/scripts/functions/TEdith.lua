@@ -22,6 +22,7 @@ local data = mod.DataHolder.GetEntityData
 ---@field ParryRadius number
 ---@field ParryKnockback number
 ---@field ParryCooldown number
+---@field ParryHeat number
 ---@field ImpreciseParriedEnemies Entity[]
 ---@field ParriedEnemies Entity[]
 ---@field IsHoping boolean
@@ -46,6 +47,7 @@ local function NewHopParryParams()
 		ParryKnockback = 0,
 		ParryRadius = 0,
 		ParryCooldown = 0,
+		ParryHeat = 0,
 		ParriedEnemies = {},
 		ImpreciseParriedEnemies = {},
 		GrudgeDash = false,
@@ -64,6 +66,20 @@ function TEdith.GetHopParryParams(player)
 end
 
 ---@param player EntityPlayer
+---@return number
+function TEdith.GetParryHeat(player)
+	return TEdith.GetHopParryParams(player).ParryHeat
+end
+
+---@param player EntityPlayer
+---@param amount number
+function TEdith.AddParryHeat(player, amount)
+	local params = TEdith.GetHopParryParams(player)
+
+	params.ParryHeat = mod.Modules.MATHS.Clamp(TEdith.GetParryHeat(player) + amount, 0, 1)
+end
+
+---@param player EntityPlayer
 ---@param Static boolean --- `true` to get Static charge, otherwise gets Move charge 
 ---@param checkBirthright? boolean --- Setting it to `true` will add Birthright charge to the returned value
 ---@return number
@@ -79,25 +95,11 @@ end
 ---@param player EntityPlayer
 ---@param HopParams TEdithHopParryParams
 function TEdith.ParryCooldownManager(player, HopParams)
-	local playerData = data(player)
 	local ParryCooldown = HopParams.ParryCooldown
 
-	playerData.ParryReadyGlowCount = playerData.ParryReadyGlowCount or 0
-
-	local GlowCount = playerData.ParryReadyGlowCount
-
-	if ParryCooldown < 1 then
-		playerData.ParryReadyGlowCount = GlowCount + 1
-	end
-
 	if ParryCooldown == 1 and player.FrameCount > 20 then
-		player:SetColor(Color(1, 1, 1, 1, 0.5), 5, 100, true, false)
+		player:SetColor(Color(1, 1, 1, 1, 0.5), 5, 1, true, false)
 		sfx:Play(SoundEffect.SOUND_STONE_IMPACT, nil, nil, nil, 1.5)
-		playerData.ParryReadyGlowCount = 0
-	end
-
-	if GlowCount > 0 and GlowCount % 20 == 0 and ParryCooldown == 0 then
-		player:SetColor(Color(1, 1, 1, 1, 0.1), 5, 100, true, false)
 	end
 
 	if not TEdith.IsTaintedEdithJump(player) then
