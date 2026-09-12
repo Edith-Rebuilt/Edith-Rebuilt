@@ -79,8 +79,6 @@ end
 ---@param player EntityPlayer
 ---@param HopParams TEdithHopParryParams
 function TEdith.ParryCooldownManager(player, HopParams)
-	local colorChange = math.min((HopParams.HopStaticCharge) / 100, 1) * 0.5
-	local colorBRChange = math.min(HopParams.HopStaticBRCharge / 100, 1) * 0.1
 	local playerData = data(player)
 	local ParryCooldown = HopParams.ParryCooldown
 
@@ -92,21 +90,17 @@ function TEdith.ParryCooldownManager(player, HopParams)
 		playerData.ParryReadyGlowCount = GlowCount + 1
 	end
 
-	if GlowCount > 20 then
-		playerData.ParryReadyGlowCount = 0
-	end
-
-	if colorChange > 0 and colorChange <= 1 then
-		player:SetColor(Color(1, 1, 1, 1, colorChange, colorBRChange, 0), 5, 100, true, false)
-	end
-
 	if ParryCooldown == 1 and player.FrameCount > 20 then
-		player:SetColor(Color(1, 1, 1, 1, 0.5 + colorChange), 5, 100, true, false)
-		sfx:Play(SoundEffect.SOUND_STONE_IMPACT)
+		player:SetColor(Color(1, 1, 1, 1, 0.5), 5, 100, true, false)
+		sfx:Play(SoundEffect.SOUND_STONE_IMPACT, nil, nil, nil, 1.5)
 		playerData.ParryReadyGlowCount = 0
 	end
 
-	if TEdith.IsTaintedEdithJump(player) ~= true then
+	if GlowCount > 0 and GlowCount % 20 == 0 and ParryCooldown == 0 then
+		player:SetColor(Color(1, 1, 1, 1, 0.1), 5, 100, true, false)
+	end
+
+	if not TEdith.IsTaintedEdithJump(player) then
 		HopParams.ParryCooldown = math.max(ParryCooldown - 1, 0)
 	end
 end
