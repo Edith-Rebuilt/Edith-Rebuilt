@@ -11,7 +11,9 @@ mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, function(_, npc)
     local npcData = data(npc)
     npcData.CuminStopCountdown = npcData.CuminStopCountdown or 0
 
-    local cuminCountdown = data(npc).CuminStopCountdown
+    local cuminCountdown = npcData.CuminStopCountdown
+
+    npc:GetPathfinder():MoveRandomly(false)
 
     if cuminCountdown <= 0 then return end
     npc.Velocity = Vector.Zero
