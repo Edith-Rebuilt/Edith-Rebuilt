@@ -57,7 +57,7 @@ local ImGuiMod = {}
 ---@field EnableShakescreen boolean
 
 local function ResetUnlocks()
-	for k, achievement in pairs(achievements) do
+	for _, achievement in pairs(achievements) do
 		Isaac.ExecuteCommand("lockachievement " .. tostring(achievement))
 	end
 end
@@ -503,15 +503,15 @@ end
 local function AddEdithOptions()
 	if not isEdithUnlocked(false) then return end
 
-	local EdithTabBar = Elements.Menu.TabBars.Edith
-	local EdithTab = Elements.Menu.Tabs.Edith.Main
-	local EdithVisuals = Elements.Menu.Tabs.Edith.Visuals
-	local EdithSounds = Elements.Menu.Tabs.Edith.Sounds
-	local EdithGameplay = Elements.Menu.Tabs.Edith.Gameplay
-	local OptionVisuals = Elements.Options.Edith.Visuals
-	local OptionSounds = Elements.Options.Edith.Sounds
-	local OptionGameplay = Elements.Options.Edith.Gameplay
-	local Separator = Elements.Menu.Separator.Edith
+	local EdithTabBar = Menu.TabBars.Edith
+	local EdithTab = Menu.Tabs.Edith.Main
+	local EdithVisuals = Menu.Tabs.Edith.Visuals
+	local EdithSounds = Menu.Tabs.Edith.Sounds
+	local EdithGameplay = Menu.Tabs.Edith.Gameplay
+	local OptionVisuals = Options.Edith.Visuals
+	local OptionSounds = Options.Edith.Sounds
+	local OptionGameplay = Options.Edith.Gameplay
+	local Separator = Menu.Separator.Edith
 	local EdithData = SaveManager:GetSettingsSave().EdithData --[[@as EdithData]]
 
 	ImGui.AddTabBar(EdithTab, EdithTabBar)
@@ -643,15 +643,15 @@ end
 local function AddTaintedEdithOptions()
 	if not isEdithUnlocked(true) then return end
 
-	local TEdithTabBar = Elements.Menu.TabBars.TEdith
-	local TEdithTab = Elements.Menu.Tabs.TEdith.Main
-	local TEdithVisuals = Elements.Menu.Tabs.TEdith.Visuals
-	local TEdithSounds = Elements.Menu.Tabs.TEdith.Sounds
-	local TEdithGameplay = Elements.Menu.Tabs.TEdith.Gameplay
-	local OptionVisuals = Elements.Options.TEdith.Visuals
-	local OptionSounds = Elements.Options.TEdith.Sounds
-	local OptionGameplay = Elements.Options.TEdith.Gameplay
-	local Separator = Elements.Menu.Separator.TEdith
+	local TEdithTabBar = Menu.TabBars.TEdith
+	local TEdithTab = Menu.Tabs.TEdith.Main
+	local TEdithVisuals = Menu.Tabs.TEdith.Visuals
+	local TEdithSounds = Menu.Tabs.TEdith.Sounds
+	local TEdithGameplay = Menu.Tabs.TEdith.Gameplay
+	local OptionVisuals = Options.TEdith.Visuals
+	local OptionSounds = Options.TEdith.Sounds
+	local OptionGameplay = Options.TEdith.Gameplay
+	local Separator = Menu.Separator.TEdith
 	local TEdithData = SaveManager:GetSettingsSave().TEdithData --[[@as TEdithData]]
 
 	ImGui.AddTabBar(TEdithTab, TEdithTabBar)
@@ -853,16 +853,16 @@ local function AddMiscOptions()
 end
 
 local function AddContributors()
-	ImGui.AddTabBar(Menu.Windows.Credits, Menu.TabBars.Credits)
+	local CreditsTabBar = Menu.TabBars.Credits
+	local CreditsTabs = Menu.Tabs.Credits
 
-	ImGui.AddTab(Menu.TabBars.Credits, Menu.Tabs.Credits.Resources, "Resources")
-	ImGui.AddTab(Menu.TabBars.Credits, Menu.Tabs.Credits.Contributors, "Contributors")
-	ImGui.AddTab(Menu.TabBars.Credits, Menu.Tabs.Credits.Testers, "Testers")
-	ImGui.AddTab(Menu.TabBars.Credits, Menu.Tabs.Credits.Team, "Team")
+	ImGui.AddTabBar(Menu.Windows.Credits, CreditsTabBar)
+	ImGui.AddTab(CreditsTabBar, CreditsTabs.Resources, "Resources")
+	ImGui.AddTab(CreditsTabBar, CreditsTabs.Contributors, "Contributors")
+	ImGui.AddTab(CreditsTabBar, CreditsTabs.Testers, "Testers")
+	ImGui.AddTab(CreditsTabBar, CreditsTabs.Team, "Team")
 
-	-- ImGui.AddElement(, Elements.Menu.SubMenu.Credits, )
-
-	ImGui.AddText(Menu.Tabs.Credits.Resources,
+	ImGui.AddText(CreditsTabs.Resources,
 	[[
 	Used resources and utilities:
 
@@ -884,7 +884,7 @@ local function AddContributors()
 	]],
 	true)
 
-	ImGui.AddText(Menu.Tabs.Credits.Contributors,
+	ImGui.AddText(CreditsTabs.Contributors,
 	[[
 	Contributors:
 
@@ -897,7 +897,7 @@ local function AddContributors()
 	]],
 	true)
 
-	ImGui.AddText(Menu.Tabs.Credits.Testers,
+	ImGui.AddText(CreditsTabs.Testers,
 	[[
 	Testers:
 
@@ -913,7 +913,7 @@ local function AddContributors()
 	]],
 	true)
 
-	ImGui.AddText(Menu.Tabs.Credits.Team,
+	ImGui.AddText(CreditsTabs.Team,
 	[[
 	Team:
 
@@ -928,18 +928,23 @@ end
 local function AddProgressBars()
 	if not isEdithUnlocked(false) then return end
 
-	ImGui.AddProgressBar(Menu.Windows.Progress, Menu.ProgressBar.General, "General unlocks progress", 0)
-	ImGui.AddProgressBar(Menu.Windows.Progress, Menu.ProgressBar.Edith, "Edith unlocks progress", 0)
+	local window = Menu.Windows
+	local button = Menu.Buttons
+	local progress = window.Progress
+	local bars = Menu.ProgressBar
+
+	ImGui.AddProgressBar(progress, bars.General, "General unlocks progress", 0)
+	ImGui.AddProgressBar(progress, bars.Edith, "Edith unlocks progress", 0)
 
 	if isEdithUnlocked(true) then
-		ImGui.AddProgressBar(Menu.Windows.Progress, Menu.ProgressBar.TEdith, "Tainted Edith unlocks progress", 0)
+		ImGui.AddProgressBar(progress, bars.TEdith, "Tainted Edith unlocks progress", 0)
 	end
 
-	ImGui.AddButton(Menu.Windows.Progress, Menu.Buttons.ClearUnlocks, "Clear Unlocks", function ()
+	ImGui.AddButton(progress, button.ClearUnlocks, "Clear Unlocks", function ()
 		ResetUnlocks()
 	end)
 
-	ImGui.AddButton(Menu.Windows.Progress, Menu.Buttons.UnlockAll, "Unlock All", function ()
+	ImGui.AddButton(progress, button.UnlockAll, "Unlock All", function ()
 		for _, achievement in ipairs(achievements) do
 			pgd:TryUnlock(achievement, true)
 		end
@@ -1040,13 +1045,14 @@ end
 local function UpdateProgressBar()
 	if not CheckProgressBarIntegrity() then return end
 
+	local bars = Menu.ProgressBar
 	local totaledithUnlocks = GetEdithUnlockedAchs() / 15
 	local totaltedithUnlocks = GetTEdithUnlockedAchs() / 7
 	local totalgeneralUnlocks = (GetEdithUnlockedAchs() + GetTEdithUnlockedAchs() + (isEdithUnlocked(true) and 1 or 0)) / 23
 
-	ImGui.UpdateData(Menu.ProgressBar.Edith, ImGuiData.Value, totaledithUnlocks)
-	ImGui.UpdateData(Menu.ProgressBar.TEdith, ImGuiData.Value, totaltedithUnlocks)
-	ImGui.UpdateData(Menu.ProgressBar.General, ImGuiData.Value, totalgeneralUnlocks)
+	ImGui.UpdateData(bars.Edith, ImGuiData.Value, totaledithUnlocks)
+	ImGui.UpdateData(bars.TEdith, ImGuiData.Value, totaltedithUnlocks)
+	ImGui.UpdateData(bars.General, ImGuiData.Value, totalgeneralUnlocks)
 end
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, UpdateProgressBar)
 
@@ -1061,7 +1067,6 @@ end
 local function InitSaveData()
 	RenderMenu = true
 
-	local SaveManager = mod.SaveManager
 	if not SaveManager and not SaveManager:IsLoaded() then return end
 	local menuData = SaveManager.GetSettingsSave()
 	if not menuData then return end
