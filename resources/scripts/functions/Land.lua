@@ -958,6 +958,12 @@ local function CalcParryCooldown(isTaintedEdith, perfectParry, hasBirthcake)
     return base
 end
 
+---@param player EntityPlayer
+---@param hopParams TEdithHopParryParams
+---@param isTaintedEdith boolean
+---@param capsules {imprecise: Capsule, perfect: Capsule, tear: Capsule}
+---@return boolean
+---@return boolean
 local function ProcessParryHits(player, hopParams, isTaintedEdith, capsules)
     local perfectParry = false
     local enemiesInImpreciseParry = false
@@ -1024,7 +1030,7 @@ function Land.ParryLandManager(player, hopParams, isTaintedEdith)
         Helpers.TriggerPerfectParryFlash(player)
     end
 
-	local heatAdd = math.ceil(5 * (4 * hopParams.ParryHeat))
+	local heatAdd = math.ceil(6 * (5 * hopParams.ParryHeat))
 
     hopParams.ParryCooldown = CalcParryCooldown(isTaintedEdith, perfectParry, hasBirthcake) + heatAdd
 
