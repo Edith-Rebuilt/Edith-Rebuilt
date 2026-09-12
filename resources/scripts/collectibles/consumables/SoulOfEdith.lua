@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-global
 local mod = EdithRebuilt
 local enums = mod.Enums
 local card = enums.Card
