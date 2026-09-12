@@ -113,7 +113,8 @@ function Helpers.ShootArchedTear(player, rng, minTears, maxTears, config)
     for _ = 1, rng:RandomInt(minTears, maxTears) do
         local tear = Isaac.Spawn(
             EntityType.ENTITY_TEAR,
-            config.variant, 0,
+            config.variant, 
+			0,
             config.position,
             rng:RandomVector() * config.velocity:Length(),
             player
@@ -553,10 +554,10 @@ local function doEdithTear(tear, IsBlood, isTainted)
 	tear.Scale = tear.Scale * tearSizeMult
 
 	tear:ChangeVariant(TearVariant.ROCK)
-	
+
 	tearData.ShatterSprite = (isTainted and (IsBlood and "burnt_blood_salt_shatter" or "burnt_salt_shatter") or (IsBlood and "blood_salt_shatter" or "salt_shatter"))
 	tearData.SaltGibsSprite = (isTainted and (IsBlood and "burnt_blood_salt_gibs" or "burnt_salt_gibs") or (IsBlood and "blood_salt_gibs" or "salt_gibs"))
-	
+
 	tear:GetSprite():ReplaceSpritesheet(0, newSprite, true)
 	tear.Color = player.Color
 	tearData.IsEdithRebuiltSaltTear = true
@@ -605,7 +606,7 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
 
 	local overlaySprite = ItemOverlay.GetSprite()
 	local frame = overlaySprite:GetFrame()
-	
+
 	if frame == 0 then
 		local tEdithConfig = Helpers.GetConfigData(ConfigDataTypes.TEDITH) --[[@as TEdithData]]
 		local color = tEdithConfig.ParryFlashColor
