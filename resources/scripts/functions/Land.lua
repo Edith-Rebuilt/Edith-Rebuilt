@@ -942,11 +942,9 @@ local function CalcParryDamage(player, hopParams, isTaintedEdith)
     if isTaintedEdith then
 		local heat = hopParams.ParryHeat
 		local heatBonus = 1 + (1.5 + heat) / 3
+		local damageIncrease = 1 + (hopParams.HopStaticCharge + hopParams.HopStaticBRCharge) / 400
 
-		-- local damageIncrease = 1 + (hopParams.HopStaticCharge + hopParams.HopStaticBRCharge) / 400
-
-
-        damageFormula = damageFormula * heatBonus
+        damageFormula = damageFormula * heatBonus * damageIncrease
     end
     return damageFormula, hasBirthcake
 end
