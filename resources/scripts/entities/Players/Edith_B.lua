@@ -115,9 +115,6 @@ local function TEdithHeatColor(player)
 
 		local rng = smoke:GetDropRNG()
 		local smokeColorize = 0.8 - (0.25 * heat)
-
-		sfx:Play(SoundEffect.SOUND_STEAM_HALFSEC, 0.15, 2, false, 0.5 + (0.8 * heat))
-
 		local smokeSize = 0.4 + (0.1 * heat)
 
 		smoke.Color = Color(1, 1, 1, 1, 0, 0, 0, smokeColorize, smokeColorize, smokeColorize, 1)
