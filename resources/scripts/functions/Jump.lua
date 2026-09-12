@@ -5,7 +5,6 @@ local tables = enums.Tables
 local jumpTags = tables.JumpTags
 local jumpFlags = tables.JumpFlags
 local sfx = utils.SFX
-local game = utils.Game
 local room = utils.Room
 local data = mod.DataHolder.GetEntityData
 local Jump = {}
