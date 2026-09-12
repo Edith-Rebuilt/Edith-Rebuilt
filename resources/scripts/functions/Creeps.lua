@@ -121,17 +121,15 @@ end
 function Creeps.SpawnBlackPowder(parent, quantity, position, distance)
 	quantity = quantity or 20
 	local degrees = 360 / quantity
-	local blackPowder
 	for i = 1, quantity do
-		blackPowder = Isaac.Spawn(
+		local blackPowder = Isaac.Spawn(
 			EntityType.ENTITY_EFFECT,
 			EffectVariant.PLAYER_CREEP_BLACKPOWDER,
 			0,
 			position + Vector(0, distance or 60):Rotated(degrees * i),
 			Vector.Zero,
 			parent
-		)
-		if not blackPowder then return end
+		) ---@cast blackPowder EntityEffect
 		data(blackPowder).CustomSpawn = true
 	end
 
