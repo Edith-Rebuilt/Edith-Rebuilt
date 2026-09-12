@@ -100,11 +100,6 @@ function TEdith.ParryCooldownManager(player, HopParams)
 		player:SetColor(Color(1, 1, 1, 1, colorChange, colorBRChange, 0), 5, 100, true, false)
 	end
 
-	if GlowCount == 20 and ParryCooldown == 0 then
-		sfx:Play(SoundEffect.SOUND_STONE_IMPACT, 0.5, 0, false, 1.3)
-		player:SetColor(Color(1, 1, 1, 1, colorChange + 0.3, 0, 0), 5, 100, true, false)
-	end
-
 	if ParryCooldown == 1 and player.FrameCount > 20 then
 		player:SetColor(Color(1, 1, 1, 1, 0.5 + colorChange), 5, 100, true, false)
 		sfx:Play(SoundEffect.SOUND_STONE_IMPACT)
@@ -149,10 +144,9 @@ end
 local function ArrowVelocityManager(player, arrow, arrowVel, hopParams)
 	local posDif = arrow.Position - player.Position
     local posDifNorm = posDif:Normalized()
-    local vecSize = data(player).IsRedirectioningMove and 12.5 or 10
     local posDifLength = posDif:Length()
-    local maxDist = (2.5 * (10 / vecSize))
-    local targetVel = arrowVel:Resized(vecSize)
+    local maxDist = 2.5
+    local targetVel = arrowVel:Resized(10)
 
 	hopParams.HopDirection = posDifNorm
 
