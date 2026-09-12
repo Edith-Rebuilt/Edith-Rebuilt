@@ -41,8 +41,8 @@ include("resources.scripts.misc.dss.changelogs")
 include("resources.scripts.libs.hud_helper")
 include("resources.scripts.libs.prenpckillcallback")
 include("resources.scripts.libs.EdithKotryJumpLib").Init()
-include("resources.scripts.definitions")
 include("resources.scripts.libs.status_effect_library")
+include("resources.scripts.definitions")
 
 EdithRebuilt.Modules = {
 	RNG = include("resources.scripts.functions.RNG"),
@@ -70,11 +70,11 @@ end)
 
 local version = {
 	1,
-	8,
-	3,
+	9,
+	0,
 	""
 }
-local beta = false
+local beta = true
 EdithRebuilt.Version = "v" .. version[1].. "." .. version[2] .. "." .. version[3] .. version[4] .. (beta and "Beta" or "")
 
 Isaac.DebugString("Edith Rebuilt " .. EdithRebuilt.Version .. " loaded correctly")
