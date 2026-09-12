@@ -105,16 +105,14 @@ end)
 ---@param IsGrudge boolean
 ---@param jumpData JumpData
 local function ManageParryInput(player, playerData, HopParams, IsGrudge, jumpData)
-	HopParams.IsParryJump = HopParams.IsParryJump or false
-
 	if Helpers.IsKeyStompTriggered(player) then
-		local isParryJump = Jump.IsSpecificJump(JumpLib:GetData(player), jumpTags.TEdithJump)
+		local isCurrentJumpParry = Jump.IsSpecificJump(JumpLib:GetData(player), jumpTags.TEdithJump)
 		local cooldown = HopParams.ParryCooldown
-		local maxCooldown =  playerData.MaxParryCooldown
+		local maxCooldown = playerData.MaxParryCooldown
 
-		if cooldown == 0 and not isParryJump and not HopParams.IsParryJump then
+		if cooldown == 0 and not isCurrentJumpParry and not HopParams.IsParryJump then
 			TEdithMod.ParryTriggerManager(player, IsGrudge, HopParams, jumpData)
-		elseif maxCooldown and (HopParams.ParryCooldown > 0 and HopParams.ParryCooldown >= maxCooldown - 6) then
+		elseif maxCooldown and (cooldown > 0 and cooldown >= maxCooldown - 6) then
 			player:SetColor(Colors.Cooldown, 3, 1, true, false)
 			playerData.StoredInput = true
 		end
@@ -125,7 +123,7 @@ local function ManageParryInput(player, playerData, HopParams, IsGrudge, jumpDat
 end
 
 ---@param player EntityPlayer
----@param HopParams table
+---@param HopParams TEdithHopParryParams
 ---@param MiscConfig MiscData
 local function ManageGrudgeEffects(player, HopParams, MiscConfig)
 	if not Helpers.IsGrudgeChallenge() then return end
@@ -139,7 +137,7 @@ local function ManageGrudgeEffects(player, HopParams, MiscConfig)
 end
 
 ---@param player EntityPlayer
----@param HopParams table
+---@param HopParams TEdithHopParryParams
 ---@param arrow EntityEffect?
 local function ManageHeadDirection(player, HopParams, arrow)
 	if Player.IsPlayerShooting(player) then return end
@@ -175,17 +173,12 @@ end
 local function ManageTargetCleanup(player, pData, arrow, isArrowMoving)
 	if not arrow or isArrowMoving then return end
 
-	if pData.IsRedirectioningMove then
-		if pData.PressCount <= 10 then
-			TargetArrow.RemoveEdithTarget(player, true)
-			TEdithMod.StopTEdithHops(player, 20, false, true, true)
-			player:MultiplyFriction(0.05)
-			player:SetColor(Colors.HopDashStop, 5, 1000, true, false)
-		elseif pData.PressCount >= 9 then
-			TargetArrow.RemoveEdithTarget(player, true)
-		end
-	else
-		TargetArrow.RemoveEdithTarget(player, true)
+	TargetArrow.RemoveEdithTarget(player, true)
+
+	if (pData.IsRedirectioningMove and pData.PressCount <= 10) then
+		TEdithMod.StopTEdithHops(player, 20, false, true, true)
+		player:MultiplyFriction(0.05)
+		player:SetColor(Colors.HopDashStop, 5, 1000, true, false)
 	end
 
 	pData.PressCount = 0
@@ -214,6 +207,7 @@ end
 local function ArrowSpawnManager(player, isArrowMoving)
 	if not isArrowMoving then return end 
 	if player.ControlsCooldown > 0 then return end
+
 	TargetArrow.SpawnEdithTarget(player, true)
 end
 
@@ -254,7 +248,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 	PitfallJumpStop(player)
 	SetRedirectValues(player, pData, arrow)
 	ManageTargetCleanup(player, pData, arrow, isArrowMoving)
-	ArrowSpawnManager(player, isArrowMoving)
+	ArrowSpawnManager(player, isArrowMoving)	
 	ManageRedirectionInput(player, pData, isArrowMoving)
 	ManageGrudgeEffects(player, HopParams, MiscConfig)
 	ManageHeadDirection(player, HopParams, arrow)
@@ -267,7 +261,7 @@ local function RoomFloorStopManager(isLevelCallback)
 	local forceStop = isLevelCallback or isDungeon
 
 	Player.ForEachPlayerType(function(player)
-		ResetTEdithPlayer(player, forceStop)
+		ResetTEdithPlayer(player, forceStop or TEdithMod.GetHopDashCharge(player, false) < 50)
 	end, enums.PlayerType.PLAYER_EDITH_B)
 end
 
