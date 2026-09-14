@@ -204,6 +204,7 @@
 		description="No preguntes de donde la sacaron"
 		gfx="chele.png"
 		quality="4"
+		tearsmult="1.35"
 		hidden="true"
 	/>
 
