@@ -1,59 +1,118 @@
 <AnimatedActor>
-	<Info CreatedBy="trtv" CreatedOn="25/03/2025 05:30:16 p. m." Version="71" Fps="30"/>
-	<Content>
-		<Spritesheets>
-			<Spritesheet Path="character_edithb_options.png" Id="0"/>
-		</Spritesheets>
-		<Layers>
-			<Layer Name="main" Id="0" SpritesheetId="0"/>
-		</Layers>
-		<Nulls>
-			<Null Name="Move" Id="0" ShowRect="false"/>
-			<Null Name="Attack" Id="1" ShowRect="false"/>
-			<Null Name="Bomb" Id="2" ShowRect="false"/>
-			<Null Name="Item" Id="3" ShowRect="false"/>
-			<Null Name="PillCard" Id="4" ShowRect="false"/>
-			<Null Name="Drop" Id="5" ShowRect="false"/>
-			<Null Name="PillCard2" Id="6" ShowRect="false"/>
-			<Null Name="Attack2" Id="7" ShowRect="false"/>
-		</Nulls>
-		<Events/>
-	</Content>
-	<Animations DefaultAnimation="Edith​​​">
-		<Animation Name="Edith​​​" FrameNum="41" Loop="false">
-			<RootAnimation>
-				<Frame XPosition="0" YPosition="0" XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
-			</RootAnimation>
-			<LayerAnimations>
-				<LayerAnimation LayerId="0" Visible="true">
-					<Frame XPosition="0" YPosition="0" XPivot="162" YPivot="60" XCrop="0" YCrop="0" Width="325" Height="96" XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
-				</LayerAnimation>
-			</LayerAnimations>
-			<NullAnimations>
-				<NullAnimation NullId="0" Visible="true">
-					<Frame XPosition="-129" YPosition="28" XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
-				</NullAnimation>
-				<NullAnimation NullId="1" Visible="true">
-					<Frame XPosition="-51" YPosition="28" XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
-				</NullAnimation>
-				<NullAnimation NullId="2" Visible="true"/>
-				<NullAnimation NullId="3" Visible="true">
-					<Frame XPosition="128" YPosition="31" XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
-				</NullAnimation>
-				<NullAnimation NullId="4" Visible="true">
-					<Frame XPosition="0" YPosition="0" XScale="100" YScale="100" Delay="1" Visible="false" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
-				</NullAnimation>
-				<NullAnimation NullId="5" Visible="true">
-					<Frame XPosition="41" YPosition="28" XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
-				</NullAnimation>
-				<NullAnimation NullId="6" Visible="true">
-					<Frame XPosition="0" YPosition="0" XScale="100" YScale="100" Delay="1" Visible="false" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
-				</NullAnimation>
-				<NullAnimation NullId="7" Visible="true">
-					<Frame XPosition="0" YPosition="0" XScale="100" YScale="100" Delay="1" Visible="false" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
-				</NullAnimation>
-			</NullAnimations>
-			<Triggers/>
-		</Animation>
-	</Animations>
+    <Info CreatedBy="trtv" CreatedOn="25/03/2025 05:30:16 p. m." Fps="30" Version="71"/>
+    <Content>
+        <Spritesheets>
+            <Spritesheet Id="0" Path="character_edithb_options.png"/>
+        </Spritesheets>
+        <Layers>
+            <Layer Id="0" Name="main" SpritesheetId="0"/>
+        </Layers>
+        <Nulls>
+            <Null Id="0" Name="Move"/>
+            <Null Id="1" Name="Attack"/>
+            <Null Id="2" Name="Bomb"/>
+            <Null Id="3" Name="Item"/>
+            <Null Id="4" Name="PillCard"/>
+            <Null Id="5" Name="Drop"/>
+            <Null Id="6" Name="PillCard2"/>
+            <Null Id="7" Name="Attack2"/>
+        </Nulls>
+        <Events/>
+    </Content>
+    <Animations DefaultAnimation="Edith​​​">
+        <Animation Name="Edith​​​" FrameNum="41" Loop="false">
+            <RootAnimation>
+                <Frame XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XPivot="162" YPivot="60" XCrop="0" YCrop="0" Width="325" Height="96" XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations>
+                <NullAnimation NullId="0" Visible="true">
+                    <Frame XPosition="-120" YPosition="28" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </NullAnimation>
+                <NullAnimation NullId="1" Visible="true">
+                    <Frame XPosition="-43" YPosition="28" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </NullAnimation>
+                <NullAnimation NullId="2" Visible="true"/>
+                <NullAnimation NullId="3" Visible="false">
+                    <Frame XPosition="141" YPosition="31" Delay="1" Visible="false" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </NullAnimation>
+                <NullAnimation NullId="4" Visible="true">
+                    <Frame XPosition="0" YPosition="0" Delay="1" Visible="false" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </NullAnimation>
+                <NullAnimation NullId="5" Visible="true">
+                    <Frame XPosition="41" YPosition="28" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </NullAnimation>
+                <NullAnimation NullId="6" Visible="true">
+                    <Frame XPosition="0" YPosition="0" Delay="1" Visible="false" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </NullAnimation>
+                <NullAnimation NullId="7" Visible="true">
+                    <Frame XPosition="0" YPosition="0" Delay="1" Visible="false" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </NullAnimation>
+            </NullAnimations>
+            <Triggers/>
+        </Animation>
+    </Animations>
+    <SourceDocument>
+        <Info CreatedBy="trtv" CreatedOn="25/03/2025 05:30:16 p. m." Fps="30" Version="71"/>
+        <Content>
+            <Spritesheets>
+                <Spritesheet Id="0" Path="character_edithb_options.png"/>
+            </Spritesheets>
+            <Layers>
+                <Layer Id="0" Name="main" SpritesheetId="0"/>
+            </Layers>
+            <Nulls>
+                <Null Id="0" Name="Move"/>
+                <Null Id="1" Name="Attack"/>
+                <Null Id="2" Name="Bomb"/>
+                <Null Id="3" Name="Item"/>
+                <Null Id="4" Name="PillCard"/>
+                <Null Id="5" Name="Drop"/>
+                <Null Id="6" Name="PillCard2"/>
+                <Null Id="7" Name="Attack2"/>
+            </Nulls>
+            <Events/>
+        </Content>
+        <Animations DefaultAnimation="Edith​​​">
+            <Animation Name="Edith​​​" FrameNum="41" Loop="false">
+                <RootAnimation>
+                    <Frame XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </RootAnimation>
+                <LayerAnimations>
+                    <LayerAnimation LayerId="0" Visible="true">
+                        <Frame XPivot="162" YPivot="60" XCrop="0" YCrop="0" Width="325" Height="96" XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    </LayerAnimation>
+                </LayerAnimations>
+                <NullAnimations>
+                    <NullAnimation NullId="0" Visible="true">
+                        <Frame XPosition="-120" YPosition="28" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    </NullAnimation>
+                    <NullAnimation NullId="1" Visible="true">
+                        <Frame XPosition="-43" YPosition="28" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    </NullAnimation>
+                    <NullAnimation NullId="2" Visible="true"/>
+                    <NullAnimation NullId="3" Visible="false">
+                        <Frame XPosition="141" YPosition="31" Delay="1" Visible="false" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    </NullAnimation>
+                    <NullAnimation NullId="4" Visible="true">
+                        <Frame XPosition="0" YPosition="0" Delay="1" Visible="false" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    </NullAnimation>
+                    <NullAnimation NullId="5" Visible="true">
+                        <Frame XPosition="41" YPosition="28" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    </NullAnimation>
+                    <NullAnimation NullId="6" Visible="true">
+                        <Frame XPosition="0" YPosition="0" Delay="1" Visible="false" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    </NullAnimation>
+                    <NullAnimation NullId="7" Visible="true">
+                        <Frame XPosition="0" YPosition="0" Delay="1" Visible="false" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    </NullAnimation>
+                </NullAnimations>
+                <Triggers/>
+            </Animation>
+        </Animations>
+    </SourceDocument>
 </AnimatedActor>

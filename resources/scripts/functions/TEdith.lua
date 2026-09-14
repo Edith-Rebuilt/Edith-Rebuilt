@@ -99,7 +99,7 @@ function TEdith.ParryCooldownManager(player, HopParams)
 
 	if ParryCooldown == 1 and player.FrameCount > 20 then
 		player:SetColor(Color(1, 1, 1, 1, 0.5), 5, 1, true, false)
-		sfx:Play(SoundEffect.SOUND_STONE_IMPACT, nil, nil, nil, 1.5)
+		sfx:Play(SoundEffect.SOUND_BEEP)
 	end
 
 	if not TEdith.IsTaintedEdithJump(player) then
@@ -214,6 +214,7 @@ function TEdith.BlazingParryManager(player, HopParams)
 	HopParams.IsBlazingParry = modules.RNG.RandomBoolean(player:GetDropRNG(), modules.HELPERS.GetLuckInteractionChance(player.Luck))
 end
 
+---@param t number
 function TEdith.HopCurve(t)
     return 1 - ((1 - t) ^ 2)
 end
