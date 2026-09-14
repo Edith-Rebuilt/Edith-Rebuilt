@@ -245,11 +245,6 @@ local function DrawTargetLine(effect, player, saveData)
     local frameLimit = Helpers.When(effectSprite:GetAnimation(), tables.FrameLimits, 0)
     local isObscure = effectSprite:GetFrame() >= frameLimit
     local lineColor = GetTargetVisualParams(saveData.TargetDesign.Design).LineColor or color
-
-	-- print(GetTargetVisualParams(saveData.TargetDesign.Design).LineColor)
-
-	-- print(GetTargetVisualParams(saveData.TargetDesign.Design).LineColor)
-
     local targetlineColor = misc.TargetLineColor
     targetlineColor:SetColorize(lineColor.R, lineColor.G, lineColor.B, 1)
     drawLine(player.Position, effect.Position, targetlineColor, isObscure)
@@ -372,8 +367,6 @@ mod:AddCallback(enums.Callbacks.TARGET_SPRITE_CHANGE, function(_, effect)
 	local sprite = spriteParams[effect.Variant]
 	local path = sprite.path
 	local suffix = sprite.suffix()
-
-	print(suffix)
 
 	effect:GetSprite():ReplaceSpritesheet(0, path .. suffix .. ".png", true)
 end)
