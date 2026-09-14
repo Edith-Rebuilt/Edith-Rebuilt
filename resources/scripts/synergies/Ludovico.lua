@@ -96,9 +96,6 @@ mod:AddCallback(Callbacks.POST_PARRY_LAND, function(_, player)
     local params = TEdithMod.GetHopParryParams(player)
 
     if TEdithMod.GetParryType(params) ~= 2 then return end
-
-    -- print(params.ParriedEnemies[1].Type)
-
     InitLudoPush(player, params.ParriedEnemies, params.ParryKnockback)
 end)
 
