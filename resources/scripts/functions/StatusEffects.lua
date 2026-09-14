@@ -202,10 +202,19 @@ end
 function StatusEffects.TriggerSpiceEffect(ent, spice, radius, knockback)
     local Helpers = mod.Modules.HELPERS
 
+    local player = ent:ToPlayer()
+    local JudasBR = player and mod.Modules.PLAYER.IsJudasWithBirthright(player) or false
+
     for _, enemy in ipairs(Isaac.FindInRadius(ent.Position, radius, EntityPartition.ENEMY)) do
         if not Helpers.IsEnemy(enemy) then goto continue end
         Helpers.TriggerPush(enemy, ent, knockback)
         StatusEffects.SetStatusEffect(spice.ID, enemy, spice.Duration, ent)
+
+        if player and JudasBR then
+            enemy:TakeDamage(player.Damage, 0, EntityRef(player), 0)
+            enemy:AddBurn(EntityRef(player), 120, 3.5)
+        end
+
         ::continue::
     end
 end

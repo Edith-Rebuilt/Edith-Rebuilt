@@ -3,11 +3,9 @@ local enums = mod.Enums
 local utils = enums.Utils
 local effects = enums.EdithStatusEffects
 local spicesMixID = enums.CollectibleType.COLLECTIBLE_SPICES_MIX
-local game = utils.Game
 local hud = utils.HUD
 local modules = mod.Modules
 local StsEffects = modules.STATUS_EFFECTS
-local Helpers = modules.HELPERS
 local ModRNG = modules.RNG
 
 local SPICES = {
