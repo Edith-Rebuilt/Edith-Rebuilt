@@ -198,6 +198,14 @@
 		tags="offensive summonable"
 		achievement="Chunk of Basalt"
 	/>
+	<passive
+		id="16"
+		name="Leche"
+		description="No preguntes de donde la sacaron"
+		gfx="chele.png"
+		quality="4"
+		hidden="true"
+	/>
 
 	<!-- Null items -->
 	<null
