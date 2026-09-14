@@ -215,8 +215,6 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_RENDER, function(_, player)
     player:ClearEntityFlags(EntityFlag.FLAG_SLIPPERY_PHYSICS)
 end)
 
-
-
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_REVIVE, function(_, player)
     if Player.IsAnyEdith(player) then return end
