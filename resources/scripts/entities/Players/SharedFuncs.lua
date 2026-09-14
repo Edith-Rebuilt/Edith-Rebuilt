@@ -215,7 +215,28 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_RENDER, function(_, player)
     player:ClearEntityFlags(EntityFlag.FLAG_SLIPPERY_PHYSICS)
 end)
 
--- ---@param player EntityPlayer
--- mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, function (_, _, _, _, _, _, player)
---     Player.SetHoodSprite(player, "gfx/characters/costumes/characterTaintedEdithHoodEOTO.png")
--- end, CollectibleType.COLLECTIBLE_EYE_OF_THE_OCCULT)
+
+
+---@param player EntityPlayer
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_REVIVE, function(_, player)
+    if Player.IsAnyEdith(player) then return end
+
+    local effects = player:GetEffects()
+
+    if effects:HasNullEffect(costumes.EDITH) then
+        effects:RemoveNullEffect(costumes.EDITH, -1)
+    elseif effects:HasNullEffect(costumes.T_EDITH) then
+        effects:RemoveNullEffect(costumes.T_EDITH)
+    end
+
+    local plyrConfig = EntityConfig.GetPlayer(player:GetPlayerType())
+    local entConfig = EntityConfig.GetEntity(player.Type, player.Variant, player.SubType)
+
+    if not plyrConfig or not entConfig then return end
+
+    player:GetSprite():Load(entConfig:GetAnm2Path(), true)
+
+    for i = 0, 14 do
+        player:GetSprite():ReplaceSpritesheet(i, plyrConfig:GetSkinPath(), true)
+    end
+end)
