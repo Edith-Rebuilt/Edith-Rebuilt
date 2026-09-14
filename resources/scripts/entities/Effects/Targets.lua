@@ -140,8 +140,8 @@ local function HandleDungeonTeleport(effect, player, isBeastRoom, RoomName)
 	end
 end
 
----@param option integer
----@return {Suffix: string, LineColor: {R: number, G: number, B: number}?}
+---@param option string
+---@return {LineColor: {R: number, G: number, B: number}}?
 local function GetTargetVisualParams(option)
 	return tables.TargetVisualParams[option]
 end
@@ -244,7 +244,11 @@ local function DrawTargetLine(effect, player, saveData)
     local color = effect.Color
     local frameLimit = Helpers.When(effectSprite:GetAnimation(), tables.FrameLimits, 0)
     local isObscure = effectSprite:GetFrame() >= frameLimit
-    local lineColor = GetTargetVisualParams(saveData.TargetDesign).LineColor or color
+    local lineColor = GetTargetVisualParams(saveData.TargetDesign.Design).LineColor or color
+
+	-- print(GetTargetVisualParams(saveData.TargetDesign.Design).LineColor)
+
+	-- print(GetTargetVisualParams(saveData.TargetDesign.Design).LineColor)
 
     local targetlineColor = misc.TargetLineColor
     targetlineColor:SetColorize(lineColor.R, lineColor.G, lineColor.B, 1)
@@ -264,7 +268,7 @@ local function ApplyEffectColor(effect, saveData, effectData)
         effectData.RGBState
     )
 
-    local isDesign1 = saveData.TargetDesign == 1
+    local isDesign1 = saveData.TargetDesign.Idx == 1
     local activeColor = saveData.RGBMode and RGBColors.Target or effect.Color
     local newColor = (not isTDOV and isDesign1) and activeColor or defColor
     effect:SetColor(newColor, -1, 100, false, false)
@@ -340,7 +344,10 @@ end)
 
 local function GetTargetDesignSuffix()
 	local MenuSprite = Helpers.GetConfigData(ConfigData.EDITH).TargetDesign
-	return GetTargetVisualParams(MenuSprite).Suffix
+	local design = MenuSprite.Design
+
+	local isColor = design == "Choose Color" or design == ""
+	return isColor and "" or ("_" .. design)
 end
 
 local function GetArrowDesignSuffix()
@@ -365,5 +372,8 @@ mod:AddCallback(enums.Callbacks.TARGET_SPRITE_CHANGE, function(_, effect)
 	local sprite = spriteParams[effect.Variant]
 	local path = sprite.path
 	local suffix = sprite.suffix()
+
+	print(suffix)
+
 	effect:GetSprite():ReplaceSpritesheet(0, path .. suffix .. ".png", true)
 end)

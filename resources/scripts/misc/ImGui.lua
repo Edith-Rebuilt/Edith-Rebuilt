@@ -14,7 +14,7 @@ local data = mod.DataHolder.GetEntityData
 local ImGuiMod = {}
 
 ---@class EdithData
----@field TargetDesign number
+---@field TargetDesign {Idx: integer	, Design: string}
 ---@field TargetColor table
 ---@field TargetLine boolean
 ---@field RGBMode boolean
@@ -318,7 +318,7 @@ local function UpdateImGuiData()
 			[MiscOptions.CustomActionKey] = MiscData.CustomActionKey or Keyboard.KEY_Z,
 			[MiscOptions.EnableShakescreen] = MiscData.EnableShakescreen or false,
 
-			[EdithOptions.Visuals.TargetDesign] = (EdithData.TargetDesign - 1) or 0,
+			[EdithOptions.Visuals.TargetDesign] = (EdithData.TargetDesign.Idx - 1) or 0,
 			[EdithOptions.Visuals.TargetLine] = EdithData.TargetLine or false,
 			[EdithOptions.Visuals.SetRGBMode] = EdithData.RGBMode or false,
 			[EdithOptions.Visuals.SetRGBSpeed] = EdithData.RGBSpeed or 0.005,
@@ -442,7 +442,7 @@ local function ResetSaveData(isTainted)
 		EdithData.StompSound = 1
 		EdithData.StompVolume = 100
 		EdithData.EnableExtraGore = false
-		EdithData.TargetDesign = 1
+		EdithData.TargetDesign = {Idx = 1, Design = ""}
 		EdithData.DisableSaltGibs = false
 		EdithData.RGBMode = false
 		EdithData.RGBSpeed = 0.005
@@ -522,8 +522,9 @@ local function AddEdithOptions()
 -- Visuals
 	ImGui.AddElement(EdithVisuals, Separator.Visuals.Target, ImGuiElement.SeparatorText, "Target")
 	ImGui.AddCombobox(EdithVisuals, OptionVisuals.TargetDesign, "Set Target Design",
-		function(index)
-			EdithData.TargetDesign = index + 1
+		function(index, option)
+			EdithData.TargetDesign.Idx = index + 1
+			EdithData.TargetDesign.Design = option
 			for _, target in pairs(Isaac.FindByType(EntityType.ENTITY_EFFECT, variants.EFFECT_EDITH_TARGET)) do
 				Isaac.RunCallback(callbacks.TARGET_SPRITE_CHANGE, target)
 			end
@@ -1084,7 +1085,7 @@ local function InitSaveData()
 	EdithData.StompVolume = EdithData.StompVolume or 100
 	EdithData.EnableExtraGore = EdithData.EnableExtraGore or false
 	EdithData.JumpCooldownSound = EdithData.JumpCooldownSound or 1
-	EdithData.TargetDesign = EdithData.TargetDesign or 1
+	EdithData.TargetDesign = EdithData.TargetDesign or {Idx = 1, Design = ""}
 	EdithData.DisableSaltGibs = EdithData.DisableSaltGibs or false
 	EdithData.RGBMode = EdithData.RGBMode or false
 	EdithData.RGBSpeed = EdithData.RGBSpeed or 0.005
