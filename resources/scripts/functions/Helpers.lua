@@ -472,18 +472,16 @@ function Helpers.IsLJMortis()
 	return IsMortis
 end
 
-local mortisBackdrop = tables.MortisBackdrop
-
 ---@return integer
 function Helpers.GetMortisDrop()
 	if not Helpers.IsLJMortis() then return 0 end
 
 	if LastJudgement.UsingMorgueisBackdrop then
-		return mortisBackdrop.MORGUE
+		return MortisBackdrop.MORGUE
 	elseif LastJudgement.UsingMoistisBackdrop then
-		return mortisBackdrop.MOIST
+		return MortisBackdrop.MOIST
 	else
-		return mortisBackdrop.FLESH
+		return MortisBackdrop.FLESH
 	end
 end
 
