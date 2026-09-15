@@ -2,8 +2,8 @@
 	<!-- Edith unlocks  -->
 	<active
 		id="0" 
-		name="Salt Shaker" 
-		description="Stops the evil nearby" 
+		name="#SALT_SHAKER_NAME" 
+		description="#SALT_SHAKER_DESCRIPTION" 
 		gfx="collectibles_SaltShaker.png"
 		quality="2" 
 		chargetype="timed"
@@ -13,8 +13,8 @@
 	/>
 	<active
 		id="1" 
-		name="Pepper Grinder" 
-		description="To spice up the danger" 
+		name="#PEPPER_GRINDER_NAME" 
+		description="#PEPPER_GRINDER_DESCRIPTION"
 		gfx="collectibles_PepperGrinder.png"
 		quality="2" 
 		chargetype="timed"
@@ -24,8 +24,8 @@
 	/>
 	<active
 		id="2" 
-		name="Sulfuric Fire" 
-		description="Sinful burns"
+		name="#SULFURIC_FIRE_NAME" 
+		description="#SULFURIC_FIRE_DESCRIPTION"
 		gfx="collectibles_SulfuricFire.png"
 		quality="3"
 		chargetype="timed"
@@ -35,8 +35,8 @@
 	/>	
 	<passive
 		id="3" 
-		name="Edith's Hood" 
-		description="Vestige of disobedience" 
+		name="#EDITHS_HOOD_NAME" 
+		description="#EDITHS_HOOD_DESCRIPTION" 
 		gfx="collectibles_EdithsHood.png"
 		quality="2"
 		damagemult="1.35"
@@ -45,8 +45,8 @@
 	/>
 	<passive
 		id="4" 
-		name="Sal" 
-		description="Salt shedding" 
+		name="#SAL_NAME" 
+		description="SAL_DESCRIPTION" 
 		gfx="collectibles_Sal.png"
 		quality="3"
 		tags="offensive summonable"
@@ -54,8 +54,8 @@
 	/>
 	<passive
 		id="5" 
-		name="Gilded Stone" 
-		description="Luck up, Wealth amidst rubble" 
+		name="#GILDED_STONE_NAME" 
+		description="#GILDED_STONE_DESCRIPTION" 
 		gfx="collectibles_Gilded_Stone.png"
 		quality="2"
 		coins="5"
@@ -65,8 +65,8 @@
 	/>
 	<passive
 		id="6" 
-		name="Molten Core" 
-		description="Flaming instability" 
+		name="#MOLTEN_CORE_NAME" 
+		description="#MOLTEN_CORE_DESCRIPTION" 
 		cache="damage"
 		gfx="collectibles_Molten_Core.png"
 		quality="3"
@@ -75,8 +75,8 @@
 	/>
 	<active
 		id="7" 
-		name="Fate of the unfaithful" 
-		description="Making it burn" 
+		name="#FATE_OF_THE_UNFAITHFUL_NAME" 
+		description="FATE_OF_THE_UNFAITHFUL_DESCRIPTION" 
 		gfx="collectibles_Fate_of_the_Unfaithful.png"
 		quality="3"
 		maxcharges="3"
@@ -86,8 +86,8 @@
 	/>	
 	<passive
 		id="8" 
-		name="Salt Heart" 
-		description="As weak as salt" 
+		name="#SALT_HEART_NAME" 
+		description="#SALT_HEART_DESCRIPTION" 
 		cache="damage"
 		gfx="collectibles_Salt_Heart.png"
 		quality="2"
@@ -96,8 +96,8 @@
 	/>
 	<active
 		id="9" 
-		name="Divine Retribution" 
-		description="Strike from heaven... but at what cost?" 
+		name="#DIVINE_RETRIBUTION_NAME" 
+		description="#DIVINE_RETRIBUTION_DESCRIPTION" 
 		cache="damage"
 		gfx="collectibles_Divine_Retribution.png"
 		quality="1"
@@ -108,8 +108,8 @@
 	/>
 	<active
 		id="10" 
-		name="Spices Mix" 
-		description="Mmmmh, tasty!" 
+		name="#SPICES_MIX_NAME" 
+		description="#SPICES_MIX_DESCRIPTION" 
 		gfx="collectibles_Spices_Mix.png"
 		quality="2"
 		tags="offensive"
@@ -119,8 +119,8 @@
 	/>
 	<passive	
 		id="11" 
-		name="Hydrargyrum" 
-		description="Volatile Liquidity" 
+		name="#HYDRARGYRUM_NAME" 
+		description="#HYDRARGYRUM_NAME_DESCRIPTION" 
 		cache="damage"
 		gfx="collectibles_Hydrargyrum.png"
 		quality="2"
@@ -128,14 +128,14 @@
 		achievement="Hydrargyrum"
 	/>
 	<trinket 
-		name="Geode"
-		description="Crack it open" 
+		name="#GEODE_NAME"
+		description="#GEODE_DESCRIPTION" 
 		gfx="Geode.png" 
 		achievement="Geode"
 	/>
 	<trinket 
-		name="Rumbling Pebble"
-		description="Rock scattering" 
+		name="#RUMBLING_PEBBLE_NAME"
+		description="#RUMBLING_PEBBLE_DESCRIPTION" 
 		gfx="RumblingPebble.png" 
 		achievement="Rumbling Pebble"
 	/>
@@ -144,8 +144,8 @@
 	<!-- Tainted Edith unlocks -->
 	<active
 		id="12" 
-		name="Divine Wrath" 
-		description="Purify the wicked" 
+		name="#DIVINE_WRATH_NAME" 
+		description="DIVINE_WRATH_DESCRIPTION" 
 		cache="damage"
 		gfx="collectibles_Divine_Wrath.png"
 		quality="2"
@@ -155,8 +155,8 @@
 	/>	
 	<active
 		id="13" 
-		name="Burnt Hood" 
-		description="Deflect the destruction" 
+		name="#BURNT_HOOD_NAME" 
+		description="#BURNT_HOOD_DESCRIPTION" 
 		gfx="collectibles_Burnt_Hood.png"
 		quality="2"
 		chargetype="timed"
@@ -164,14 +164,14 @@
 		achievement="Burnt Hood"
 	/>	
 	<trinket 
-		name="Paprika"
-		description="Spicy death" 
+		name="#PAPRIKA_NAME"
+		description="#PAPRIKA_DESCRIPTION" 
 		gfx="Paprika.png" 
 		achievement="Paprika"
 	/>
 	<trinket 
-		name="Burnt Salt"
-		description="Burns to death" 
+		name="#BURNT_SALT_NAME"
+		description="#BURNT_SALT_DESCRIPTION" 
 		gfx="BurntSalt.png" 
 		achievement="Burnt Salt"
 	/>
@@ -179,8 +179,8 @@
 	<!-- Challenges -->
 	<active
 		id="14"
-		description="A vestige of the past"
-		name="Effigy"
+		name="#EFFIGY_NAME"
+		description="#EFFIGY_DESCRIPTION"
 		maxcharges="64"
 		chargetype="special"
 		gfx="collectibles_Effigy.png"
@@ -191,8 +191,8 @@
 	/>
 	<passive
 		id="15" 
-		name="Chunk of Basalt" 
-		description="Rocky grudge" 
+		name="#CHUNK_OF_BASALT_NAME" 
+		description="#CHUNK_OF_BASALT_DESCRIPTION" 
 		gfx="collectibles_Chunk_Of_Basalt.png"
 		quality="2"
 		tags="offensive summonable"
