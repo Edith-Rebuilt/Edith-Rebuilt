@@ -255,7 +255,7 @@ local Options = Elements.Options
 
 if not ImGui.ElementExists("EdithRebuilt") then
 	if RenderMenu == false then return end
-    ImGui.CreateMenu('EdithRebuilt', '\u{f11a} Edith: Rebuilt')
+    ImGui.CreateMenu('EdithRebuilt', '🧂 Edith: Rebuilt')
 end
 
 local function AddMenuElement(name, title)
