@@ -90,6 +90,12 @@ local function TEdithCooling(player)
 	if player.FrameCount % 5 ~= 0 then return end
 
 	local decreaser = TEdithMod.GetHopParryParams(player).IsHoping and 0.02 or 0.01
+	local heat = TEdithMod.GetParryHeat(player)
+
+	if heat > 0 and heat <= decreaser then
+		sfx:Play(SoundEffect.SOUND_STEAM_HALFSEC, 0.2, 2, false, 0.5)
+		player:SetColor(Color(1, 1, 1, 1, 0.1, 0.15, 0.2), 5, 1, true, true)
+	end
 
 	TEdithMod.AddParryHeat(player, -decreaser)
 end
