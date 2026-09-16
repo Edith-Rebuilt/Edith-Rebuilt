@@ -267,7 +267,7 @@ local function ResetEdithScale(player)
 end
 
 ---@param player EntityPlayer
-mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)	
 	if not JumpLib:IsPitfalling(player) then return end
 
 	local sprite = player:GetSprite()
