@@ -116,18 +116,13 @@ local function TEdithHeatColor(player)
 		ToEffect() ---@cast smoke EntityEffect
 
 		local rng = smoke:GetDropRNG()
-		local smokeColorize = 0.8 - (0.25 * heat)
+		local smokeColorize = 1 - (0.5 * heat)
 		local smokeSize = 0.4 + (0.1 * heat)
-		local effectData = data(smoke)
+		local sprite = smoke:GetSprite()
 
-		smoke.SpriteScale = playerScale
-
-		effectData.HeatSmoke = true
-		effectData.Rotation = modules.RNG.RandomFloat(rng, -50, 50)
-
-		smoke.Color = Color(1, 1, 1, 1, 0, 0, 0, smokeColorize, smokeColorize, smokeColorize, 1)
-		smoke.SpriteScale = Vector(smokeSize, smokeSize) * playerScale * modules.RNG.RandomFloat(rng, 0.9, 1.1)
-		smoke:GetSprite().PlaybackSpeed = 1 + (0.3 * heat)
+		sprite.Color:SetColorize(smokeColorize, smokeColorize, smokeColorize, 1)
+		sprite.PlaybackSpeed = 1.3 + (0.3 * heat)
+		sprite.Scale = Vector(smokeSize, smokeSize) * playerScale * modules.RNG.RandomFloat(rng, 0.9, 1.1)
 	end
 end
 
