@@ -92,13 +92,15 @@ function TEdith.GetHopDashCharge(player, Static, checkBirthright)
 	return charge + (checkBirthright and chargeBR or 0)
 end
 
+local parryReadyColor = Color(1, 1, 1, 1, 0.5)
+
 ---@param player EntityPlayer
 ---@param HopParams TEdithHopParryParams
 function TEdith.ParryCooldownManager(player, HopParams)
 	local ParryCooldown = HopParams.ParryCooldown
 
 	if ParryCooldown == 1 and player.FrameCount > 20 then
-		player:SetColor(Color(1, 1, 1, 1, 0.5), 5, 1, true, false)
+		player:SetColor(parryReadyColor, 5, 1, true, false)
 		sfx:Play(SoundEffect.SOUND_BEEP)
 	end
 
@@ -141,8 +143,12 @@ local function ArrowVelocityManager(player, arrow, arrowVel, hopParams)
 	local posDif = arrow.Position - player.Position
     local posDifNorm = posDif:Normalized()
     local posDifLength = posDif:Length()
-    local maxDist = 2.5
-    local targetVel = arrowVel:Resized(10)
+	local pData = data(player)
+	local FirstRedirectFrames = pData.IsRedirectioningMove and pData.PressCount <= 9
+	local mult = FirstRedirectFrames and 1.5 or 1
+
+	local maxDist = 2.5 * mult
+    local targetVel = arrowVel:Resized(10 * mult)
 
 	hopParams.HopDirection = posDifNorm
 
