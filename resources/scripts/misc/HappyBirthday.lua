@@ -14,7 +14,6 @@ local month = date.month
 
 ---@param player EntityPlayer
 local function MusicStart(player)
-    if not Player.IsAnyEdith(player) then return end
     if game:GetFrameCount() ~= 1 then return end
 
     Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.FIREWORKS, 0, player.Position, Vector.Zero, nil)
@@ -25,6 +24,7 @@ end
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     if not (day == 18 and month == 9) then return end
+    if not Player.IsAnyEdith(player) then return end
 
     MusicStart(player)
 
