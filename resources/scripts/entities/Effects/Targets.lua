@@ -234,6 +234,8 @@ mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, function (_, effect)
 	Isaac.RunCallback(mod.Enums.Callbacks.TARGET_SPRITE_CHANGE, effect)
 end)
 
+local targetlineColor = Color(1, 1, 1, 1)
+
 ---@param effect EntityEffect
 ---@param player EntityPlayer
 ---@param saveData EdithData
@@ -245,7 +247,6 @@ local function DrawTargetLine(effect, player, saveData)
     local frameLimit = Helpers.When(effectSprite:GetAnimation(), tables.FrameLimits, 0)
     local isObscure = effectSprite:GetFrame() >= frameLimit
     local lineColor = GetTargetVisualParams(saveData.TargetDesign.Design).LineColor or color
-    local targetlineColor = misc.TargetLineColor
     targetlineColor:SetColorize(lineColor.R, lineColor.G, lineColor.B, 1)
     drawLine(player.Position, effect.Position, targetlineColor, isObscure)
 end
