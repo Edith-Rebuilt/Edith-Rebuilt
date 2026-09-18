@@ -359,6 +359,57 @@ local JudasBirthrightSynergies = {
     },
 }
 
+local AbyssLocusts = {
+    [Collectibles.COLLECTIBLE_SALTSHAKER] = {
+        ["en_us"] = "The locust applies salt to enemies, which spawn a small circle of salt creep when they die"
+    },
+    [Collectibles.COLLECTIBLE_PEPPERGRINDER] = {
+        ["en_us"] = "The locust has a hance to spawn a pepper cloud on hit that inflicts Pepper on enemies inside it for 3 seconds"
+    },
+    [Collectibles.COLLECTIBLE_SULFURIC_FIRE] = {
+        ["en_us"] = "The locust deals no damage, moves at 80% speed, and has a 25% chance to spawn an anti-gravity brimstone ball on hit"
+    },
+    [Collectibles.COLLECTIBLE_EDITHS_HOOD] = {
+        ["en_us"] = "The locust moves at 80% speed, deals 120% damage, applies Salt to enemies, and shoots 3-6 salt tears in random directions when killing a salted enemy"
+    },
+    [Collectibles.COLLECTIBLE_SAL] = {
+        ["en_us"] = "The locust moves at 125% speed, deals 75% damage, applies Salt to enemies, and leaves salt creep when moving"
+    },
+    [Collectibles.COLLECTIBLE_GILDED_STONE] = {
+        ["en_us"] = "The locust has a small chance to apply Midas' Touch freeze and gets Terra's damage multiplier"
+    },
+    [Collectibles.COLLECTIBLE_MOLTEN_CORE] = {
+        ["en_us"] = "The locust has a hance to burn enemies"
+    },
+    [Collectibles.COLLECTIBLE_FATE_OF_THE_UNFAITHFUL] = {
+        ["en_us"] = "The locust deals 125% damage and has a chance to burn enemies"
+    },
+    [Collectibles.COLLECTIBLE_SALT_HEART] = {
+        ["en_us"] = "The locust deals 150% damage, moves at 50% speed, and applies Salt to enemies on contact"
+    },
+    [Collectibles.COLLECTIBLE_DIVINE_RETRIBUTION] = {
+        ["en_us"] = "The locust has a 50% chance of triggering Holy Light effect on hit"
+    },
+    [Collectibles.COLLECTIBLE_SPICES_MIX] = {
+        ["en_us"] = "The locust applies a random spice effect on hit"
+    },
+    [Collectibles.COLLECTIBLE_HYDRARGYRUM] = {
+        ["en_us"] = "The locust applies Hydrargyrum status effect on hit"
+    },
+    [Collectibles.COLLECTIBLE_DIVINE_WRATH] = {
+        ["en_us"] = "The locust has a chance to apply burn and gets Terra's damage multiplier"
+    },
+    [Collectibles.COLLECTIBLE_BURNT_HOOD] = { 
+        ["en_us"] = "The locust moves at 50% speed and is shielded"
+    },
+    [Collectibles.COLLECTIBLE_EFFIGY] = { 
+        ["en_us"] = "The locust deals 125% damage and moves at 75% speed"
+    },
+    [Collectibles.COLLECTIBLE_CHUNK_OF_BASALT] = { 
+        ["en_us"] = "The locust deals 125% damage, moves at 125% speed, may fail to deal damage, and may spawn small shockwaves on hit"
+    },
+}
+
 for item, descTbl in pairs(BookOfVirtuesSynergies) do
     for lang, desc in pairs(descTbl) do
         EID:addToGeneralCondition(item, "bookOfVirtuesWisps", desc, nil, nil, lang)
@@ -368,5 +419,11 @@ end
 for item, descTbl in pairs(JudasBirthrightSynergies) do
     for lang, desc in pairs(descTbl) do
         EID:addToGeneralCondition(item, "bookOfBelialBuffs", desc, nil, nil, lang)
+    end
+end
+
+for item, descTbl in pairs(AbyssLocusts) do
+    for lang, desc in pairs(descTbl) do
+        EID:addToGeneralCondition(item, "abyssSynergies", desc, nil, nil, lang)
     end
 end
