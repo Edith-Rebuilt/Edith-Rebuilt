@@ -8,6 +8,7 @@ local ModRNG = modules.RNG
 local BitMask = modules.BIT_MASK
 local Maths = modules.MATHS
 local Helpers = modules.HELPERS
+local Player = modules.PLAYER
 
 local FOTU = {
     DISTANCE_PUSH = 50,
@@ -22,15 +23,16 @@ local function TriggerDamage(player)
     local playerRef = EntityRef(player)
     local playerDamage = player.Damage * FOTU.PLAYER_DAMAGE_MULT
     local fireDamage = FOTU.FIRE_DAMAGE * (hasCarBattery and 2 or 1)
+    local judasMult = Player.IsJudasWithBirthright(player) and 1.25 or 1
 
     for _, ent in ipairs(Helpers.GetEnemies()) do
         local enemyDist = playerPos:Distance(ent.Position)
 
-        ent:TakeDamage(playerDamage * (Maths.exp(40 / enemyDist, 1, 1.2)), 0, playerRef, 0)
+        ent:TakeDamage(playerDamage * (Maths.exp(40 / enemyDist, 1, 1.2)) * judasMult, 0, playerRef, 0)
         ent:AddBurn(EntityRef(player), 83, fireDamage)
 
         if enemyDist > FOTU.PUSH_MAX_DISTANCE then goto continue end
-        Helpers.TriggerPush(ent, player, 20)
+        Helpers.TriggerPush(ent, player, 20 * judasMult)
         ::continue::
     end
 end
