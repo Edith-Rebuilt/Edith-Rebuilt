@@ -25,6 +25,7 @@ local Colors = {
 	Cooldown = Color(1, 1, 1, 1, 0.3),
 	HopDashStop = Color(1, 1, 1, 1, 0, 0.1, 0.3),
 	Redirection = Color(1, 1, 1, 1, 0.3, 0.3, 0.3),
+	CoolingComplete = Color(1, 1, 1, 1, 0.1, 0.2, 0.25),
 }
 
 ---@param ent Entity
@@ -93,8 +94,8 @@ local function TEdithCooling(player)
 	local heat = TEdithMod.GetParryHeat(player)
 
 	if heat > 0 and heat <= decreaser then
-		sfx:Play(SoundEffect.SOUND_STEAM_HALFSEC, 0.2, 2, false, 0.5)
-		player:SetColor(Color(1, 1, 1, 1, 0.1, 0.15, 0.2), 5, 1, true, true)
+		sfx:Play(SoundEffect.SOUND_STEAM_HALFSEC, 0.25, 2, false, 0.5)
+		player:SetColor(Colors.CoolingComplete, 5, 1, true, true)
 	end
 
 	TEdithMod.AddParryHeat(player, -decreaser)
