@@ -1,0 +1,3 @@
+<music root="music/">
+	<track id="1" name="HappyBirthday" path="HappyBirthday.ogg" loop="false" mul="1" />
+</music>

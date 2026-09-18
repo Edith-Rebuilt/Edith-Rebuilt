@@ -12,6 +12,7 @@ local includeFiles = {
 	libs .. "CustomShockwaveAPI",
 	misc .. "ImGui",
 	misc .. "UnlockManager",
+	misc .. "HappyBirthday",
 
 	effects .. "Oregano",
 	effects .. "Salt",

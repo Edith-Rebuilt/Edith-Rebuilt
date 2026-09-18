@@ -71,4 +71,7 @@
 	<sound name="PepperSneeze">
 		<sample weight="1" path="PepperSneeze.wav" />
 	</sound>
+	<sound name="PartyHorn">
+		<sample weight="1" path="PartyHorn.wav" />
+	</sound>
 </sounds>
