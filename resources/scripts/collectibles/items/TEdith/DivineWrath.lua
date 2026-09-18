@@ -1,7 +1,10 @@
 local mod = EdithRebuilt
 local enums = mod.Enums
 local items = enums.CollectibleType
-local Helpers = mod.Modules.HELPERS
+local modules = mod.Modules
+local Helpers = modules.HELPERS
+local Player = modules.PLAYER
+
 
 local function ShootFireRockTears(player, rng)
 	local FireRock = {
@@ -14,13 +17,15 @@ local function ShootFireRockTears(player, rng)
 		end,
 	}
 
-	Helpers.ShootArchedTear(player, rng, 8, 12, FireRock)
+    local judasBirthrightAdd = Player.IsJudasWithBirthright(player) and 4 or 0
+
+	Helpers.ShootArchedTear(player, rng, 8 + judasBirthrightAdd, 12 + judasBirthrightAdd, FireRock)
 end
 
 ---@param player EntityPlayer
 ---@param ring integer
 local function SpawnRockRing(player, ring)
-    local dist = ring == 1 and 40 or 20
+    local dist = ring * 20
     for rock = 1, 6 do
         CustomShockwaveAPI:SpawnCustomCrackwave(
             player.Position,
@@ -38,6 +43,9 @@ end
 local function RockWavesRing(player)
     SpawnRockRing(player, 1)
     SpawnRockRing(player, 2)
+    if Player.IsJudasWithBirthright(player) then
+        SpawnRockRing(player, 3)
+    end
 end
 
 ---@param rng RNG
