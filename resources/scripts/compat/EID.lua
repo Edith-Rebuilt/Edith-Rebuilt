@@ -49,6 +49,14 @@ Pressing {{ButtonRT}} will make her jump in place, performing a parry, its effec
 A Perfect Parry damage the enemy, increases the dash charge and gives 20 i-frames
 ]], "Tainted Edith")
 
+EID:addBirthright(PlayerType.PLAYER_EDITH, "Edith's Stomps will have increased damage# Stomp synergies will be powered")
+EID:addBirthright(PlayerType.PLAYER_EDITH_B, [[
+Hopdash charge can be overcharged to 200%
+Overcharged hopdash can apply burn status effect
+Cinder created by perfect parrying enemies will spawn fire jets below them
+Parried projectiles and tears will have fire effects
+]])
+
 local SpicesColors = {
     ["ColorSalted"] = KColor(1, 1, 1, 1),
     ["ColorPepper"] = KColor(0.5, 0.5, 0.5, 1),
