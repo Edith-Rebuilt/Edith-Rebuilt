@@ -71,6 +71,7 @@ local edithDir = {
         title = "edith: rebuilt",
         buttons = {
             {str = "resume game", action = "resume"},
+            {str = "settings", dest = "menuOptions" },
             dssmod.changelogsButton
         },
         tooltip = dssmod.menuOpenToolTip
