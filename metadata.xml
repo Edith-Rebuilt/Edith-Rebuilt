@@ -33,6 +33,8 @@ Mod compatibility isn't as great as I expected to be on release, but this will b
 - EID 
 - Birthwrong
 - The Future
+- Community Remix
+- Runic Tablet
 
 [h3]Possible questions:[/h3]
 
@@ -46,7 +48,7 @@ Once again, this mod was almost enterily made by 1 person, which isn't exactly t
 Edith Vestige will remain on the workshop as a demo for this mod, i don't think i will update it again tho, but i won't take it down
 
 [b]Why another Edith, aren't there like already 5?[/b]
-Yeah, i know there are a lot of Ediths, but i've been working on this since september 2022 and wanted to release it, sorry for 
+Yeah, i know there are a lot of Ediths, but i've been working on this since september 2022 and wanted to release it, sorry for that
 
 [b]There will be a Tarnished Edith?[/b]
 Yes! I already have an raw idea of  how Tarnished Edith will behave, but she will be added in the future
@@ -72,7 +74,7 @@ Special Thanks:
 - JJ: For making her own [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2785782570]Edith interpretation[/url], which was the base of this mod
 - D!Edith team: For releasing [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3281491787]D!Edith[/url] and [url=https://github.com/drpandacat/JumpLib]JumpLib[/url], which were a great inspiration to resume this project
     </description>
-    <version>1.8.3</version>
+    <version>1.9.0</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Items"/>
