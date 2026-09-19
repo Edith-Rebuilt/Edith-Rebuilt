@@ -1,6 +1,10 @@
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.9.0a",[[
 {{FSIZE2}}{CLR3- General:}
--- 
+-- Fixed Edith's target design 
+giving errors due to an 
+internal change
+-- Revamped DSS changelogs
+-- Now DSS menu has a settings section
 ]])
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.9.0", [[

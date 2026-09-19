@@ -576,7 +576,6 @@ v1.8.3
 
 v1.9.0
 - General:
--- Added "You Can't Have Edith" cutscene (currently unused, gracias River)
 -- Removed unused colors
 -- Minor ImGui optimization
 -- Minor Vector math optimization
@@ -652,3 +651,11 @@ v1.9.0
 -- Added Judas' Birthright effect for Spices Mix
 -- Added Judas' Birthright effect for Fate of the Unfaithful
 -- Added Judas' Birthright effect for Divine Wrath
+
+v1.9.0a
+- General
+-- Fixed Edith's target design 
+giving errors due to an 
+internal change
+-- Revamped DSS changelogs
+-- Now DSS menu has a settings section
