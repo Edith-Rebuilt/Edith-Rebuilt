@@ -1,7 +1,13 @@
-DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.9.0", [[
-{{FSIZE2}}Hot n' Ready Update
+DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.9.0a",[[
+{{FSIZE2}}{CLR3- General:}
+-- 
+]])
 
-General:
+DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.9.0", [[
+{{FSIZE3}}Hot n' Ready 
+{{FSIZE3}}Update
+
+{{FSIZE2}}{CLR3General:}
 -- Removed unused colors
 -- Minor ImGui optimization
 -- Minor Vector math optimization
@@ -20,11 +26,11 @@ mod's active items
 -- Fixed revived characters having 
 any Edith costume as reviving from her
 
-- Mod Compatibility:
+{{FSIZE2}}{CLR3Mod Compatibility:}
 -- Added Custom Health API v0.967 
 (only loaded if Community 
 Remix is enabled)
--- Added Salt Hearts:
+{{FSIZE2}}-- Added Salt Hearts:
 --- Unlocked by beating 
 --- Community Remix's Insane 
 mode as either Edith or T. Edith
@@ -42,17 +48,17 @@ general 25% chance is met
 ---- 1/3 salt heart: 66.6 change 
 to replace a Half soul heart if 
 the general 25% chance is met
--- Added Runic Tablet Support:
+{CLR3-- Added Runic Tablet Support:}
 --- Increased Damage and 
 Knockback of Soul of Edith's stomp
--- Revamped EID support (WIP)
+{CLR3-- Revamped EID support (WIP):}
 --- Rewrite of items descriptions
 --- Added Character descriptions
 --- Added Birthright descriptions 
 --- Added Book of Virtues descriptions
 --- Added Judas' Birthright descriptions
 
-- Edith:
+{{FSIZE2}}Edith:
 -- Now Vestige Edith won't be 
 affected by explosion recoil
 -- Now vestige Edith won't have 
@@ -67,7 +73,7 @@ bombstomp when trying to jump after
 falling trough a pit and having 
 a bombstomp activated
 
-- T. Edith: 
+{{FSIZE2}}T. Edith: 
 -- Parry:
 --- Tweaked ready-to-use parry 
 indicator:
@@ -118,7 +124,7 @@ at less of 50% of hopdash charge
 -- Removed T. Edith's color 
 change from charging Hopdash
 
-- Status Effects:
+{{FSIZE2}}Status Effects:
 -- Increased Salted status 
 effect damage mult (1.2 > 1.35)
 -- Increased Turmeric infection 
@@ -126,7 +132,7 @@ clouds chance (35% > 40%)
 -- Now Enemies in Cummin status 
 effect will move randomly
 
-- Items:
+{{FSIZE2}}Items:
 -- Added Judas' Birthright 
 effect for Pepper Grinder
 -- Added Judas' Birthright 
@@ -138,7 +144,7 @@ effect for Divine Wrath
 ]])
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.3", [[ 
-- General: 
+{{FSIZE2}}{CLR3- General:}
 -- General vector math 
 optimization
 -- Fixed Edith/T. Edith's 
@@ -168,15 +174,15 @@ moment when trying to grab
 two cards/runes/pills/trinkets 
 at once
 
-- Edith:
+{{FSIZE2}}{CLR3- Edith:}
 -- Fixed Edith triggering 
 stomp synergies when going 
 trough a trapdoor
 
-- Items:
+{{FSIZE2}}{CLR3- Items:}
 -- Fixed Salt Shaker push 
 area persisting between rooms
--- Effigy:
+{CLR3-- Effigy:}
 --- Now a player in effigy 
 state won't be affected by 
 slipperyness
@@ -199,7 +205,7 @@ with non-Edith Characters
 its effects when falling 
 to a pitfall
 
-- Trinkets:
+{{FSIZE2}}{CLR3- Trinkets:}
 -- Rumbling Pebble changes:
 --- Increased rock scattering 
 spread
@@ -213,7 +219,7 @@ DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.2a", [[
 ]])
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.2", [[
-- General:
+{{FSIZE2}}{CLR3- General:}
 -- Removed unused debug 
 functions
 -- Added Fall From Grace's 
@@ -242,7 +248,7 @@ being giant for a frame
 can no longer be picked by 
 pickup grab extended radius
 
-- Edith: 
+{{FSIZE2}}{CLR3- Edith:}
 -- Removed Edith's jump's 
 pseudoinput-buffer
 -- Fixed Edith not being able 
@@ -256,11 +262,12 @@ damage when having Mr. Mega
 -- Increased Vestige's 
 jump speed
 
-- T. Edith:
+{{FSIZE2}}{CLR3- Tainted Edith:}
 -- Improved Status effect 
 stomp/parry synergies
 
-- Stomp/Parry synergies:
+{{FSIZE2}}{CLR3- Stomp/Parry:}
+{{FSIZE2}}{CLR3- Synergies:}
 -- Improved Edith's 
 birthright detection
 birthright interaction
@@ -290,20 +297,7 @@ DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.1a", [[
 ]])
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.1", [[
-- General:
--- Improved Repentance+ check
--- Added Clear Unlocks and Unlock 
-All buttons to ImGui progress section
--- Fixed T. Edith being completely 
-invulnerable while redirecting her hopdash
--- Fixed Salt Heart being 
-impossible to unlock
--- Fixed Edith Ultra Greedier unlocks 
-not being shown when unlocked
-]])
-
-DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.1", [[
-- General:
+{{FSIZE2}}{CLR3- General:}
 -- Improved Repentance+ check
 -- Added Clear Unlocks and Unlock 
 All buttons to ImGui progress section
@@ -316,9 +310,10 @@ not being shown when unlocked
 ]])
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.8.0", [[
-{{FSIZE2}}Burning Flies update
+{{FSIZE3}}Burning Flies 
+{{FSIZE3}}update
 
-- General:
+{{FSIZE2}}{CLR3- General:}
 -- Renamed achievements 
 (THIS WILL ERASE MOD'S PROGRESS)
 -- Great mod's codebase rewrite 
@@ -389,7 +384,6 @@ pit while dashing
 -- Fixed T. Edith's sprite being 
 pretty offset when going 
 to the minecart
-
 -- Fixed T. Edith going backwards 
 when going to the mirror door
 -- Fixed T. Edith being more dragged 
@@ -399,7 +393,7 @@ redirecting her hopdash
 sliding vfx while redirecting 
 in water currents
 
-- Edith: 
+{{FSIZE2}}{CLR3- Edith:}
 -- Added a jump animation 
 -- Increased height and speed 
 from jump explosion recoil
@@ -458,7 +452,7 @@ be able to shoot tears
 a 25% chance of apply salted 
 status effect
 
-- Tainted Edith:
+{{FSIZE2}}{CLR3- Tainted Edith:}
 -- Parry: 
 --- Fixed Perfect parried projectiles 
 not going to the nearest enemy 
@@ -497,7 +491,7 @@ These rocks and fire jets
 damage enemies, but can also 
 hurt Tainted Edith
 
-- Items: 
+{{FSIZE2}}{CLR3- Items:}
 -- Pepper Grinder changes:
 --- Now Pepper Grinder is 
 a timed active (4 seconds)
@@ -563,11 +557,11 @@ means until going to a new floor
 -- Burnt Hood buff:
 --- Increased Parry radius (28 > 32)
 
-- Trinkets:
+{{FSIZE2}}{CLR3- Trinkets:}
 -- Geode:
 --- Now Geode can spawn soul stones
 
-- Consumables:
+{{FSIZE2}}{CLR3- Consumables:}
 -- Salt Rocks buff:
 --- Killing an enemy salted with 
 salt rocks will shoot 10-15 
@@ -577,7 +571,7 @@ leave salt creep on land
 --- This salt creep can 
 re-trigger the effects listed above
 
-- Misc:
+{{FSIZE2}}{CLR3- Misc:}
 -- Salt creep changes:
 --- Only salt shaker creep 
 will push enemies away
@@ -593,12 +587,12 @@ completely invisible for no reason
 )
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.7.1", [[
-- General:
+{{FSIZE2}}{CLR3- General:}
 -- Fixed Spiked rocks damage 
 negator giving errors
 -- Updated ImGui.lua
 
-- Tainted Edith:
+{{FSIZE2}}{CLR3- Tainted Edith:}
 -- Movement:
 --- Removed T. Edith's 
 redirect reset
@@ -618,7 +612,7 @@ land damage
 --- Tweaked Hopdash 
 land damage formula
 
--- Parry:
+{{FSIZE2}}{CLR3- Parry:}
 --- Increased Perfect 
 Parry Radius (22 > 28)
 --- Increased Imprecise 
@@ -642,9 +636,10 @@ also fixed a memory leak lol)
 )
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.7.0", [[
-{{FSIZE2}}Hopping n' Dashing update
+{{FSIZE3}}Hopping n' Dashing 
+{{FSIZE3}}update
 
-- General:
+{{FSIZE2}}{CLR3- General:}
 -- Removed Suplex from pools when 
 playing with any Edith 
 (will be re-added)
@@ -652,7 +647,7 @@ playing with any Edith
 flight when going to a 
 crawlspace room
 
-- Tainted Edith:
+{{FSIZE2}}{CLR3- Tainted Edith:}
 -- Added a custom portrait 
 sprite when playing Grudge challenge
 -- Updated Character Selection sprite
@@ -723,7 +718,7 @@ perfect parry sound effect
 (parried bombs increases 
 their damage by x1.25)
 
-- Edith:
+{{FSIZE2}}{CLR3- Edith:}
 -- Added a custom portrait 
 sprite when playing 
 Vestige challenge
@@ -742,7 +737,7 @@ current drag strenght
 -- Increased Edith's target 
 movement speed (Resizer 4 > 4.5)
 
-- Items:
+{{FSIZE2}}{CLR3- Items:}
 -- Now Divine Retribution grants 
 a full soul heart when 
 having Car Battery
@@ -852,7 +847,7 @@ a cinnamon dust cloud for 5 seconds
 ----- Enemies inside this cloud 
 will get 3 damage every 15 frames
 
-- Trinkets
+{{FSIZE2}}{CLR3- Trinkets:}
 -- Reworked Burnt Salt:
 --- Now every third shot tear 
 will be a burnt salt tear
@@ -951,7 +946,8 @@ much slower than usual
 )
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.6.0", [[
-{{FSIZE2}}High-Quality Salt update
+{{FSIZE3}}High-Quality Salt 
+{{FSIZE3}}update
 
 - Fixed T.Edith's arrow's 
 grudge design changing 
@@ -1108,9 +1104,10 @@ as Edith's multishot stomp synergy
 )
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.5.0", [[
-{{FSIZE2}}Cinder Parries update
+{{FSIZE3}}Cinder Parries
+{{FSIZE3}}update
 
-- Tainted Edith rework:
+{{FSIZE2}}{CLR3- Tainted Edith rework:}
 -- Increased Perfect 
 Parry radius (12 > 18)
 -- Increased Imprecise 
@@ -1163,8 +1160,8 @@ suddenly loses their AI
 )
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.4.0", [[
-{{FSIZE2}}Salt Refinement
-{{FSIZE2}}update Part II
+{{FSIZE3}}Salt Refinement
+{{FSIZE3}}update Part II
 
 - Fixed Edith being unable 
 to go Mother's fight
@@ -1205,8 +1202,8 @@ Edith when she jumps
 )
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.3.0", [[
-{{FSIZE2}}Salt Refinement
-{{FSIZE2}}update Part I
+{{FSIZE3}}Salt Refinement
+{{FSIZE3}}update Part I
 
 - Fixed Edith and Tainted 
 Edith losing their costumes
@@ -1277,7 +1274,7 @@ more times is dealt damage
 )
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.2.0", [[
-{{FSIZE2}}Future Memories update
+{{FSIZE3}}Future Memories update
 
 - Fixed Salt rocks not 
 triggering salted 
@@ -1340,7 +1337,8 @@ devil beggars and confessionals
 )
 
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.1.0", [[
-{{FSIZE2}}Recrystallization update
+{{FSIZE3}}Recrystallization 
+{{FSIZE3}}update
 
 - Reimplemented mod's 
 data structure (big change 
@@ -1435,3 +1433,4 @@ with beggars and slots
 DeadSeaScrollsMenu.AddChangelog("Edith: Rebuilt", "v1.0.0 [Release]", [[
 - Initial release
 ]])
+
