@@ -1120,6 +1120,18 @@ mod:AddCallback(ModCallbacks.MC_POST_ACHIEVEMENT_UNLOCK, function ()
 	RenderMenu = false
 end)
 
+mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function ()
+	local saveData = SaveManager.GetSettingsSave()
+
+	if not saveData then return end
+
+	local EdithData = saveData.EdithData ---@cast EdithData EdithData
+
+	if type(EdithData.TargetDesign) == "number" then
+		EdithData.TargetDesign = {Design = "Choose Color", Idx = 1}
+	end
+end)
+
 mod:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, ImGuiMod.DestroyImGuiOptions)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, InitSaveData)
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, InitSaveData)
