@@ -87,13 +87,15 @@ local function SetEdithSprite(player)
 end
 
 ---@param player EntityPlayer
-local function TEdithCooling(player)
-	if player.FrameCount % 5 ~= 0 then return end
+---@param HopParams TEdithHopParryParams
+---@param heat number
+local function TEdithCooling(player, HopParams, heat)
+	if player.FrameCount % 6 ~= 0 then return end
+	if heat <= 0 then return end
 
-	local decreaser = TEdithMod.GetHopParryParams(player).IsHoping and 0.02 or 0.01
-	local heat = TEdithMod.GetParryHeat(player)
+	local decreaser = HopParams.IsHoping and 0.02 or 0.01
 
-	if heat > 0 and heat <= decreaser then
+	if heat <= decreaser then
 		sfx:Play(SoundEffect.SOUND_STEAM_HALFSEC, 0.25, 2, false, 0.5)
 		player:SetColor(Colors.CoolingComplete, 5, 1, true, true)
 	end
@@ -101,15 +103,16 @@ local function TEdithCooling(player)
 	TEdithMod.AddParryHeat(player, -decreaser)
 end
 
-local rotation = 20
-
 ---@param player EntityPlayer
-local function TEdithHeatColor(player)
-	local heat = TEdithMod.GetParryHeat(player)
-
+---@param heat number
+local function TEdithHeatColor(player, heat)
 	if heat <= 0 then return end
 
-	player:SetColor(Color(1, 1, 1, 1, 0.5 * heat), 1, 10, true, false)
+	local color = player.Color
+
+	color.RO = color.RO + (0.5 * heat)
+
+	player:SetColor(color, 1, 10, true, false)
 
 	if player.FrameCount % (10 - (math.ceil(6 * (heat * heat)))) == 0 then
 		local playerScale = player.SpriteScale
@@ -140,11 +143,12 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
 
 	local HopParams = TEdithMod.GetHopParryParams(player)
 	local arrow = TargetArrow.GetEdithTarget(player, true)
+	local heat = TEdithMod.GetParryHeat(player)
 
-	TEdithCooling(player)
+	TEdithCooling(player, HopParams, heat)
 	SetEdithSprite(player)
 	ManageLeoEffect(player)
-	TEdithHeatColor(player)
+	TEdithHeatColor(player, heat)
 	ManageHopDashCharge(player, arrow, HopParams)
 	TEdithMod.ParryCooldownManager(player, HopParams)
 end)
