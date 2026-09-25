@@ -54,11 +54,14 @@ local function ProcessCoreHeat(player, enemy)
     end
 end
 
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, function(_, player)
+---@param player EntityPlayer
+---@param value number
+mod:AddCallback(ModCallbacks.MC_EVALUATE_STAT, function(_, player, _, value)
     local count = player:GetCollectibleNum(items.COLLECTIBLE_MOLTEN_CORE)
     if count < 1 then return end
-    player.Damage = player.Damage + (1.25 * count)
-end, CacheFlag.CACHE_DAMAGE)
+    return value * (1.25 * count)
+end, EvaluateStatStage.PRE_FLAT_DAMAGE)
+
 
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
     if not player:HasCollectible(items.COLLECTIBLE_MOLTEN_CORE) then return end
