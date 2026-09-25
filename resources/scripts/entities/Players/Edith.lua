@@ -181,7 +181,7 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 	if not Player.IsEdith(player, false) then return end
 
-	if player:IsDead() or helpers.IsDSSMenuOpen() then
+	if player:IsDead() then
 		TargetArrow.RemoveEdithTarget(player)
 		return
 	end

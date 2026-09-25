@@ -12,10 +12,6 @@ local data = mod.DataHolder.GetEntityData
 
 local Helpers = {}
 
-function Helpers.IsDSSMenuOpen()
-	return DeadSeaScrollsMenu.IsOpen() ~= nil
-end
-
 function Helpers.GetScreenCenter()
 	local pos = room:WorldToScreenPosition(Vector(0,0)) - room:GetRenderScrollOffset() - game.ScreenShakeOffset	
 	local rx = pos.X + 60 * 26 / 40

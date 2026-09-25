@@ -139,11 +139,12 @@ end
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
 	if not Player.IsEdith(player, true) then return end	
-	if Helpers.IsDSSMenuOpen() then return end
 
 	local HopParams = TEdithMod.GetHopParryParams(player)
 	local arrow = TargetArrow.GetEdithTarget(player, true)
 	local heat = TEdithMod.GetParryHeat(player)
+
+	print(player.SpriteRotation)
 
 	TEdithCooling(player, HopParams, heat)
 	SetEdithSprite(player)
@@ -470,8 +471,6 @@ local function GetPlayerRenderPos(player)
 end
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
-	if Helpers.IsDSSMenuOpen() then return end
-
 	Player.ForEachPlayerType(function(player)
 		if RoomTransition:GetTransitionMode() == 3 then return end
 
