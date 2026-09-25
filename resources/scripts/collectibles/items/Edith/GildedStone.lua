@@ -6,15 +6,24 @@ local modules = mod.Modules
 local ModRNG = modules.RNG
 local Helpers = modules.HELPERS
 local Maths = modules.MATHS
+local outcome = WeightedOutcomePicker()
+
+outcome:AddOutcomeFloat(1, 25)
+outcome:AddOutcomeFloat(2, 40)
+outcome:AddOutcomeFloat(3, 15)
+outcome:AddOutcomeFloat(4, 10)
+outcome:AddOutcomeFloat(5, 5)
+outcome:AddOutcomeFloat(6, 4)
+outcome:AddOutcomeFloat(7, 1)
 
 local RockRewards = {
-    { weight = 40, Variant = PickupVariant.PICKUP_COIN, SubType = CoinSubType.COIN_PENNY },
-    { weight = 25, Variant = PickupVariant.PICKUP_COIN, SubType = CoinSubType.COIN_DOUBLEPACK },
-    { weight = 15, Variant = PickupVariant.PICKUP_COIN, SubType = CoinSubType.COIN_NICKEL },
-    { weight = 10, Variant = PickupVariant.PICKUP_COIN, SubType = CoinSubType.COIN_DIME },
-    { weight = 5, Variant = PickupVariant.PICKUP_COIN, SubType = CoinSubType.COIN_LUCKYPENNY },
-    { weight = 4, Variant = PickupVariant.PICKUP_COLLECTIBLE, SubType = CollectibleType.COLLECTIBLE_QUARTER },
-    { weight = 1, Variant = PickupVariant.PICKUP_COLLECTIBLE, SubType = CollectibleType.COLLECTIBLE_DOLLAR },
+    { Variant = PickupVariant.PICKUP_COIN, SubType = CoinSubType.COIN_PENNY },
+    { Variant = PickupVariant.PICKUP_COIN, SubType = CoinSubType.COIN_DOUBLEPACK },
+    { Variant = PickupVariant.PICKUP_COIN, SubType = CoinSubType.COIN_NICKEL },
+    { Variant = PickupVariant.PICKUP_COIN, SubType = CoinSubType.COIN_DIME },
+    { Variant = PickupVariant.PICKUP_COIN, SubType = CoinSubType.COIN_LUCKYPENNY },
+    { Variant = PickupVariant.PICKUP_COLLECTIBLE, SubType = CollectibleType.COLLECTIBLE_QUARTER },
+    { Variant = PickupVariant.PICKUP_COLLECTIBLE, SubType = CollectibleType.COLLECTIBLE_DOLLAR },
 }
 
 ---@param player EntityPlayer
@@ -36,33 +45,6 @@ local function GetRockRewardChance(player)
     return Maths.Clamp(formula, 0, 0.5)
 end
 
-local function BuildCumulativeTable(rewards)
-    local sorted = {}
-    for _, entry in ipairs(rewards) do
-        sorted[#sorted + 1] = entry
-    end
-    table.sort(sorted, function(a, b) return a.weight < b.weight end)
-
-    local cumulative = {}
-    local total = 0
-    for _, entry in ipairs(sorted) do
-        total = total + entry.weight
-        cumulative[#cumulative + 1] = { threshold = total, reward = entry }
-    end
-    return cumulative, total
-end
-
-local CumulativeRewards, TotalWeight = BuildCumulativeTable(RockRewards)
-
----@param rng RNG
----@return table
-local function GetRandomReward(rng)
-    local roll = rng:RandomFloat() * TotalWeight
-    for _, entry in ipairs(CumulativeRewards) do
-        if roll <= entry.threshold then return entry.reward end
-    end
-end
-
 ---@param reward table
 ---@param rng RNG
 ---@return Vector
@@ -79,6 +61,8 @@ mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function(_, tear)
     local rng = player:GetCollectibleRNG(items.COLLECTIBLE_GILDED_STONE)
     if not ModRNG.RandomBoolean(rng, GetChanceToShootRock(player)) then return end
 
+    print(outcome:PickOutcome(rng))
+
     Helpers.TurnTearToTerraTear(tear, rng)
 end)
 
@@ -94,7 +78,7 @@ mod:AddCallback(ModCallbacks.MC_POST_GRID_ROCK_DESTROY, function(_, rock, _, _, 
 
     if not ModRNG.RandomBoolean(rng, GetRockRewardChance(player)) then return end
 
-    local reward = GetRandomReward(rng)
+    local reward = RockRewards[outcome:PickOutcome(rng)]
     local Velocity = GetRewardVelocity(reward, rng)
 
     Isaac.Spawn(EntityType.ENTITY_PICKUP, reward.Variant, reward.SubType, rock.Position, Velocity, nil)
