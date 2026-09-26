@@ -675,4 +675,11 @@ function Helpers.GetEffigyCharge(player)
     return player:GetActiveCharge(slot) + player:GetBatteryCharge(slot)
 end
 
+---@param ID CollectibleType
+---@return string
+function Helpers.IDToMarkup(ID)
+    return "{{Collectible" .. tostring(ID) .. "}} "
+end
+
+
 return Helpers

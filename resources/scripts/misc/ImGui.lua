@@ -1127,6 +1127,7 @@ v1.6.0 *High-Quality Salt update*
 - Now T. Edith's grudge dash screenshake can be disabled with screenshake option form ImGui Menu
 - Now T.Edith parry will apply jump recoil to enemies
 - Now Edith/T.Edith can destroy movable TNT
+
 - Spices Mix changes: 
 -- Now Spices Mix has a cooldown (5 seconds)
 -- Added a flavor text for everytime the Spices Mix is used

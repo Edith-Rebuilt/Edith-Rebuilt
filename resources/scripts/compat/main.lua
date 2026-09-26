@@ -41,8 +41,8 @@ function loader:ApplyPatches()
 end
 
 local patches = {
+	"EID.main",
 	"Birthcake",
-	"EID",
 	"RunicTablet",
 	"The Future",
 	"contentModules.CommunityRemix.main",

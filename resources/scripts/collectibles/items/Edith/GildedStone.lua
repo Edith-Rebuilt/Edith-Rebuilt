@@ -1,4 +1,3 @@
----@diagnostic disable: missing-return
 local mod = EdithRebuilt
 local enums = mod.Enums
 local items = enums.CollectibleType
@@ -60,8 +59,6 @@ mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function(_, tear)
 
     local rng = player:GetCollectibleRNG(items.COLLECTIBLE_GILDED_STONE)
     if not ModRNG.RandomBoolean(rng, GetChanceToShootRock(player)) then return end
-
-    print(outcome:PickOutcome(rng))
 
     Helpers.TurnTearToTerraTear(tear, rng)
 end)
