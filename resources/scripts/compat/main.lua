@@ -46,6 +46,7 @@ local patches = {
 	"RunicTablet",
 	"The Future",
 	"contentModules.CommunityRemix.main",
+	"contentModules.Epiphany.main",
 	"Birthwrong.Edith",
 	"Birthwrong.TEdith",
 }
