@@ -1,22 +1,26 @@
-local Mod = EdithRebuilt
-local loader = {
-	Patches = {},
-	AppliedPatches = false,
-}
+local mod = EdithRebuilt
+local loader = {}
 
-Mod.PatchesLoader = loader
+
+---@class Patch
+---@field Mod string
+---@field PatchFunc function
+---@field FailsafeFunc function?
+---@field Loaded boolean
+
+loader.Patches = {} 
+loader.AppliedPatches = false
 
 -- Registers a mod patch
--- mod:string		   Name of mod global
--- patchFunc:function   Function that takes 0 arguments and applies the patch
----@function
-function loader:RegisterPatch(mod, patchFunc)
-	table.insert(loader.Patches, { Mod = mod, PatchFunc = patchFunc, Loaded = false })
-	--Isaac.DebugString(Dump({ Mod = mod, PatchFunc = patchFunc, Loaded = false }))
+---@param modName string Name of mod global
+---@param patchFunc function Takes 0 arguments and applies the patch
+---@param failsafeFunc function?
+function loader.RegisterPatch(modName, patchFunc, failsafeFunc)
+	table.insert(loader.Patches, { Mod = modName, PatchFunc = patchFunc, FailsafeFunc = failsafeFunc, Loaded = false })
 end
 
 ---@function
-function loader:ApplyPatches()
+function loader.ApplyPatches()
 	for _, patch in pairs(loader.Patches) do
 		-- check if mod reference is valid by getting it by name from the table of globals
 		-- we cannot directly pass the mod reference to RegisterPatch
@@ -33,12 +37,18 @@ function loader:ApplyPatches()
 			patch.PatchFunc()
 			patch.Loaded = true
 
-			-- Mod:DebugLog(table.concat({ "Loaded", tostring(patch.Mod), "patch" }, " "))
+			-- print(table.concat({ "Loaded", tostring(patch.Mod), "patch" }, " "))
+		else
+			if patch.FailsafeFunc then
+				patch.FailsafeFunc()
+			end
 		end
 	end
 
 	loader.AppliedPatches = true
 end
+
+EdithRebuilt.PatchesLoader = loader
 
 local patches = {
 	"EID.main",
@@ -46,18 +56,16 @@ local patches = {
 	"RunicTablet",
 	"The Future",
 	"contentModules.CommunityRemix.main",
-	"contentModules.Epiphany.main",
-	"Birthwrong.Edith",
-	"Birthwrong.TEdith",
+	"Birthwrong.main",
 }
 
 for _, fileName in ipairs(patches) do
 	include("resources.scripts.compat." .. fileName)
 end
 
-Mod:AddPriorityCallback(ModCallbacks.MC_POST_MODS_LOADED, CallbackPriority.LATE, loader.ApplyPatches)
+mod:AddPriorityCallback(ModCallbacks.MC_POST_MODS_LOADED, CallbackPriority.LATE, loader.ApplyPatches)
 
-Mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function()
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function()
 	if not loader.AppliedPatches then
 		loader:ApplyPatches()
 	end
