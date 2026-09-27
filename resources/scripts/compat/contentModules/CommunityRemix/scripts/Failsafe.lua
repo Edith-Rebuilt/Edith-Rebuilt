@@ -25,8 +25,6 @@ local function ReplaceFractionSaltHeart(pickup)
 end
 
 mainMod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, function(_, pickup)
-    if pickup.Variant ~= PickupVariant.PICKUP_HEART then return end
-
     local roomFrameCount = room:GetFrameCount()
     local visitedCount = level:GetLastRoomDesc().VisitedCount
 
@@ -34,4 +32,4 @@ mainMod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, function(_, pickup)
 
     ReplaceFullSaltHeart(pickup)
     ReplaceFractionSaltHeart(pickup)
-end)
+end, PickupVariant.PICKUP_HEART)
