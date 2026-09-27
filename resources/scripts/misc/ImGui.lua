@@ -1682,7 +1682,7 @@ local function AddModCompat()
 	- Character's birthright desriptions
 	- Mod's Content Descriptions
 
-*Birthcake: Rebaked: 
+* Birthcake: Rebaked: 
 	- Salty Stomps (Edith effect):
 		- Offensive Stomps have a 25% chance of apply Salted status effect
 	- (T. Edith's effect)
