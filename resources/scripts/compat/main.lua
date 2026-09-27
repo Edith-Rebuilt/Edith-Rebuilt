@@ -57,7 +57,6 @@ local patches = {
 	"The Future",
 	"contentModules.CommunityRemix.main",
 	"Birthwrong.main",
-	"contentModules.Epiphany.main",
 }
 
 for _, fileName in ipairs(patches) do

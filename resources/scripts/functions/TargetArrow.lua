@@ -9,7 +9,7 @@ local targetArrow = {}
 
 ---@param player EntityPlayer
 ---@return table
-function targetArrow.getTargetData(player)
+local function getTargetData(player)
 	local pData = EntitySaveStateManager.GetEntityData(mod, player)
 	pData.EdithRebuiltTargetData = pData.EdithRebuiltTargetData or {}
 
@@ -21,7 +21,7 @@ end
 ---@param tainted boolean?
 ---@return EntityEffect
 function targetArrow.GetEdithTarget(player, tainted)
-	local Data = targetArrow.getTargetData(player)
+	local Data = getTargetData(player)
 	return tainted and Data.TaintedEdithTarget or Data.EdithTarget
 end
 
@@ -62,7 +62,7 @@ function targetArrow.SpawnEdithTarget(player, tainted)
 	if mod.Modules.HELPERS.IsDogmaAppearCutscene() then return end
 	if targetArrow.GetEdithTarget(player, tainted or false) then return end 
 
-	local Data = targetArrow.getTargetData(player)
+	local Data = getTargetData(player)
 	local TargetVariant = tainted and variants.EFFECT_EDITH_B_TARGET or variants.EFFECT_EDITH_TARGET
 	local target = Isaac.Spawn(	
 		EntityType.ENTITY_EFFECT,
@@ -93,7 +93,7 @@ function targetArrow.RemoveEdithTarget(player, tainted)
 	if not target then return end
 	target:Remove()
 
-	local Data = targetArrow.getTargetData(player)
+	local Data = getTargetData(player)
 	if tainted then
 		Data.TaintedEdithTarget = nil
 	else

@@ -26,8 +26,4 @@
     <entity anm2path="CRemix/SaltHeartPickupOneThird.anm2" baseHP="0" boss="0" collisionDamage="0" collisionMass="3" collisionRadius="12" friction="1" id="5" name="Salt Heart (pickup 1/3)" numGridCollisionPoints="24" shadowSize="17" stageHP="0" variant="10" subtype="3458">
 		<gibs amount="0" blood="0" bone="0" eye="0" gut="0" large="0" />
 	</entity>
-
-    <!-- Epiphany -->
-    <entity anm2path="Epiphany/effects/TREdithTarget.anm2" baseHP="0" boss="0" champion="0" collisionDamage="0" collisionMass="5" collisionRadius="10" friction="1" id="1000" name="TR. Edith Target" numGridCollisionPoints="40" shadowSize="0" stageHP="0" variant="4002" >
-    </entity>
 </entities>
