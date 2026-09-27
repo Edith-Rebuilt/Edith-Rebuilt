@@ -29,4 +29,18 @@
 		achievement="The Scorched"
 		modcostume="2"
 	/>
+	<player 
+		name="Edith​​​​"
+		birthright="Not implemented" 
+		skin="tarnished_magdalene.png" 
+		healthtype="1"
+		armor="6"
+		hidden="true"
+		nameimage="EdithName.png"
+		portrait="TEdithPortrait.png"
+		skinColor="21" 
+		costumeSuffix="trmagdalene"
+		nomarks="true"
+		modcostume="2"
+	/>
 </players>
