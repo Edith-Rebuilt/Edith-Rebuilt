@@ -1,9 +1,11 @@
-local mod = EdithRebuilt_TarnishedEdith
-local mainMod = EdithRebuilt
-local mainModules = mainMod.Modules
-local effectVariant = mod.Enums.EffectVariant
-local Helpers = mainModules.HELPERS
-local TargetArrow = mainModules.TARGET_ARROW
+local mod = EdithRebuilt
+local enums = mod.Enums
+local TRenums = enums.Epiphany
+
+-- local mainModules = mainMod.Modules
+-- local effectVariant = mod.Enums.EffectVariant
+-- local Helpers = mainModules.HELPERS
+-- local TargetArrow = mainModules.TARGET_ARROW
 
 local Target = {}
 
@@ -11,19 +13,21 @@ local Target = {}
 ---@param player EntityPlayer
 ---@return EntityEffect
 function Target.GetTREdithTarget(player)
-	local Data = TargetArrow.getTargetData(player)
+	local Data = mod.Modules.TARGET_ARROW.getTargetData(player)
 	return Data.TREdithTarget
 end
 
 ---@param player EntityPlayer
 function Target.SpawnTREdithTarget(player)
-	if Helpers.IsDogmaAppearCutscene() then return end
+    local modules = mod.Modules
+
+	if modules.HELPERS.IsDogmaAppearCutscene() then return end
 	if Target.GetTREdithTarget(player) then return end
 
-	local Data = TargetArrow.getTargetData(player)
+	local Data = modules.TARGET_ARROW.getTargetData(player)
 	local target = Isaac.Spawn(	
 		EntityType.ENTITY_EFFECT,
-		effectVariant.EFFECT_EDITH_C_TARGET,
+		TRenums.EffectVariant.EFFECT_EDITH_C_TARGET,
 		0,
 		player.Position,
 		Vector.Zero,
@@ -52,7 +56,7 @@ function Target.RemoveEdithTarget(player)
 
 	if not target then return end
 	target:Remove()
-	local Data = TargetArrow.getTargetData(player)
+	local Data = mod.Modules.TARGET_ARROW.getTargetData(player)
 
 	Data.TREdithTarget = nil
 end

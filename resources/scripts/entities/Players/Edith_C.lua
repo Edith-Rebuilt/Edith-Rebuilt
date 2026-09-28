@@ -1,33 +1,28 @@
-local mod = EdithRebuilt_TarnishedEdith
-local mainMod = EdithRebuilt
+local mod = EdithRebuilt
 
 local enums = mod.Enums
-local mainEnums = mainMod.Enums
 
-local playerType = enums.PlayerType
-
-local tables = mainEnums.Tables
-local misc = mainEnums.Misc
-local utils = mainEnums.Utils
-
-local data = mainMod.DataHolder.GetEntityData
+local utils = enums.Utils
+local tables = enums.Tables
+local Trenums = enums.Epiphany
+local misc = enums.Misc
 
 local game = utils.Game
-local Room = utils.Room
 local sfx = utils.SFX
 
-local mainModules = mainMod.Modules
-local TargetArrow = mainModules.TARGET_ARROW
-local EdithMod = mainModules.EDITH
-local Helpers = mainModules.HELPERS
-local Player = mainModules.PLAYER
-local StatusEffects = mainModules.STATUS_EFFECTS
-local Land = mainModules.LAND
-
+local playerType = Trenums.PlayerType
 local modules = mod.Modules
+
 local TREdithMod = modules.TR_EDITH
 local TRTarget = modules.TARGET
+local TargetArrow = modules.TARGET_ARROW
+local Helpers = modules.HELPERS
+local StatusEffects = modules.STATUS_EFFECTS
+local EdithMod = modules.EDITH
+local Player = modules.PLAYER
+local Land = modules.LAND
 
+local data = mod.DataHolder.GetEntityData
 
 
 local TrEdithInfo = {
@@ -42,11 +37,11 @@ local TrEdithInfo = {
 }
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, function ()
+    if not Epiphany then return end
     if not Epiphany.API then return end
 
-    -- print("aaaaa")
-    -- print(Epiphany.API)
-    
+    print("Add TR. Edith")
+
     Epiphany.API.AddCharacter(TrEdithInfo)
 end)
 

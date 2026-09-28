@@ -1,14 +1,6 @@
-local mod = EdithRebuilt_TarnishedEdith
+local mod = EdithRebuilt
 
-local mainMod = EdithRebuilt
-local mainModules = mainMod.Modules
-
-local effectVariant = mod.Enums.EffectVariant
-local Helpers = mainModules.HELPERS
-local Maths = mainModules.MATHS
-local TargetArrow = mainModules.TARGET_ARROW
-
-local data = mainMod.DataHolder.GetEntityData
+local data = mod.DataHolder.GetEntityData
 
 TREdith = {}
 
@@ -64,7 +56,7 @@ end
 ---@param amount number
 ---@return number
 local function AddCharge(current, amount)
-    return Maths.Clamp(current + amount, 0, 1)
+    return mod.Modules.MATHS.Clamp(current + amount, 0, 1)
 end
 
 ---@param player EntityPlayer

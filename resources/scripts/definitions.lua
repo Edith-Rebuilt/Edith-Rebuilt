@@ -515,4 +515,12 @@ EdithRebuilt.Enums = {
 		ChargeBarrightVector = Vector(8, 10),
 		ParryPartitions = EntityPartition.ENEMY | EntityPartition.BULLET | EntityPartition.TEAR, --[[@as EntityPartition|integer]]
 	},
+	Epiphany = {
+		PlayerType = {
+			PLAYER_EDITH_C = Isaac.GetPlayerTypeByName("Edith​​​​")
+		},
+		EffectVariant = {
+			EFFECT_EDITH_C_TARGET = Isaac.GetEntityVariantByName("TR. Edith Target"),
+		}
+	}
 }

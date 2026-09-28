@@ -64,6 +64,7 @@ local includeFiles = {
 	-- Personajes
 	ent .. "Players/Edith",
 	ent .. "Players/Edith_B",
+	ent .. "Players/Edith_C",
 	ent .. "Players/SharedFuncs",
 	-- Personajes fin
 

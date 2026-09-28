@@ -57,6 +57,9 @@ EdithRebuilt.Modules = {
 	JUMP = include("resources.scripts.functions.Jump"),
 	BIT_MASK = include("resources.scripts.functions.BitMask"),
 	STOMP_UTILS = include("resources.scripts.functions.StompUtils"),
+
+	TR_EDITH = include("resources.scripts.functions.Epiphany.TREdith"),
+	TARGET = include("resources.scripts.functions.Epiphany.Target"),
 }
 
 include("include")
