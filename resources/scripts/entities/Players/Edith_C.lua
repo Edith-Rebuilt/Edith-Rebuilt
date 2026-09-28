@@ -9,6 +9,7 @@ local misc = enums.Misc
 
 local game = utils.Game
 local sfx = utils.SFX
+local Room = utils.Room
 
 local playerType = Trenums.PlayerType
 local modules = mod.Modules
@@ -328,7 +329,7 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
 		local playerpos = GetPlayerRenderPos(player)
 
 		HudHelper.RenderChargeBar(playerData.ChargeBar, FlingCharge, 1, playerpos + misc.ChargeBarcenterVector)
-	end, enums.PlayerType.PLAYER_EDITH_C)
+	end, playerType.PLAYER_EDITH_C)
 end)
 
 ---@param player EntityPlayer
