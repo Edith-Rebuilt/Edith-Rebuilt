@@ -161,7 +161,6 @@ mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, function (_, npc)
     npcData.HitStunDuration = npcData.HitStunDuration - 1
 
     if npcData.HitStunDuration > 0 then
-        print(npcData.HitStunDuration)
         return true
     end
 end)
@@ -321,9 +320,9 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
 
     local target = TRTarget.GetTREdithTarget(player)
     local isMoving = TargetArrow.IsEdithTargetMoving(player)
-    local flingParams = TREdithMod.GetFlingShoveParams(player)
-
-    if player.Velocity:Length() < 0.3 and flingParams.IsFlinging then
+    local flingParams = params(player)
+    if flingParams.FlingDuration == 1 then
+        player:SetMinDamageCooldown(30)
         flingParams.IsFlinging = false
         flingParams.FlingMoveCharge = 0
         flingParams.FlingStaticCharge = 0
@@ -370,9 +369,7 @@ end)
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function (_, player)
     if not TREdithMod.IsTREdith(player) then return end
 
-    local params = TREdithMod.GetFlingShoveParams(player)
-
-    if params.IsFlinging then
+    if params(player).IsFlinging then
         return false
     end
 end)
@@ -383,9 +380,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function (_, player, colli
     if not TREdithMod.IsTREdith(player) then return end
     if not Helpers.IsEnemy(collider) then return end
 
-    local params = TREdithMod.GetFlingShoveParams(player)
-
-    if not params.IsFlinging then return end
+    if not params(player).IsFlinging then return end
 
     Land.LandDamage(collider, player, 12, 30)
     sfx:Play(SoundEffect.SOUND_MEATY_DEATHS)
