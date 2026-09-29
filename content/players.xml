@@ -43,5 +43,6 @@
 		nomarks="true"
 		modcostume="2"
 		damagemultiplier="1.5"
+		rangemodifier="2.5"
 	/>
 </players>

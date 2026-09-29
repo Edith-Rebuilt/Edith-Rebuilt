@@ -662,7 +662,7 @@ end
 ---@param player EntityPlayer
 ---@param landParams FeedbackLandParams
 ---@param IsChap4 boolean
-local function SpawnLandGFX(player, landParams, IsChap4)
+function Land.SpawnLandGFX(player, landParams, IsChap4)
     local hasWater = room:HasWater()
 	local Variant, SubType = GetEffectVariantAndSubType(hasWater, IsChap4)
 	local BackDrop = room:GetBackdropType()
@@ -694,7 +694,7 @@ function Land.LandFeedbackManager(player, soundTable, GibColor, jumpData, IsParr
 		GetTEdithLandParams(IsParryLand)
 	)
 
-    SpawnLandGFX(player, landParams, IsChap4)
+    Land.SpawnLandGFX(player, landParams, IsChap4)
 
     if Helpers.GetConfigData(ConfigDataTypes.MISC).EnableShakescreen then
         game:ShakeScreen(landParams.ScreenShakeIntensity)

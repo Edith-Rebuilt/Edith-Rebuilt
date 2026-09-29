@@ -104,6 +104,21 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
     ChargeFling(player, 0.025 + (0.025 * (speed * speed)))
 end)
 
+---@param IsParryLand boolean
+---@return FeedbackLandParams
+local function GetTEdithLandParams(IsParryLand)
+    local TEdithData = mod.Modules.HELPERS.GetConfigData(enums.ConfigDataTypes.TEDITH) ---@cast TEdithData TEdithData
+    return {
+        Size = IsParryLand and 0.7 or 0.5,
+        SoundPick = IsParryLand and TEdithData.ParrySound or TEdithData.HopSound,
+        Volume = 1, --GetVolume(TEdithData.Volume) * (IsParryLand and 1.5 or 1),
+        ScreenShakeIntensity = IsParryLand and 6 or 3,
+        GibAmount = not TEdithData.DisableSaltGibs and (IsParryLand and 6 or 2) or 0,
+        GibSpeed = 2,
+    }
+end
+
+
 ---@param player EntityPlayer
 ---@param flingParams TREdithFlingStrikeParams
 local function TriggerFling(player, flingParams)
@@ -115,6 +130,10 @@ local function TriggerFling(player, flingParams)
     flingParams.FlingDirection = TRTarget.GetEdithTargetDirection(player)
     flingParams.FlingDuration = math.ceil((45 * charge) * Player.GetPlayerRange(player) / 9)
     flingParams.FlingVel = flingParams.FlingDirection * 15 * charge
+
+    Land.SpawnLandGFX(player, GetTEdithLandParams(false), Helpers.IsChap4())
+    Helpers.SpawnSaltGib(player, 3, 4, player.Color, true)
+    sfx:Play(SoundEffect.SOUND_SHELLGAME)
 
     TRTarget.RemoveEdithTarget(player)
 end
@@ -146,6 +165,7 @@ local function TriggerBurst(player, flingParams)
     end
 
     player:SetMinDamageCooldown(30)
+    flingParams.FlingMoveCharge = 0
 
     flingParams.Cooldown = 15
 end
@@ -295,6 +315,8 @@ local function ManageTREdithBounce(player, flingParams)
         local impactPos = pos + vel * bestT
         local reflectVel = ReflectVelocity(vel, bestNormal, 0.99)
 
+        Helpers.SpawnSaltGib(player, 3, 4, player.Color, true)
+
         player.Position = impactPos + bestNormal * 5
         flingParams.FlingDirection = reflectVel:Normalized()
         flingParams.FlingVel = reflectVel
@@ -337,6 +359,13 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     if target then
         EdithMod.TargetMovementManager(player, target, isMoving)
     end
+
+    print()
+
+    for k, v in pairs(flingParams) do
+        print(k .. ":", v)
+    end
+
 end)
 
 local function GetPlayerRenderPos(player)
@@ -374,8 +403,6 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function (_, player)
         return false
     end
 end)
-
-local baseDamage = 10
 
 ---@param player EntityPlayer
 ---@param collider Entity
