@@ -86,6 +86,7 @@ end
 ---@param charge number
 local function ChargeFling(player, charge)
     if not Helpers.IsKeyStompPressed(player) then return end
+    if params(player).IsFlinging then return end
 
     TREdithMod.AddFlingCharge(player, charge)
 end
