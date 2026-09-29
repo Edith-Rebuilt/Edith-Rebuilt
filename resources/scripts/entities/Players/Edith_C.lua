@@ -321,11 +321,17 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     local target = TRTarget.GetTREdithTarget(player)
     local isMoving = TargetArrow.IsEdithTargetMoving(player)
     local flingParams = params(player)
+    
+    print(flingParams.FlingDuration)
+
     if flingParams.FlingDuration == 1 then
         player:SetMinDamageCooldown(30)
-        flingParams.IsFlinging = false
         flingParams.FlingMoveCharge = 0
         flingParams.FlingStaticCharge = 0
+    end
+
+    if flingParams.FlingDuration == 0 and flingParams.IsFlinging == true then
+        flingParams.IsFlinging = false
     end
 
     ChargeRelease(player)
