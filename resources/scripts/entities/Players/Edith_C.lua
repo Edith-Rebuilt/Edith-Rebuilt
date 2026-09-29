@@ -137,7 +137,7 @@ local function TriggerBurst(player, flingParams)
     cloud.SpriteScale = puffSize + (puffSize / 2) * charge
 
     for _, ent in ipairs(Isaac.FindInCapsule(Capsule, EntityPartition.ENEMY)) do
-        ent:AddVelocity((ent.Position + player.Position):Resized(100 * charge))
+        Helpers.TriggerPush(ent, player, 100 * (charge * charge))
     end
 
     flingParams.Cooldown = 15
@@ -206,24 +206,40 @@ local function ManageTREdithBounce(player, flingParams)
     local bottomRight = Room:GetBottomRightPos()
     local nextPos = pos + vel
 
+    local hitX, hitY = false, false
+    local normalX, normalY = Vector(0,0), Vector(0,0)
+    local tX, tY = bestT, bestT
+
     if nextPos.X - playerRadius <= topLeft.X then
-        local t = (topLeft.X + playerRadius - pos.X) / vel.X
-        if t >= 0 and t < bestT then bestT, bestNormal = t, Vector(1, 0) end
+        tX = (topLeft.X + playerRadius - pos.X) / vel.X
+        if tX >= 0 and tX < bestT then hitX, normalX = true, Vector(1, 0) end
     elseif nextPos.X + playerRadius >= bottomRight.X then
-        local t = (bottomRight.X - playerRadius - pos.X) / vel.X
-        if t >= 0 and t < bestT then bestT, bestNormal = t, Vector(-1, 0) end
+        tX = (bottomRight.X - playerRadius - pos.X) / vel.X
+        if tX >= 0 and tX < bestT then hitX, normalX = true, Vector(-1, 0) end
     end
+
     if nextPos.Y - playerRadius <= topLeft.Y then
-        local t = (topLeft.Y + playerRadius - pos.Y) / vel.Y
-        if t >= 0 and t < bestT then bestT, bestNormal = t, Vector(0, 1) end
+        tY = (topLeft.Y + playerRadius - pos.Y) / vel.Y
+        if tY >= 0 and tY < bestT then hitY, normalY = true, Vector(0, 1) end
     elseif nextPos.Y + playerRadius >= bottomRight.Y then
-        local t = (bottomRight.Y - playerRadius - pos.Y) / vel.Y
-        if t >= 0 and t < bestT then bestT, bestNormal = t, Vector(0, -1) end
+        tY = (bottomRight.Y - playerRadius - pos.Y) / vel.Y
+        if tY >= 0 and tY < bestT then hitY, normalY = true, Vector(0, -1) end
+    end
+
+    local cornerTolerance = 0.1 -- ajustable: qué tan "al mismo tiempo" cuentan como esquina
+
+    if hitX and hitY and math.abs(tX - tY) < cornerTolerance then
+        bestT = math.min(tX, tY)
+        bestNormal = (normalX + normalY):Normalized()
+    elseif hitX and (not hitY or tX < tY) then
+        bestT, bestNormal = tX, normalX
+    elseif hitY then
+        bestT, bestNormal = tY, normalY
     end
 
     -- 2) Chequear grid entities (rocas, muros de grilla, obstáculos sólidos)
     local gridSize = 40
-    local steps = math.ceil(speed / 10)
+    local steps = math.ceil(speed)
 
     for i = 1, steps do
         local samplePos = pos + dir * (speed * i / steps)
@@ -258,7 +274,7 @@ local function ManageTREdithBounce(player, flingParams)
         game:ShakeScreen(3 + math.ceil(5 * TREdithMod.GetFlingShoveCharge(player, false)))
 
         local impactPos = pos + vel * bestT
-        local reflectVel = ReflectVelocity(vel, bestNormal, 1.1)
+        local reflectVel = ReflectVelocity(vel, bestNormal, 0.99)
 
         player.Position = impactPos + bestNormal * 5
         flingParams.FlingDirection = reflectVel:Normalized()
@@ -365,7 +381,5 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
 		Helpers.ChangeColor(player, nil, nil, nil, 1)
 		TRTarget.RemoveEdithTarget(player)
 		params(player).IsFlinging = false
-
-        print("aaaaaaaaaaaaaaa")
 	end, playerType.PLAYER_EDITH_C)
 end)
