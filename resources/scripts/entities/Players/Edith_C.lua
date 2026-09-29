@@ -23,6 +23,8 @@ local EdithMod = modules.EDITH
 local Player = modules.PLAYER
 local Land = modules.LAND
 
+local params = TREdithMod.GetFlingShoveParams
+
 local data = mod.DataHolder.GetEntityData
 
 
@@ -82,6 +84,7 @@ local function HandleTargetSpawn(player)
 	if player.FrameCount == 0 then return end
 	if player.ControlsCooldown > 0 then return end
 	if not TargetArrow.IsEdithTargetMoving(player) then return end
+    if params(player).IsFlinging then return end
 
     TRTarget.SpawnTREdithTarget(player)
 end
@@ -233,6 +236,13 @@ local function ManageTREdithBounce(player, flingParams)
         local gridEntity = Room:GetGridEntityFromPos(samplePos)
 
         if not gridEntity then goto continue end
+        
+        local collClass = gridEntity.CollisionClass
+
+        if collClass == GridCollisionClass.COLLISION_NONE then goto continue end
+
+        -- print(gridEntity.CollisionClass)
+        
 
         local cellCenter = gridEntity.Position
         local combinedRadius = playerRadius + (gridSize / 2)
@@ -357,4 +367,14 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function (_, player, colli
     sfx:Play(SoundEffect.SOUND_MEATY_DEATHS)
 
     return true
+end)
+
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
+	Player.ForEachPlayerType(function(player)
+		Helpers.ChangeColor(player, nil, nil, nil, 1)
+		TRTarget.RemoveEdithTarget(player)
+		params(player).IsFlinging = false
+
+        print("aaaaaaaaaaaaaaa")
+	end, playerType.PLAYER_EDITH_C)
 end)

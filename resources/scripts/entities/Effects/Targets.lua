@@ -24,10 +24,15 @@ local teleportPoints = {
 	Vector(595, 272),
 }
 
+local targetArrows = {
+	[Vars.EFFECT_EDITH_TARGET] = true,
+	[Vars.EFFECT_EDITH_B_TARGET] = true,
+	[enums.Epiphany.EffectVariant.EFFECT_EDITH_C_TARGET] = true,
+}
+
 ---@param effect EntityEffect
 local function IsAnyEdithTarget(effect)
-    local var = effect.Variant
-    return var == Vars.EFFECT_EDITH_TARGET or var == Vars.EFFECT_EDITH_B_TARGET
+    return targetArrows[effect.Variant] or false
 end
 
 local function interpolateVector2D(vectorA, vectorB, t)
@@ -156,18 +161,27 @@ local function SyncMarkedTarget(effect, player)
 	markedTarget.Velocity = Vector.Zero
 	markedTarget.Visible = false
 end
+
+local Targets = {
+	[Vars.EFFECT_EDITH_TARGET] = true,
+	[enums.Epiphany.EffectVariant.EFFECT_EDITH_C_TARGET] = true
+}
+
 ---@param effect EntityEffect
 ---@param player EntityPlayer
 local function EdithTargetManagement(effect, player)
-	if effect.Variant ~= Vars.EFFECT_EDITH_TARGET then return end
+	if not Targets[effect.Variant] then return end
 
 	local params = Edith.GetJumpStompParams(player)
 	local RoomName = level:GetCurrentRoomDesc().Data.Name
 	local isBeastRoom = RoomName == "Beast Room"
 
-	UpdateTargetAnimation(effect, player, params)
+	if effect.Variant == Vars.EFFECT_EDITH_TARGET then
+		UpdateTargetAnimation(effect, player, params)
+		HandleVestigeDrag(effect, player)
+	end
+
 	UpdateCameraFocus(player.Position, effect.Position, isBeastRoom)
-	HandleVestigeDrag(effect, player)
 	HandleDungeonTeleport(effect, player, isBeastRoom, RoomName)
 	SyncMarkedTarget(effect, player)
 end
@@ -309,11 +323,17 @@ local function TaintedEdithArrowRender(effect, player, saveData)
     )
 end
 
+local doorRadius = {
+	[Vars.EFFECT_EDITH_TARGET] = 28,
+	[enums.Epiphany.EffectVariant.EFFECT_EDITH_C_TARGET] = 28,
+	[Vars.EFFECT_EDITH_B_TARGET] = 20
+}
+
 ---@param effect EntityEffect
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, function(_, effect)
 	if not IsAnyEdithTarget(effect) then return end
 	local player = effect.SpawnerEntity:ToPlayer()
-	local radius = effect.Variant == Vars.EFFECT_EDITH_TARGET and 28 or 20
+	local radius = doorRadius[effect.Variant]
 
     if not player then return end
 	targetArrow.TargetDoorManager(effect, player, radius)
@@ -366,6 +386,9 @@ local spriteParams = {
 ---@param effect EntityEffect
 mod:AddCallback(enums.Callbacks.TARGET_SPRITE_CHANGE, function(_, effect)
 	local sprite = spriteParams[effect.Variant]
+
+	if not sprite then return end
+
 	local path = sprite.path
 	local suffix = sprite.suffix()
 
