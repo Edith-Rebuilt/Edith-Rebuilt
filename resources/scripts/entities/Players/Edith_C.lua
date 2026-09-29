@@ -39,22 +39,15 @@ local TrEdithInfo = {
     floorTutorial = "gfx/grid/tutorial_opensauce.anm2"
 }
 
-mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, function ()
+local function AddTrEdith()
     if not Epiphany then return end
     if not Epiphany.API then return end
 
-    print("Add TR. Edith")
-
     Epiphany.API.AddCharacter(TrEdithInfo)
-end)
+    mod:RemoveCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddTrEdith)
+end
 
--- INITIALIZE EPIPHANY MENU CHARACTER
--- function mod:AddOpenSauceCharacter()
---     print
---     -- 
--- end
-
--- mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.AddOpenSauceCharacter)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddTrEdith)
 
 ---@param entity Entity
 ---@param input InputHook
@@ -239,10 +232,7 @@ local function ManageTREdithBounce(player, flingParams)
         
         local collClass = gridEntity.CollisionClass
 
-        if collClass == GridCollisionClass.COLLISION_NONE then goto continue end
-
-        -- print(gridEntity.CollisionClass)
-        
+        if collClass == GridCollisionClass.COLLISION_NONE then goto continue end        
 
         local cellCenter = gridEntity.Position
         local combinedRadius = playerRadius + (gridSize / 2)
