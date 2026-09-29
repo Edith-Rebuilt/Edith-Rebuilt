@@ -4,10 +4,10 @@ local data = mod.DataHolder.GetEntityData
 
 TREdith = {}
 
----@class TREdithFlingShoveParams
----@field ShoveDamage number
----@field ShoveRadius number
----@field ShoveKnockback number
+---@class TREdithFlingStrikeParams
+---@field StrikeDamage number
+---@field StrikeRadius number
+---@field StrikeKnockback number
 ---@field FlingStaticCharge number
 ---@field FlingMoveCharge number
 ---@field FlingDirection Vector
@@ -22,9 +22,9 @@ TREdith = {}
 
 local function NewFlingShoveParams()
 	return {
-		ShoveDamage = 0,
-		ShoveRadius = 0,
-		ShoveKnockback = 0,
+		StrikeDamage = 0,
+		StrikeRadius = 0,
+		StrikeKnockback = 0,
 		FlingStaticCharge = 0,
 		FlingMoveCharge = 0,
 		FlingDirection = Vector.Zero,
@@ -36,11 +36,11 @@ local function NewFlingShoveParams()
 		Cooldown = 0,
 		IsFlinging = false,
 		ShovedEntities = {},
-	} --[[@as TREdithFlingShoveParams]]
+	} --[[@as TREdithFlingStrikeParams]]
 end
 
 ---@param player EntityPlayer
-function TREdith.GetFlingShoveParams(player)
+function TREdith.GetFlingStrikeParams(player)
 	local playerData = data(player)
     playerData.JumpParams = playerData.JumpParams or NewFlingShoveParams()
 
@@ -62,7 +62,7 @@ end
 ---@param player EntityPlayer
 ---@param charge number
 function TREdith.AddFlingCharge(player, charge)
-    local flingParams = TREdith.GetFlingShoveParams(player)
+    local flingParams = TREdith.GetFlingStrikeParams(player)
 
     flingParams.FlingMoveCharge = AddCharge(flingParams.FlingMoveCharge, charge)
     flingParams.FlingStaticCharge = AddCharge(flingParams.FlingStaticCharge, charge)
@@ -71,8 +71,8 @@ end
 ---@param player EntityPlayer
 ---@param Static boolean --- `true` to get Static charge, otherwise gets Move charge 
 ---@return number
-function TREdith.GetFlingShoveCharge(player, Static)
-	local flingParams = TREdith.GetFlingShoveParams(player)
+function TREdith.GetFlingBurstCharge(player, Static)
+	local flingParams = TREdith.GetFlingStrikeParams(player)
 	local charge = Static and flingParams.FlingStaticCharge or flingParams.FlingMoveCharge
 
 	return charge

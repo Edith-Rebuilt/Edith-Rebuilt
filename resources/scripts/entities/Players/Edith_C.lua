@@ -24,9 +24,8 @@ local EdithMod = modules.EDITH
 local Player = modules.PLAYER
 local Land = modules.LAND
 
-local params = TREdithMod.GetFlingShoveParams
+local params = TREdithMod.GetFlingStrikeParams
 local data = mod.DataHolder.GetEntityData
-
 
 local TrEdithInfo = {
     charName = "EDITH", --Internal character name (REQUIRED)
@@ -93,7 +92,7 @@ end
 
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
-    local flingParams = TREdithMod.GetFlingShoveParams(player)
+    local flingParams = params(player)
 
     flingParams.Cooldown = math.max(flingParams.Cooldown - 1, 0)
     if flingParams.IsFlinging then
@@ -102,19 +101,19 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
 
     local speed = player.MoveSpeed - 1
 
-    ChargeFling(player, 0.025 + (0.5 * (speed * speed)))
+    ChargeFling(player, 0.025 + (0.025 * (speed * speed)))
 end)
 
 ---@param player EntityPlayer
----@param flingParams TREdithFlingShoveParams
+---@param flingParams TREdithFlingStrikeParams
 local function TriggerFling(player, flingParams)
     if flingParams.IsFlinging then return end
 
-    local charge = TREdithMod.GetFlingShoveCharge(player, false)
+    local charge = TREdithMod.GetFlingBurstCharge(player, false)
 
     flingParams.IsFlinging = true
     flingParams.FlingDirection = TRTarget.GetEdithTargetDirection(player)
-    flingParams.FlingDuration = math.ceil(45 * charge)
+    flingParams.FlingDuration = math.ceil((45 * charge) * Player.GetPlayerRange(player) / 9)
     flingParams.FlingVel = flingParams.FlingDirection * 15 * charge
 
     TRTarget.RemoveEdithTarget(player)
@@ -123,12 +122,12 @@ end
 local puffSize = Vector(0.6, 0.6)
 
 ---@param player EntityPlayer
----@param flingParams TREdithFlingShoveParams
+---@param flingParams TREdithFlingStrikeParams
 local function TriggerBurst(player, flingParams)
     if flingParams.FlingStaticCharge <= 0 then return end
     if flingParams.Cooldown > 0 then return end
 
-    local charge = TREdithMod.GetFlingShoveCharge(player, true)
+    local charge = TREdithMod.GetFlingBurstCharge(player, true)
 
     game:ShakeScreen(5 + math.ceil(4 * charge))
 
@@ -137,8 +136,6 @@ local function TriggerBurst(player, flingParams)
 
     cloud.Color = Color(1, 1, 1, 1, 0.3, 0.3, 0.3)
     cloud.SpriteScale = puffSize + (puffSize / 2) * charge
-
-    print(charge, TEdithMod.HopCurve(charge))
 
     for _, ent in ipairs(Isaac.FindInCapsule(Capsule, EntityPartition.ENEMY | EntityPartition.BULLET)) do
         Helpers.TriggerPush(ent, player, 50 * TEdithMod.HopCurve(charge))
@@ -167,10 +164,10 @@ end)
 
 ---@param player EntityPlayer
 local function ChargeRelease(player)
-    if not (TREdithMod.GetFlingShoveCharge(player, false) > 0 and not Helpers.IsKeyStompPressed(player)) then return end
+    if not (TREdithMod.GetFlingBurstCharge(player, false) > 0 and not Helpers.IsKeyStompPressed(player)) then return end
 
     local target = TRTarget.GetTREdithTarget(player)
-    local flingParams = TREdithMod.GetFlingShoveParams(player)
+    local flingParams = params(player)
 
     if target then
         TriggerFling(player, flingParams)
@@ -178,7 +175,7 @@ local function ChargeRelease(player)
         TriggerBurst(player, flingParams)
     end
 
-    TREdithMod.GetFlingShoveParams(player).FlingStaticCharge = 0
+    flingParams.FlingStaticCharge = 0
 end
 
 ---@param velocity Vector
@@ -208,7 +205,7 @@ local function RaySphereIntersect(origin, dir, center, radius)
 end
 
 ---@param player EntityPlayer
----@param flingParams TREdithFlingShoveParams
+---@param flingParams TREdithFlingStrikeParams
 local function ManageTREdithBounce(player, flingParams)
     if not flingParams.IsFlinging then return end
 
@@ -293,7 +290,7 @@ local function ManageTREdithBounce(player, flingParams)
     if bestNormal then
         sfx:Play(SoundEffect.SOUND_STONE_IMPACT)
 
-        game:ShakeScreen(3 + math.ceil(5 * TREdithMod.GetFlingShoveCharge(player, false)))
+        game:ShakeScreen(3 + math.ceil(5 * TREdithMod.GetFlingBurstCharge(player, false)))
 
         local impactPos = pos + vel * bestT
         local reflectVel = ReflectVelocity(vel, bestNormal, 0.99)
@@ -305,7 +302,7 @@ local function ManageTREdithBounce(player, flingParams)
 end
 
 ---@param player EntityPlayer
----@param flingParams TREdithFlingShoveParams
+---@param flingParams TREdithFlingStrikeParams
 local function KeepFling(player, flingParams)
     if flingParams.FlingDuration <= 0 then return end
 
@@ -321,8 +318,6 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     local target = TRTarget.GetTREdithTarget(player)
     local isMoving = TargetArrow.IsEdithTargetMoving(player)
     local flingParams = params(player)
-    
-    print(flingParams.FlingDuration)
 
     if flingParams.FlingDuration == 1 then
         player:SetMinDamageCooldown(30)
@@ -357,7 +352,7 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
 	Player.ForEachPlayerType(function(player)
 		if RoomTransition:GetTransitionMode() == 3 then return end
 
-		local flingParams = TREdithMod.GetFlingShoveParams(player)   
+		local flingParams = params(player)   
 		local playerData = data(player)
 		local FlingCharge = flingParams.FlingStaticCharge
 
@@ -380,15 +375,25 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function (_, player)
     end
 end)
 
+local baseDamage = 10
+
 ---@param player EntityPlayer
 ---@param collider Entity
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function (_, player, collider)
     if not TREdithMod.IsTREdith(player) then return end
     if not Helpers.IsEnemy(collider) then return end
 
-    if not params(player).IsFlinging then return end
+    local flingParams = params(player)
 
-    Land.LandDamage(collider, player, 12, 30)
+    if not flingParams.IsFlinging then return end
+
+    local rawFormula = (12 + player.Damage) / 1.5
+    local charge = TREdithMod.GetFlingBurstCharge(player, false)
+
+    flingParams.ShoveDamage = rawFormula * (TEdithMod.HopCurve(charge) + 0.5) 
+
+    Land.LandDamage(collider, player, flingParams.ShoveDamage, 30 * player.ShotSpeed * charge)
+    Helpers.TriggerPush(collider, player, 30 * player.ShotSpeed)
     sfx:Play(SoundEffect.SOUND_MEATY_DEATHS)
 
     return true
