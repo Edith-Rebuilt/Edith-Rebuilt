@@ -42,5 +42,6 @@
 		costumeSuffix="trmagdalene"
 		nomarks="true"
 		modcostume="2"
+		damagemultiplier="1.5"
 	/>
 </players>

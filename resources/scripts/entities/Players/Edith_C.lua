@@ -16,6 +16,7 @@ local modules = mod.Modules
 
 local TREdithMod = modules.TR_EDITH
 local TRTarget = modules.TARGET
+local TEdithMod = modules.TEDITH
 local TargetArrow = modules.TARGET_ARROW
 local Helpers = modules.HELPERS
 local StatusEffects = modules.STATUS_EFFECTS
@@ -24,7 +25,6 @@ local Player = modules.PLAYER
 local Land = modules.LAND
 
 local params = TREdithMod.GetFlingShoveParams
-
 local data = mod.DataHolder.GetEntityData
 
 
@@ -100,7 +100,9 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
         flingParams.FlingDuration = math.max(flingParams.FlingDuration - 1, 0)
     end
 
-    ChargeFling(player, 0.02)
+    local speed = player.MoveSpeed - 1
+
+    ChargeFling(player, 0.025 + (0.5 * (speed * speed)))
 end)
 
 ---@param player EntityPlayer
@@ -136,12 +138,33 @@ local function TriggerBurst(player, flingParams)
     cloud.Color = Color(1, 1, 1, 1, 0.3, 0.3, 0.3)
     cloud.SpriteScale = puffSize + (puffSize / 2) * charge
 
-    for _, ent in ipairs(Isaac.FindInCapsule(Capsule, EntityPartition.ENEMY)) do
-        Helpers.TriggerPush(ent, player, 100 * (charge * charge))
+    print(charge, TEdithMod.HopCurve(charge))
+
+    for _, ent in ipairs(Isaac.FindInCapsule(Capsule, EntityPartition.ENEMY | EntityPartition.BULLET)) do
+        Helpers.TriggerPush(ent, player, 50 * TEdithMod.HopCurve(charge))
+
+        if Helpers.IsEnemy(ent) then
+            data(ent).HitStunDuration = 8 + math.ceil(5 * TEdithMod.HopCurve(charge))
+        end
     end
+
+    player:SetMinDamageCooldown(30)
 
     flingParams.Cooldown = 15
 end
+
+mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, function (_, npc)
+    local npcData = data(npc)
+
+    if not (npcData.HitStunDuration and npcData.HitStunDuration > 0) then return end
+
+    npcData.HitStunDuration = npcData.HitStunDuration - 1
+
+    if npcData.HitStunDuration > 0 then
+        print(npcData.HitStunDuration)
+        return true
+    end
+end)
 
 ---@param player EntityPlayer
 local function ChargeRelease(player)
@@ -246,7 +269,7 @@ local function ManageTREdithBounce(player, flingParams)
         local gridEntity = Room:GetGridEntityFromPos(samplePos)
 
         if not gridEntity then goto continue end
-        
+
         local collClass = gridEntity.CollisionClass
 
         if collClass == GridCollisionClass.COLLISION_NONE then goto continue end        
@@ -270,7 +293,7 @@ local function ManageTREdithBounce(player, flingParams)
 
     if bestNormal then
         sfx:Play(SoundEffect.SOUND_STONE_IMPACT)
-        
+
         game:ShakeScreen(3 + math.ceil(5 * TREdithMod.GetFlingShoveCharge(player, false)))
 
         local impactPos = pos + vel * bestT
@@ -299,12 +322,6 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     local target = TRTarget.GetTREdithTarget(player)
     local isMoving = TargetArrow.IsEdithTargetMoving(player)
     local flingParams = TREdithMod.GetFlingShoveParams(player)
-
-    -- print("===============================")
-
-    -- for k, v in pairs(flingParams) do
-    --     print(k, v)
-    -- end
 
     if player.Velocity:Length() < 0.3 and flingParams.IsFlinging then
         flingParams.IsFlinging = false
@@ -381,5 +398,13 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
 		Helpers.ChangeColor(player, nil, nil, nil, 1)
 		TRTarget.RemoveEdithTarget(player)
 		params(player).IsFlinging = false
+	end, playerType.PLAYER_EDITH_C)
+end)
+
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, function ()
+    Player.ForEachPlayerType(function(player)
+		Helpers.ChangeColor(player, nil, nil, nil, 1)
+		TRTarget.RemoveEdithTarget(player)
+		params(player).FlingDuration = 0
 	end, playerType.PLAYER_EDITH_C)
 end)
