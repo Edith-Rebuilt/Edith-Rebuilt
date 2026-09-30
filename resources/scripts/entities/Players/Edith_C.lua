@@ -185,7 +185,7 @@ local function TriggerBurst(player, flingParams)
     if flingParams.FlingStaticCharge <= 0 then return end
     if flingParams.Cooldown > 0 then return end
 
-    local charge = math.max(1, TREdithMod.GetFlingBurstCharge(player, true) * 2)
+    local charge = math.min(1, TREdithMod.GetFlingBurstCharge(player, true) * 2)
     local Capsule = Capsule(player.Position, Vector.One, 0, 50)
 
     BurstSpecialEffects(player, charge)
