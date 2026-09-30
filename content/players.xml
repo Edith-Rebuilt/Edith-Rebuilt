@@ -38,6 +38,7 @@
 		hidden="true"
 		nameimage="EdithName.png"
 		portrait="TrEdithPortrait.png"
+		noshake="true"
 		skinColor="21" 
 		costumeSuffix="trmagdalene"
 		nomarks="true"
