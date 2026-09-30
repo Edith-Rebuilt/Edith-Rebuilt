@@ -293,4 +293,16 @@ function Player.IsEffigyStatue(player)
 	return player:GetEffects():HasNullEffect(enums.NullItemID.EFFIGY)
 end
 
+function Player.GetPlayerRenderPos(player)
+	local Helpers = mod.Modules.HELPERS
+
+	local playerpos = room:WorldToScreenPosition(player.Position)
+	if Helpers.IsMirrorWorld() then
+		playerpos.X = (Helpers.GetScreenCenter().X * 2 - playerpos.X)
+	end
+
+	return playerpos
+end
+
+
 return Player

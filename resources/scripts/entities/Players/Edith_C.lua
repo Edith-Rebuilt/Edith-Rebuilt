@@ -5,11 +5,11 @@ local enums = mod.Enums
 local utils = enums.Utils
 local tables = enums.Tables
 local Trenums = enums.Epiphany
+local TRCallbacks = Trenums.Callbacks
 local misc = enums.Misc
 
 local game = utils.Game
 local sfx = utils.SFX
-local Room = utils.Room
 
 local playerType = Trenums.PlayerType
 local modules = mod.Modules
@@ -90,17 +90,21 @@ local function ChargeFling(player, charge)
     TREdithMod.AddFlingCharge(player, charge)
 end
 
----@param player EntityPlayer
-mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
-    local flingParams = params(player)
-
+---@param flingParams TREdithFlingStrikeParams
+local function ManageCounters(flingParams)
     flingParams.Cooldown = math.max(flingParams.Cooldown - 1, 0)
+
     if flingParams.IsFlinging then
         flingParams.FlingDuration = math.max(flingParams.FlingDuration - 1, 0)
     end
+end
 
+---@param player EntityPlayer
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
+    local flingParams = params(player)
     local speed = player.MoveSpeed - 1
 
+    ManageCounters(flingParams)
     ChargeFling(player, 0.025 + (0.025 * (speed * speed)))
 end)
 
@@ -118,27 +122,59 @@ local function GetTEdithLandParams(IsParryLand)
     }
 end
 
+---@param player EntityPlayer
+local function FlingSpecialEffects(player)
+    Land.SpawnLandGFX(player, GetTEdithLandParams(false), Helpers.IsChap4())
+    Helpers.SpawnSaltGib(player, 3, 4, player.Color, true)
+    sfx:Play(SoundEffect.SOUND_SHELLGAME)
+end
 
 ---@param player EntityPlayer
 ---@param flingParams TREdithFlingStrikeParams
-local function TriggerFling(player, flingParams)
-    if flingParams.IsFlinging then return end
-
+local function SetFlingParams(player, flingParams)
     local charge = TREdithMod.GetFlingBurstCharge(player, false)
 
     flingParams.IsFlinging = true
     flingParams.FlingDirection = TRTarget.GetEdithTargetDirection(player)
     flingParams.FlingDuration = math.ceil((45 * charge) * Player.GetPlayerRange(player) / 9)
     flingParams.FlingVel = flingParams.FlingDirection * 15 * charge
+end
 
-    Land.SpawnLandGFX(player, GetTEdithLandParams(false), Helpers.IsChap4())
-    Helpers.SpawnSaltGib(player, 3, 4, player.Color, true)
-    sfx:Play(SoundEffect.SOUND_SHELLGAME)
+---@param player EntityPlayer
+---@param flingParams TREdithFlingStrikeParams
+local function TriggerFling(player, flingParams)
+    if flingParams.IsFlinging then return end
+
+    SetFlingParams(player, flingParams)
+    FlingSpecialEffects(player)
 
     TRTarget.RemoveEdithTarget(player)
 end
 
 local puffSize = Vector(0.6, 0.6)
+
+---@param player EntityPlayer
+---@param charge number
+local function BurstSpecialEffects(player, charge)
+    game:ShakeScreen(5 + math.ceil(4 * charge))
+
+    local cloud = StatusEffects.SpawnSpicePuff(player, RNG(Random()))
+
+    cloud.Color = Color(1, 1, 1, 1, 0.3, 0.3, 0.3)
+    cloud.SpriteScale = puffSize + (puffSize / 2) * charge
+end
+
+local function BurstKnockback(player, charge, Capsule)
+    local modCharge = TEdithMod.HopCurve(charge)
+
+    for _, ent in ipairs(Isaac.FindInCapsule(Capsule, misc.ParryPartitions --[[@as EntityPartition]])) do
+        Helpers.TriggerPush(ent, player, 50 * modCharge)
+
+        if Helpers.IsEnemy(ent) then
+            data(ent).HitStunDuration = 8 + math.ceil(5 * modCharge)
+        end
+    end
+end 
 
 ---@param player EntityPlayer
 ---@param flingParams TREdithFlingStrikeParams
@@ -147,26 +183,14 @@ local function TriggerBurst(player, flingParams)
     if flingParams.Cooldown > 0 then return end
 
     local charge = TREdithMod.GetFlingBurstCharge(player, true)
-
-    game:ShakeScreen(5 + math.ceil(4 * charge))
-
     local Capsule = Capsule(player.Position, Vector.One, 0, 50)
-    local cloud = StatusEffects.SpawnSpicePuff(player, RNG(Random()))
 
-    cloud.Color = Color(1, 1, 1, 1, 0.3, 0.3, 0.3)
-    cloud.SpriteScale = puffSize + (puffSize / 2) * charge
-
-    for _, ent in ipairs(Isaac.FindInCapsule(Capsule, EntityPartition.ENEMY | EntityPartition.BULLET)) do
-        Helpers.TriggerPush(ent, player, 50 * TEdithMod.HopCurve(charge))
-
-        if Helpers.IsEnemy(ent) then
-            data(ent).HitStunDuration = 8 + math.ceil(5 * TEdithMod.HopCurve(charge))
-        end
-    end
+    BurstSpecialEffects(player, charge)
+    BurstKnockback(player, charge, Capsule)
 
     player:SetMinDamageCooldown(30)
-    flingParams.FlingMoveCharge = 0
 
+    flingParams.FlingMoveCharge = 0
     flingParams.Cooldown = 15
 end
 
@@ -196,131 +220,6 @@ local function ChargeRelease(player)
     end
 
     flingParams.FlingStaticCharge = 0
-end
-
----@param velocity Vector
----@param normal Vector
----@param restitution number
----@return Vector
-local function ReflectVelocity(velocity, normal, restitution)
-    restitution = restitution or 1
-    local d = velocity:Dot(normal)
-    return (velocity - normal * (2 * d)) * restitution
-end
-
--- Intersección de un segmento (rayo) contra un círculo (obstáculo)
--- Devuelve t (0-1) del punto de impacto en el segmento, o nil si no choca
-local function RaySphereIntersect(origin, dir, center, radius)
-    local m = origin - center
-    local b = m:Dot(dir)
-    local c = m:Dot(m) - radius * radius
-    if c > 0 and b > 0 then return nil end -- va alejándose, no choca
-
-    local discr = b * b - c
-    if discr < 0 then return nil end -- no intersecta
-
-    local t = -b - math.sqrt(discr)
-    if t < 0 then t = 0 end
-    return t
-end
-
----@param player EntityPlayer
----@param flingParams TREdithFlingStrikeParams
-local function ManageTREdithBounce(player, flingParams)
-    if not flingParams.IsFlinging then return end
-
-    local pos = player.Position
-    local vel = player.Velocity
-    local speed = vel:Length()
-    if speed < 0.01 then return end
-
-    local dir = vel:Normalized()
-    local playerRadius = player.Size
-
-    local bestT = 1 -- normalizado, 1 = llega sin chocar
-    local bestNormal
-
-    -- 1) Chequear límites del cuarto
-    local topLeft = Room:GetTopLeftPos()
-    local bottomRight = Room:GetBottomRightPos()
-    local nextPos = pos + vel
-
-    local hitX, hitY = false, false
-    local normalX, normalY = Vector(0,0), Vector(0,0)
-    local tX, tY = bestT, bestT
-
-    if nextPos.X - playerRadius <= topLeft.X then
-        tX = (topLeft.X + playerRadius - pos.X) / vel.X
-        if tX >= 0 and tX < bestT then hitX, normalX = true, Vector(1, 0) end
-    elseif nextPos.X + playerRadius >= bottomRight.X then
-        tX = (bottomRight.X - playerRadius - pos.X) / vel.X
-        if tX >= 0 and tX < bestT then hitX, normalX = true, Vector(-1, 0) end
-    end
-
-    if nextPos.Y - playerRadius <= topLeft.Y then
-        tY = (topLeft.Y + playerRadius - pos.Y) / vel.Y
-        if tY >= 0 and tY < bestT then hitY, normalY = true, Vector(0, 1) end
-    elseif nextPos.Y + playerRadius >= bottomRight.Y then
-        tY = (bottomRight.Y - playerRadius - pos.Y) / vel.Y
-        if tY >= 0 and tY < bestT then hitY, normalY = true, Vector(0, -1) end
-    end
-
-    local cornerTolerance = 0.1 -- ajustable: qué tan "al mismo tiempo" cuentan como esquina
-
-    if hitX and hitY and math.abs(tX - tY) < cornerTolerance then
-        bestT = math.min(tX, tY)
-        bestNormal = (normalX + normalY):Normalized()
-    elseif hitX and (not hitY or tX < tY) then
-        bestT, bestNormal = tX, normalX
-    elseif hitY then
-        bestT, bestNormal = tY, normalY
-    end
-
-    -- 2) Chequear grid entities (rocas, muros de grilla, obstáculos sólidos)
-    local gridSize = 40
-    local steps = math.ceil(speed)
-
-    for i = 1, steps do
-        local samplePos = pos + dir * (speed * i / steps)
-        local gridEntity = Room:GetGridEntityFromPos(samplePos)
-
-        if not gridEntity then goto continue end
-
-        local collClass = gridEntity.CollisionClass
-
-        if collClass == GridCollisionClass.COLLISION_NONE then goto continue end        
-
-        local cellCenter = gridEntity.Position
-        local combinedRadius = playerRadius + (gridSize / 2)
-        local t = RaySphereIntersect(pos, dir, cellCenter, combinedRadius)
-
-        if not t then goto continue end
-
-        local tNorm = t / speed
-
-        if not (tNorm >= 0 and tNorm < bestT) then goto continue end
-
-        local impactPoint = pos + dir * t
-        bestT = tNorm
-        bestNormal = (impactPoint - cellCenter):Normalized()
-
-        ::continue::
-    end
-
-    if bestNormal then
-        sfx:Play(SoundEffect.SOUND_STONE_IMPACT)
-
-        game:ShakeScreen(3 + math.ceil(5 * TREdithMod.GetFlingBurstCharge(player, false)))
-
-        local impactPos = pos + vel * bestT
-        local reflectVel = ReflectVelocity(vel, bestNormal, 0.99)
-
-        Helpers.SpawnSaltGib(player, 3, 4, player.Color, true)
-
-        player.Position = impactPos + bestNormal * 5
-        flingParams.FlingDirection = reflectVel:Normalized()
-        flingParams.FlingVel = reflectVel
-    end
 end
 
 ---@param player EntityPlayer
@@ -353,29 +252,26 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
 
     ChargeRelease(player)
 
-    ManageTREdithBounce(player, flingParams)
+    TREdithMod.ManageTREdithBounce(player, flingParams)
     KeepFling(player, flingParams)
 
     if target then
         EdithMod.TargetMovementManager(player, target, isMoving)
     end
-
-    print()
-
-    for k, v in pairs(flingParams) do
-        print(k .. ":", v)
-    end
-
 end)
 
-local function GetPlayerRenderPos(player)
-	local playerpos = Room:WorldToScreenPosition(player.Position)
-	if Helpers.IsMirrorWorld() then
-		playerpos.X = (Helpers.GetScreenCenter().X * 2 - playerpos.X)
-	end
-
-	return playerpos
+local function TriggerGridHitEffects(player)
+    sfx:Play(SoundEffect.SOUND_STONE_IMPACT)
+    game:ShakeScreen(3 + math.ceil(5 * TREdithMod.GetFlingBurstCharge(player, false)))
+    Helpers.SpawnSaltGib(player, 3, 4, player.Color, false)
 end
+
+---@param player EntityPlayer
+---@param grid GridEntity
+---@param flingParams TREdithFlingStrikeParams
+mod:AddCallback(TRCallbacks.STRIKE_HIT_GRID, function (_, player, grid, flingParams)
+    TriggerGridHitEffects(player)
+end)
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
 	Player.ForEachPlayerType(function(player)
@@ -389,7 +285,7 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
 
         playerData.ChargeBar = playerData.ChargeBar or Sprite("gfx/TEdithChargebar.anm2", true)
 
-		local playerpos = GetPlayerRenderPos(player)
+		local playerpos = Player.GetPlayerRenderPos(player)
 
 		HudHelper.RenderChargeBar(playerData.ChargeBar, FlingCharge, 1, playerpos + misc.ChargeBarcenterVector)
 	end, playerType.PLAYER_EDITH_C)

@@ -461,15 +461,6 @@ local function RenderChargeBars(playerData, playerpos, offset, dashCharge, dashB
 	HudHelper.RenderChargeBar(playerData.BRChargeBar, dashBRCharge, 100, playerpos + misc.ChargeBarrightVector)
 end
 
-local function GetPlayerRenderPos(player)
-	local playerpos = room:WorldToScreenPosition(player.Position)
-	if Helpers.IsMirrorWorld() then
-		playerpos.X = (Helpers.GetScreenCenter().X * 2 - playerpos.X)
-	end
-
-	return playerpos
-end
-
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
 	Player.ForEachPlayerType(function(player)
 		if RoomTransition:GetTransitionMode() == 3 then return end
@@ -482,7 +473,7 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
 		if not dashCharge or not dashBRCharge then return end
 
 		SetChargeBars(playerData)
-		local playerpos = GetPlayerRenderPos(player)
+		local playerpos = Player.GetPlayerRenderPos(player)
 		local offset = GetMainChargeOffset(player, playerData)
 
 		RenderChargeBars(playerData, playerpos, offset, dashCharge, dashBRCharge)

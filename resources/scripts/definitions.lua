@@ -513,7 +513,7 @@ EdithRebuilt.Enums = {
 		ChargeBarleftVector = Vector(-8, 10),
 		ChargeBarcenterVector = Vector(0, 10),
 		ChargeBarrightVector = Vector(8, 10),
-		ParryPartitions = EntityPartition.ENEMY | EntityPartition.BULLET | EntityPartition.TEAR, --[[@as EntityPartition|integer]]
+		ParryPartitions = EntityPartition.ENEMY | EntityPartition.BULLET | EntityPartition.TEAR,
 	},
 	Epiphany = {
 		PlayerType = {
@@ -521,6 +521,13 @@ EdithRebuilt.Enums = {
 		},
 		EffectVariant = {
 			EFFECT_EDITH_C_TARGET = Isaac.GetEntityVariantByName("TR. Edith Target"),
+		},
+		Callbacks = {
+			-- Called everytime TR. Edith hits a grid entity
+			---* player `EntityPlayer`
+			---* grid `GridEntity`
+			---* params `TREdithFlingStrikeParams`
+			STRIKE_HIT_GRID = "EdithRebuilt_STRIKE_HIT_GRID"
 		}
 	}
 }
