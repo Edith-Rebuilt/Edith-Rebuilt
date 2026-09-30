@@ -43,7 +43,6 @@ local function AddTrEdith()
     if not Epiphany.API then return end
 
     Epiphany.API.AddCharacter(TrEdithInfo)
-    mod:RemoveCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddTrEdith)
 end
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddTrEdith)
@@ -260,9 +259,9 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     end
 end)
 
-local function TriggerGridHitEffects(player)
+local function TriggerGridHitEffects(player, charge)
     sfx:Play(SoundEffect.SOUND_STONE_IMPACT)
-    game:ShakeScreen(3 + math.ceil(5 * TREdithMod.GetFlingBurstCharge(player, false)))
+    game:ShakeScreen(3 + math.ceil(5 * charge))
     Helpers.SpawnSaltGib(player, 3, 4, player.Color, false)
 end
 
@@ -270,7 +269,15 @@ end
 ---@param grid GridEntity
 ---@param flingParams TREdithFlingStrikeParams
 mod:AddCallback(TRCallbacks.STRIKE_HIT_GRID, function (_, player, grid, flingParams)
-    TriggerGridHitEffects(player)
+    local charge = TREdithMod.GetFlingBurstCharge(player, false)
+
+    TriggerGridHitEffects(player, charge)
+
+    -- print(charge)
+
+    if grid and charge >= 0.8 then
+        grid:DestroyWithSource(false, EntityRef(player))
+    end
 end)
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()

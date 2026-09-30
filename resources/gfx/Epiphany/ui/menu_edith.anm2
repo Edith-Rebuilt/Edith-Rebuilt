@@ -6,8 +6,8 @@
             <Spritesheet Id="1" Path="corrupted_character_menu_background.png"/>
             <Spritesheet Id="2" Path="corrupted_character_menu_poster.png"/>
             <Spritesheet Id="3" Path="menu_portrait_edith.png"/>
-            <Spritesheet Id="4" Path="menu_door_opensauce.png"/>
-            <Spritesheet Id="5" Path="menu_info_opensauce.png"/>
+            <Spritesheet Id="4" Path="menu_door_edith.png"/>
+            <Spritesheet Id="5" Path="menu_info_edith.png"/>
             <Spritesheet Id="6" Path="corrupted_character_menu_overlay.png"/>
         </Spritesheets>
         <Layers>
@@ -71,8 +71,8 @@
                 <Spritesheet Id="1" Path="corrupted_character_menu_background.png"/>
                 <Spritesheet Id="2" Path="corrupted_character_menu_poster.png"/>
                 <Spritesheet Id="3" Path="menu_portrait_edith.png"/>
-                <Spritesheet Id="4" Path="menu_door_opensauce.png"/>
-                <Spritesheet Id="5" Path="menu_info_opensauce.png"/>
+                <Spritesheet Id="4" Path="menu_door_edith.png"/>
+                <Spritesheet Id="5" Path="menu_info_edith.png"/>
                 <Spritesheet Id="6" Path="corrupted_character_menu_overlay.png"/>
             </Spritesheets>
             <Layers>
