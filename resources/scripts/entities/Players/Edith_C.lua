@@ -266,14 +266,20 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     end
 end)
 
+---@param player EntityPlayer
+---@param charge number 
 local function TriggerGridHitEffects(player, charge)
     sfx:Play(SoundEffect.SOUND_STONE_IMPACT)
     game:ShakeScreen(3 + math.ceil(5 * charge))
     Helpers.SpawnSaltGib(player, 3, 4, player.Color, false)
 end
 
+---@param player EntityPlayer
+---@param grid GridEntity
+---@param charge number 
 local function ManageStrikeGridDestroy(player, grid, charge)
     if not grid then return end
+    if grid:ToDoor() then return end
     if charge < 0.5 then return end
 
     grid:DestroyWithSource(false, EntityRef(player))
@@ -416,6 +422,7 @@ local function ComputeGridNormal(playerPos, playerVel, playerRadius, gridEntity,
 
     return normal, math.max(penetration, 0)
 end
+
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_GRID_COLLISION, function (_, player, index, grid)
     local flingParams = params(player)
     if not flingParams.IsFlinging then return end
@@ -423,8 +430,6 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_GRID_COLLISION, function (_, player, 
 
     local pData = data(player)
     local now = Isaac.GetFrameCount()
-
-    if grid:ToDoor() then return end
 
     if pData.LastBounceFrame == now then
         return true
