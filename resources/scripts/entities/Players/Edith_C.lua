@@ -234,6 +234,20 @@ local function KeepFling(player, flingParams)
 end
 
 ---@param player EntityPlayer
+---@param flingParams TREdithFlingStrikeParams
+local function ResetFlingState(player, flingParams)
+    if flingParams.FlingDuration == 1 then 
+        player:SetMinDamageCooldown(30)
+        flingParams.FlingMoveCharge = 0
+        flingParams.FlingStaticCharge = 0
+    end
+
+    if flingParams.FlingDuration == 0 and flingParams.IsFlinging == true then
+        flingParams.IsFlinging = false
+    end
+end 
+
+---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     if not TREdithMod.IsTREdith(player) then return end
 
@@ -243,19 +257,8 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     local isMoving = TargetArrow.IsEdithTargetMoving(player)
     local flingParams = params(player)
 
-    if flingParams.FlingDuration == 1 then
-        player:SetMinDamageCooldown(30)
-        flingParams.FlingMoveCharge = 0
-        flingParams.FlingStaticCharge = 0
-    end
-
-    if flingParams.FlingDuration == 0 and flingParams.IsFlinging == true then
-        flingParams.IsFlinging = false
-    end
-
+    ResetFlingState(player, flingParams)
     ChargeRelease(player)
-
-    TREdithMod.ManageTREdithBounce(player, flingParams)
     KeepFling(player, flingParams)
 
     if target then
@@ -269,6 +272,13 @@ local function TriggerGridHitEffects(player, charge)
     Helpers.SpawnSaltGib(player, 3, 4, player.Color, false)
 end
 
+local function ManageStrikeGridDestroy(player, grid, charge)
+    if not grid then return end
+    if charge < 0.5 then return end
+
+    grid:DestroyWithSource(false, EntityRef(player))
+end
+
 ---@param player EntityPlayer
 ---@param grid GridEntity
 ---@param flingParams TREdithFlingStrikeParams
@@ -276,10 +286,7 @@ mod:AddCallback(TRCallbacks.STRIKE_HIT_GRID, function (_, player, grid, flingPar
     local charge = TREdithMod.GetFlingBurstCharge(player, false)
 
     TriggerGridHitEffects(player, charge)
-
-    if grid and charge >= 0.5 then
-        grid:DestroyWithSource(false, EntityRef(player))
-    end
+    ManageStrikeGridDestroy(player, grid, charge)
 end)
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
@@ -321,13 +328,13 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function (_, player, colli
     local rawFormula = (12 + player.Damage) / 1.5
     local charge = TREdithMod.GetFlingBurstCharge(player, false)
 
-    flingParams.ShoveDamage = rawFormula * (TEdithMod.HopCurve(charge) + 0.5) 
+    flingParams.StrikeDamage = rawFormula * (TEdithMod.HopCurve(charge) + 0.5) 
 
     if collider.Type == EntityType.ENTITY_FIREPLACE and collider.Variant ~= 4 then
         collider:Kill()
     end
 
-    Land.LandDamage(collider, player, flingParams.ShoveDamage, 30 * player.ShotSpeed * charge)
+    Land.LandDamage(collider, player, flingParams.StrikeDamage, 30 * player.ShotSpeed * charge)
     Helpers.TriggerPush(collider, player, 30 * player.ShotSpeed)
     sfx:Play(SoundEffect.SOUND_MEATY_DEATHS)
 
@@ -338,7 +345,12 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
 	Player.ForEachPlayerType(function(player)
 		Helpers.ChangeColor(player, nil, nil, nil, 1)
 		TRTarget.RemoveEdithTarget(player)
-		params(player).IsFlinging = false
+        
+        local flingParams = params(player)
+        
+        flingParams.FlingDuration = 0
+        flingParams.FlingMoveCharge = 0
+        flingParams.FlingStaticCharge = 0
 	end, playerType.PLAYER_EDITH_C)
 end)
 
@@ -348,4 +360,92 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, function ()
 		TRTarget.RemoveEdithTarget(player)
 		params(player).FlingDuration = 0
 	end, playerType.PLAYER_EDITH_C)
+end)
+
+---@param velocity Vector
+---@param normal Vector
+---@param restitution number
+---@return Vector
+local function ReflectVelocity(velocity, normal, restitution)
+    restitution = restitution or 1
+    local d = velocity:Dot(normal)
+    return (velocity - normal * (2 * d)) * restitution
+end
+
+---@param playerPos Vector
+---@param playerVel Vector
+---@param playerRadius number
+---@param gridEntity Entity
+---@param gridSize any
+---@return Vector
+---@return number
+local function ComputeGridNormal(playerPos, playerVel, playerRadius, gridEntity, gridSize)
+    local center = gridEntity.Position
+    local diff = playerPos - center
+    local half = gridSize / 2
+
+    local towardsX = (diff.X > 0 and playerVel.X < 0) or (diff.X < 0 and playerVel.X > 0)
+    local towardsY = (diff.Y > 0 and playerVel.Y < 0) or (diff.Y < 0 and playerVel.Y > 0)
+
+    local normal, penetration
+
+    local function penetrationX()
+        return (half + playerRadius) - math.abs(diff.X)
+    end
+    local function penetrationY()
+        return (half + playerRadius) - math.abs(diff.Y)
+    end
+
+    if towardsX and towardsY then
+        if math.abs(playerVel.X) >= math.abs(playerVel.Y) then
+            normal, penetration = Vector(diff.X > 0 and 1 or -1, 0), penetrationX()
+        else
+            normal, penetration = Vector(0, diff.Y > 0 and 1 or -1), penetrationY()
+        end
+    elseif towardsX then
+        normal, penetration = Vector(diff.X > 0 and 1 or -1, 0), penetrationX()
+    elseif towardsY then
+        normal, penetration = Vector(0, diff.Y > 0 and 1 or -1), penetrationY()
+    else
+        if penetrationX() < penetrationY() then
+            normal, penetration = Vector(diff.X > 0 and 1 or -1, 0), penetrationX()
+        else
+            normal, penetration = Vector(0, diff.Y > 0 and 1 or -1), penetrationY()
+        end
+    end
+
+    return normal, math.max(penetration, 0)
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_GRID_COLLISION, function (_, player, index, grid)
+    local flingParams = params(player)
+    if not flingParams.IsFlinging then return end
+    if not grid then return end
+
+    local pData = data(player)
+    local now = Isaac.GetFrameCount()
+
+    if grid:ToDoor() then return end
+
+    if pData.LastBounceFrame == now then
+        return true
+    end
+
+    local vel = player.Velocity
+    if vel:Length() < 0.01 then return end
+
+    local gridSize = 40
+    local normal, penetration = ComputeGridNormal(player.Position, vel, player.Size, grid, gridSize)
+
+    local reflectVel = ReflectVelocity(vel, normal, 1)
+    player.Velocity = reflectVel
+    player.Position = player.Position + normal * (penetration + 2)
+
+    flingParams.FlingDirection = reflectVel:Normalized()
+    flingParams.FlingVel = reflectVel
+
+    pData.LastBounceFrame = now
+
+    Isaac.RunCallback(TRCallbacks.STRIKE_HIT_GRID, player, grid, flingParams)
+
+    return true
 end)
