@@ -169,6 +169,10 @@ local function BurstKnockback(player, charge, Capsule)
     for _, ent in ipairs(Isaac.FindInCapsule(Capsule, misc.ParryPartitions --[[@as EntityPartition]])) do
         Helpers.TriggerPush(ent, player, 50 * modCharge)
 
+        if ent.Type == EntityType.ENTITY_FIREPLACE and ent.Variant ~= 4 then
+            ent:Kill()
+        end
+
         if Helpers.IsEnemy(ent) then
             data(ent).HitStunDuration = 8 + math.ceil(5 * modCharge)
         end
@@ -273,8 +277,6 @@ mod:AddCallback(TRCallbacks.STRIKE_HIT_GRID, function (_, player, grid, flingPar
 
     TriggerGridHitEffects(player, charge)
 
-    -- print(charge)
-
     if grid and charge >= 0.8 then
         grid:DestroyWithSource(false, EntityRef(player))
     end
@@ -321,6 +323,10 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function (_, player, colli
     local charge = TREdithMod.GetFlingBurstCharge(player, false)
 
     flingParams.ShoveDamage = rawFormula * (TEdithMod.HopCurve(charge) + 0.5) 
+
+    if collider.Type == EntityType.ENTITY_FIREPLACE and collider.Variant ~= 4 then
+        collider:Kill()
+    end
 
     Land.LandDamage(collider, player, flingParams.ShoveDamage, 30 * player.ShotSpeed * charge)
     Helpers.TriggerPush(collider, player, 30 * player.ShotSpeed)
