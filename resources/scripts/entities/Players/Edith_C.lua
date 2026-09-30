@@ -277,7 +277,7 @@ mod:AddCallback(TRCallbacks.STRIKE_HIT_GRID, function (_, player, grid, flingPar
 
     TriggerGridHitEffects(player, charge)
 
-    if grid and charge >= 0.8 then
+    if grid and charge >= 0.5 then
         grid:DestroyWithSource(false, EntityRef(player))
     end
 end)
@@ -303,7 +303,6 @@ end)
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function (_, player)
     if not TREdithMod.IsTREdith(player) then return end
-
     if params(player).IsFlinging then
         return false
     end
