@@ -1,0 +1,132 @@
+<AnimatedActor>
+    <Info CreatedBy="Unknown" CreatedOn="15/10/2022 11:58:08" Fps="30" Version="63"/>
+    <Content>
+        <Spritesheets>
+            <Spritesheet Id="0" Path="bg_black.png"/>
+            <Spritesheet Id="1" Path="corrupted_character_menu_background.png"/>
+            <Spritesheet Id="2" Path="corrupted_character_menu_poster.png"/>
+            <Spritesheet Id="3" Path="menu_portrait_edith.png"/>
+            <Spritesheet Id="4" Path="menu_door_opensauce.png"/>
+            <Spritesheet Id="5" Path="menu_info_opensauce.png"/>
+            <Spritesheet Id="6" Path="corrupted_character_menu_overlay.png"/>
+        </Spritesheets>
+        <Layers>
+            <Layer Id="0" Name="Text" SpritesheetId="5"/>
+            <Layer Id="1" Name="Portrait" SpritesheetId="3"/>
+            <Layer Id="2" Name="Door" SpritesheetId="4"/>
+        </Layers>
+        <Nulls/>
+        <Events/>
+    </Content>
+    <Animations DefaultAnimation="Portrait">
+        <Animation Name="Portrait" FrameNum="11" Loop="false">
+            <RootAnimation>
+                <Frame XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true"/>
+                <LayerAnimation LayerId="1" Visible="true">
+                    <Frame XPivot="19" YPivot="19" XCrop="0" YCrop="0" Width="50" Height="50" XPosition="-6" YPosition="-4" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </LayerAnimation>
+                <LayerAnimation LayerId="2" Visible="true"/>
+            </LayerAnimations>
+            <NullAnimations/>
+            <Triggers/>
+        </Animation>
+        <Animation Name="Text" FrameNum="2" Loop="false">
+            <RootAnimation>
+                <Frame XPosition="0" YPosition="0" Delay="2" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true">
+                    <Frame XPivot="15" YPivot="13" XCrop="0" YCrop="0" Width="192" Height="128" XPosition="-82" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    <Frame XPivot="15" YPivot="13" XCrop="200" YCrop="0" Width="192" Height="128" XPosition="-82" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </LayerAnimation>
+                <LayerAnimation LayerId="1" Visible="true"/>
+                <LayerAnimation LayerId="2" Visible="true"/>
+            </LayerAnimations>
+            <NullAnimations/>
+            <Triggers/>
+        </Animation>
+        <Animation Name="Door" FrameNum="1" Loop="false">
+            <RootAnimation>
+                <Frame XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+            </RootAnimation>
+            <LayerAnimations>
+                <LayerAnimation LayerId="0" Visible="true"/>
+                <LayerAnimation LayerId="1" Visible="true"/>
+                <LayerAnimation LayerId="2" Visible="true">
+                    <Frame XPivot="19" YPivot="19" XCrop="0" YCrop="0" Width="50" Height="50" XPosition="-6" YPosition="-4" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </LayerAnimation>
+            </LayerAnimations>
+            <NullAnimations/>
+            <Triggers/>
+        </Animation>
+    </Animations>
+    <SourceDocument>
+        <Info CreatedBy="Unknown" CreatedOn="15/10/2022 11:58:08" Fps="30" Version="63"/>
+        <Content>
+            <Spritesheets>
+                <Spritesheet Id="0" Path="bg_black.png"/>
+                <Spritesheet Id="1" Path="corrupted_character_menu_background.png"/>
+                <Spritesheet Id="2" Path="corrupted_character_menu_poster.png"/>
+                <Spritesheet Id="3" Path="menu_portrait_edith.png"/>
+                <Spritesheet Id="4" Path="menu_door_opensauce.png"/>
+                <Spritesheet Id="5" Path="menu_info_opensauce.png"/>
+                <Spritesheet Id="6" Path="corrupted_character_menu_overlay.png"/>
+            </Spritesheets>
+            <Layers>
+                <Layer Id="0" Name="Text" SpritesheetId="5"/>
+                <Layer Id="1" Name="Portrait" SpritesheetId="3"/>
+                <Layer Id="2" Name="Door" SpritesheetId="4"/>
+            </Layers>
+            <Nulls/>
+            <Events/>
+        </Content>
+        <Animations DefaultAnimation="Portrait">
+            <Animation Name="Portrait" FrameNum="11" Loop="false">
+                <RootAnimation>
+                    <Frame XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </RootAnimation>
+                <LayerAnimations>
+                    <LayerAnimation LayerId="0" Visible="true"/>
+                    <LayerAnimation LayerId="1" Visible="true">
+                        <Frame XPivot="19" YPivot="19" XCrop="0" YCrop="0" Width="50" Height="50" XPosition="-6" YPosition="-4" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    </LayerAnimation>
+                    <LayerAnimation LayerId="2" Visible="true"/>
+                </LayerAnimations>
+                <NullAnimations/>
+                <Triggers/>
+            </Animation>
+            <Animation Name="Text" FrameNum="2" Loop="false">
+                <RootAnimation>
+                    <Frame XPosition="0" YPosition="0" Delay="2" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </RootAnimation>
+                <LayerAnimations>
+                    <LayerAnimation LayerId="0" Visible="true">
+                        <Frame XPivot="15" YPivot="13" XCrop="0" YCrop="0" Width="192" Height="128" XPosition="-82" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                        <Frame XPivot="15" YPivot="13" XCrop="200" YCrop="0" Width="192" Height="128" XPosition="-82" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    </LayerAnimation>
+                    <LayerAnimation LayerId="1" Visible="true"/>
+                    <LayerAnimation LayerId="2" Visible="true"/>
+                </LayerAnimations>
+                <NullAnimations/>
+                <Triggers/>
+            </Animation>
+            <Animation Name="Door" FrameNum="1" Loop="false">
+                <RootAnimation>
+                    <Frame XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                </RootAnimation>
+                <LayerAnimations>
+                    <LayerAnimation LayerId="0" Visible="true"/>
+                    <LayerAnimation LayerId="1" Visible="true"/>
+                    <LayerAnimation LayerId="2" Visible="true">
+                        <Frame XPivot="19" YPivot="19" XCrop="0" YCrop="0" Width="50" Height="50" XPosition="-6" YPosition="-4" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    </LayerAnimation>
+                </LayerAnimations>
+                <NullAnimations/>
+                <Triggers/>
+            </Animation>
+        </Animations>
+    </SourceDocument>
+</AnimatedActor>
