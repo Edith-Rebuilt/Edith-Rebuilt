@@ -188,8 +188,6 @@ local function TriggerBurst(player, flingParams)
     local charge = math.min(1, TREdithMod.GetFlingBurstCharge(player, true) * 2)
     local Capsule = Capsule(player.Position, Vector.One, 0, 60)
 
-    DebugRenderer.Get(1, false):Capsule(Capsule)
-
     BurstSpecialEffects(player, charge)
     BurstKnockback(player, charge, Capsule)
 
