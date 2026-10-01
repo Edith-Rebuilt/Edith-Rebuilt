@@ -186,7 +186,9 @@ local function TriggerBurst(player, flingParams)
     if flingParams.Cooldown > 0 then return end
 
     local charge = math.min(1, TREdithMod.GetFlingBurstCharge(player, true) * 2)
-    local Capsule = Capsule(player.Position, Vector.One, 0, 50)
+    local Capsule = Capsule(player.Position, Vector.One, 0, 60)
+
+    DebugRenderer.Get(1, false):Capsule(Capsule)
 
     BurstSpecialEffects(player, charge)
     BurstKnockback(player, charge, Capsule)
@@ -260,6 +262,10 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     ResetFlingState(player, flingParams)
     ChargeRelease(player)
     KeepFling(player, flingParams)
+
+    if player:GetDamageCooldown() == 1 then
+        TriggerBurst(player, flingParams)
+    end
 
     if target then
         EdithMod.TargetMovementManager(player, target, isMoving)
