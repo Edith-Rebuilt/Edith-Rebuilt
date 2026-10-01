@@ -263,10 +263,6 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     ChargeRelease(player)
     KeepFling(player, flingParams)
 
-    if player:GetDamageCooldown() == 1 then
-        TriggerBurst(player, flingParams)
-    end
-
     if target then
         EdithMod.TargetMovementManager(player, target, isMoving)
     end
