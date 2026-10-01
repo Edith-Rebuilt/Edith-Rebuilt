@@ -263,10 +263,6 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     ChargeRelease(player)
     KeepFling(player, flingParams)
 
-    if player:GetDamageCooldown() == 1 then
-        TriggerBurst(player, flingParams)
-    end
-
     if target then
         EdithMod.TargetMovementManager(player, target, isMoving)
     end
@@ -432,29 +428,58 @@ end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_GRID_COLLISION, function (_, player, index, grid)
     local flingParams = params(player)
     if not flingParams.IsFlinging then return end
-    if not grid then return end
 
-    local pData = data(player)
+    local door = grid:ToDoor()
+    local isBlockingDoor = door and not door:IsOpen()
+
+    local data = player:GetData()
     local now = Isaac.GetFrameCount()
 
-    if pData.LastBounceFrame == now then
+    if data.LastBounceFrame == now then
         return true
     end
 
     local vel = player.Velocity
-    if vel:Length() < 0.01 then return end
-
     local gridSize = 40
-    local normal, penetration = ComputeGridNormal(player.Position, vel, player.Size, grid, gridSize)
+    local normal, penetration
 
-    local reflectVel = ReflectVelocity(vel, normal, 1)
-    player.Velocity = reflectVel
-    player.Position = player.Position + normal * (penetration + 2)
+    -- Reusar normal si seguimos en contacto con la MISMA celda dentro de una ventana corta,
+    -- sin importar si es puerta, pared o roca — evita recalcular con vel ya contaminada
+    if data.LastBlockGridIndex == index and now - (data.LastBlockFrame or -99) <= 3 then
+        normal = data.LastBlockNormal
+        local center = grid.Position
+        local diff = player.Position - center
+        local half = gridSize / 2
+        local axisDiff = normal.X ~= 0 and diff.X or diff.Y
+        penetration = math.max((half + player.Size) - math.abs(axisDiff), 0)
+    else
+        if vel:Length() < 0.01 and not isBlockingDoor then return end
+        normal, penetration = ComputeGridNormal(player.Position, vel, player.Size, grid, gridSize)
+    end
 
-    flingParams.FlingDirection = reflectVel:Normalized()
-    flingParams.FlingVel = reflectVel
+    if isBlockingDoor then
+        local d = vel:Dot(normal)
+        local blockedVel = vel - normal * d
 
-    pData.LastBounceFrame = now
+        player.Velocity = blockedVel
+        player.Position = player.Position + normal * (penetration + 2)
+
+        flingParams.FlingDirection = blockedVel:Length() > 0 and blockedVel:Normalized() or flingParams.FlingDirection
+        flingParams.FlingVel = blockedVel
+    else
+        if vel:Length() < 0.01 then return end
+        local reflectVel = ReflectVelocity(vel, normal, 1)
+        player.Velocity = reflectVel
+        player.Position = player.Position + normal * (penetration + 2)
+
+        flingParams.FlingDirection = reflectVel:Normalized()
+        flingParams.FlingVel = reflectVel
+    end
+
+    data.LastBlockGridIndex = index
+    data.LastBlockNormal = normal
+    data.LastBlockFrame = now
+    data.LastBounceFrame = now
 
     Isaac.RunCallback(TRCallbacks.STRIKE_HIT_GRID, player, grid, flingParams)
 
