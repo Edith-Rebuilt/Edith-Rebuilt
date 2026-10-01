@@ -52,19 +52,6 @@ local function ResetTEdithPlayer(player, forceStopHops)
 end
 
 ---@param player EntityPlayer
-local function ManageLeoEffect(player)
-	local Peffects = player:GetEffects()
-
-	if player.CanFly then
-		if not Peffects:HasCollectibleEffect(CollectibleType.COLLECTIBLE_LEO) then
-			Peffects:AddCollectibleEffect(CollectibleType.COLLECTIBLE_LEO, false, 1)
-		end
-	else
-		Peffects:RemoveCollectibleEffect(CollectibleType.COLLECTIBLE_LEO, -1)
-	end
-end
-
----@param player EntityPlayer
 ---@param arrow EntityEffect?
 ---@param HopParams table
 local function ManageHopDashCharge(player, arrow, HopParams)
@@ -144,11 +131,10 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
 	local arrow = TargetArrow.GetEdithTarget(player, true)
 	local heat = TEdithMod.GetParryHeat(player)
 
-	print(player.SpriteRotation)
-
+	Player.ManageLeoEffect(player)
+	
 	TEdithCooling(player, HopParams, heat)
 	SetEdithSprite(player)
-	ManageLeoEffect(player)
 	TEdithHeatColor(player, heat)
 	ManageHopDashCharge(player, arrow, HopParams)
 	TEdithMod.ParryCooldownManager(player, HopParams)

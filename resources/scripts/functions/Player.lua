@@ -304,5 +304,18 @@ function Player.GetPlayerRenderPos(player)
 	return playerpos
 end
 
+---@param player EntityPlayer
+function Player.ManageLeoEffect(player)
+	local Peffects = player:GetEffects()
+
+	if player.CanFly then
+		if not Peffects:HasCollectibleEffect(CollectibleType.COLLECTIBLE_LEO) then
+			Peffects:AddCollectibleEffect(CollectibleType.COLLECTIBLE_LEO, false, 1)
+		end
+	else
+		Peffects:RemoveCollectibleEffect(CollectibleType.COLLECTIBLE_LEO, -1)
+	end
+end
+
 
 return Player
