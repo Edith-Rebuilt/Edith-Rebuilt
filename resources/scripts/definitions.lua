@@ -527,7 +527,19 @@ EdithRebuilt.Enums = {
 			---* player `EntityPlayer`
 			---* grid `GridEntity`
 			---* params `TREdithFlingStrikeParams`
-			STRIKE_HIT_GRID = "EdithRebuilt_STRIKE_HIT_GRID"
+			STRIKE_HIT_GRID = "EdithRebuilt_STRIKE_HIT_GRID",
+
+			--- Called everytime TR. Edith hits an enemy
+			---* player `EntityPlayer`
+			---* grid `GridEntity`
+			---* params `TREdithFlingStrikeParams`
+			STRIKE_HIT_ENEMY = "EdithRebuilt_STRIKE_HIT_ENEMY",
+
+			--- Called everytime TR. Edith kills an enemy with the Strike
+			---* player `EntityPlayer`
+			---* grid `GridEntity`
+			---* params `TREdithFlingStrikeParams`
+			STRIKE_KILL_ENEMY = "EdithRebuilt_STRIKE_KILL_ENEMY"
 		}
 	}
 }

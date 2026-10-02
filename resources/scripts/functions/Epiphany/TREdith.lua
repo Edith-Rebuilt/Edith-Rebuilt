@@ -28,7 +28,7 @@ TREdith = {}
 ---@field BurstKnockback number
 ---@field Cooldown integer
 ---@field IsFlinging boolean
----@field StruckEntities Entity[]
+---@field StruckEntities {integer: boolean}
 
 local function NewFlingShoveParams()
 	return {

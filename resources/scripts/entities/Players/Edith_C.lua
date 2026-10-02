@@ -246,7 +246,44 @@ local function ResetFlingState(player, flingParams)
     if flingParams.FlingDuration == 0 and flingParams.IsFlinging == true then
         flingParams.IsFlinging = false
     end
-end 
+end
+
+---@param player EntityPlayer
+---@param flingParams TREdithFlingStrikeParams
+local function StrikeManager(player, flingParams)
+    if not flingParams.IsFlinging then return end
+
+    local charge = TREdithMod.GetFlingBurstCharge(player, false)
+    local chargeMod = TEdithMod.HopCurve(charge)
+
+    local StrikeRadius = player.Size + (5 * (Player.GetPlayerRange(player) / 9) * charge)
+    local StrikeCapsule = Capsule(player.Position, Vector.One, 0, StrikeRadius)
+
+    DebugRenderer.Get(1, false):Capsule(StrikeCapsule)
+
+    flingParams.StrikeDamage = (15 + player.Damage) / 1.25 * (chargeMod + 0.5)
+    flingParams.StrikeKnockback = 50 * player.ShotSpeed * chargeMod
+
+    for _, ent in ipairs(Isaac.FindInCapsule(StrikeCapsule, EntityPartition.ENEMY)) do
+        Land.HandleEntityInteraction(ent, player, flingParams.StrikeKnockback)
+
+        if not Helpers.IsEnemy(ent) then goto continue end
+
+        local entHash = GetPtrHash(ent)
+
+        if flingParams.StruckEntities[entHash] then goto continue end
+
+        Isaac.RunCallback(TRCallbacks.STRIKE_HIT_ENEMY, player, ent, flingParams)
+
+        flingParams.StruckEntities[entHash] = true
+
+        player:ForceCollide(player, true)
+
+        Land.LandDamage(ent, player, flingParams.StrikeDamage, flingParams.StrikeKnockback)
+        sfx:Play(SoundEffect.SOUND_MEATY_DEATHS)
+        ::continue::
+    end
+end
 
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
@@ -258,6 +295,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     local isMoving = TargetArrow.IsEdithTargetMoving(player)
     local flingParams = params(player)
 
+    StrikeManager(player, flingParams)
     ResetFlingState(player, flingParams)
     ChargeRelease(player)
     KeepFling(player, flingParams)
@@ -322,39 +360,13 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function (_, player)
     end
 end)
 
----@param player EntityPlayer
----@param collider Entity
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function (_, player, collider)
-    if not TREdithMod.IsTREdith(player) then return end
-    if not Helpers.IsEnemy(collider) then return end
-
-    local flingParams = params(player)
-
-    if not flingParams.IsFlinging then return end
-
-    local rawFormula = (12 + player.Damage) / 1.5
-    local charge = TREdithMod.GetFlingBurstCharge(player, false)
-
-    flingParams.StrikeDamage = rawFormula * (TEdithMod.HopCurve(charge) + 0.5) 
-
-    if collider.Type == EntityType.ENTITY_FIREPLACE and collider.Variant ~= 4 then
-        collider:Kill()
-    end
-
-    Land.LandDamage(collider, player, flingParams.StrikeDamage, 30 * player.ShotSpeed * charge)
-    Helpers.TriggerPush(collider, player, 30 * player.ShotSpeed)
-    sfx:Play(SoundEffect.SOUND_MEATY_DEATHS)
-
-    return true
-end)
-
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
 	Player.ForEachPlayerType(function(player)
 		Helpers.ChangeColor(player, nil, nil, nil, 1)
 		TRTarget.RemoveEdithTarget(player)
-        
+
         local flingParams = params(player)
-        
+
         flingParams.FlingDuration = 0
         flingParams.FlingMoveCharge = 0
         flingParams.FlingStaticCharge = 0
@@ -423,6 +435,43 @@ local function ComputeGridNormal(playerPos, playerVel, playerRadius, gridEntity,
 
     return normal, math.max(penetration, 0)
 end
+
+---@param player EntityPlayer
+---@param collider Entity
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function (_, player, collider, low)
+    local flingParams = params(player)
+    if not flingParams.IsFlinging then return end
+
+    if not Helpers.IsEnemy(collider) then return end
+    if flingParams.StrikeDamage > collider.HitPoints then return end
+
+    local pData = data(player)
+    local now = Isaac.GetFrameCount()
+    if pData.LastBounceFrame == now then return true end
+
+    local vel = player.Velocity
+    if vel:Length() < 0.01 then return end
+
+    -- Normal = dirección desde el centro del enemigo hacia el jugador (igual que con obstáculos redondos)
+    local diff = player.Position - collider.Position
+    if diff:Length() < 0.01 then return end
+    local normal = diff:Normalized()
+
+    local combinedRadius = player.Size + collider.Size
+    local penetration = math.max(combinedRadius - diff:Length(), 0)
+
+    local reflectVel = ReflectVelocity(vel, normal, 1)
+    player.Velocity = reflectVel
+    player.Position = player.Position + normal * (penetration + 2)
+
+    flingParams.FlingDirection = reflectVel:Normalized()
+    flingParams.FlingVel = reflectVel
+    flingParams.StruckEntities[GetPtrHash(collider)] = nil
+
+    pData.LastBounceFrame = now
+
+    return true
+end)
 
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_GRID_COLLISION, function (_, player, index, grid)
     local flingParams = params(player)
