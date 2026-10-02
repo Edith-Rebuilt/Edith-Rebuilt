@@ -540,6 +540,9 @@ EdithRebuilt.Enums = {
 			---* grid `GridEntity`
 			---* params `TREdithFlingStrikeParams`
 			STRIKE_KILL_ENEMY = "EdithRebuilt_STRIKE_KILL_ENEMY"
+		},
+		SoundEffect = {
+			SOUND_JARONA = Isaac.GetSoundIdByName("Jarona"),
 		}
 	}
 }

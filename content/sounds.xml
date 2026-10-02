@@ -67,4 +67,10 @@
 	<sound name="PartyHorn">
 		<sample weight="1" path="PartyHorn.wav" />
 	</sound>
+	<sound name="Jarona">
+		<sample weight="1" path="Epiphany/Jarona1.wav" />
+		<sample weight="1" path="Epiphany/Jarona2.wav" />
+		<sample weight="1" path="Epiphany/Jarona3.wav" />
+		<sample weight="1" path="Epiphany/Jarona4.wav" />
+	</sound>
 </sounds>
