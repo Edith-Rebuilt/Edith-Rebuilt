@@ -138,6 +138,7 @@ local function FlingSpecialEffects(player)
     Land.SpawnLandGFX(player, GetTEdithLandParams(false), Helpers.IsChap4())
     Helpers.SpawnSaltGib(player, 3, 4, player.Color, true)
     sfx:Play(SoundEffect.SOUND_SHELLGAME)
+    sfx:Play(Trenums.SoundEffect.SOUND_JARONA, 5)
 end
 
 ---@param player EntityPlayer
@@ -147,7 +148,7 @@ local function SetFlingParams(player, flingParams)
 
     flingParams.IsFlinging = true
     flingParams.FlingDirection = TRTarget.GetEdithTargetDirection(player)
-    flingParams.FlingDuration = math.ceil((45 * charge) * Player.GetPlayerRange(player) / 9)
+    flingParams.FlingDuration = math.ceil((40 * (charge * charge)) * Player.GetPlayerRange(player) / 9)
     flingParams.FlingVel = flingParams.FlingDirection * 15 * charge
 end
 
@@ -313,7 +314,7 @@ local function StrikeManager(player, flingParams)
     local StrikeRadius = player.Size + (5 * (Player.GetPlayerRange(player) / 9) * charge)
     local StrikeCapsule = Capsule(player.Position, Vector.One, 0, StrikeRadius)
 
-    flingParams.StrikeDamage = (15 + player.Damage) / 1.25 * (chargeMod + 0.5)
+    flingParams.StrikeDamage = (22.5 + player.Damage) / 1.25 * ((charge * charge) + 0.5)
     flingParams.StrikeKnockback = 50 * player.ShotSpeed * chargeMod
 
     for _, ent in ipairs(Isaac.FindInCapsule(StrikeCapsule, EntityPartition.ENEMY)) do
@@ -357,6 +358,12 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     if target then
         EdithMod.TargetMovementManager(player, target, isMoving)
     end
+end)
+
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_UPDATE, function (_, player)
+    local pData = data(player)
+    pData.PrevPosition = player.Position
+    pData.PrevVelocity = player.Velocity
 end)
 
 ---@param player EntityPlayer
@@ -435,50 +442,36 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, function ()
 	end, playerType.PLAYER_EDITH_C)
 end)
 
----@param playerPos Vector
----@param playerVel Vector
----@param playerRadius number
----@param gridEntity GridEntity
----@param gridSize any
----@return Vector
----@return number
-local function ComputeGridNormal(playerPos, playerVel, playerRadius, gridEntity, gridSize)
-    local center = gridEntity.Position
-    local diff = playerPos - center
-    local half = gridSize / 2
+-- Intersección rayo-caja con volumen (jugador como círculo de radio playerRadius)
+-- Devuelve t y la normal del lado por el que efectivamente entraría
+local function RaySweptAABBIntersect(origin, dir, boxMin, boxMax)
+    local invDirX = dir.X ~= 0 and 1 / dir.X or math.huge
+    local invDirY = dir.Y ~= 0 and 1 / dir.Y or math.huge
 
-    local towardsX = (diff.X > 0 and playerVel.X < 0) or (diff.X < 0 and playerVel.X > 0)
-    local towardsY = (diff.Y > 0 and playerVel.Y < 0) or (diff.Y < 0 and playerVel.Y > 0)
+    local tx1 = (boxMin.X - origin.X) * invDirX
+    local tx2 = (boxMax.X - origin.X) * invDirX
+    local ty1 = (boxMin.Y - origin.Y) * invDirY
+    local ty2 = (boxMax.Y - origin.Y) * invDirY
 
-    local normal, penetration
+    local txMin, txMax = math.min(tx1, tx2), math.max(tx1, tx2)
+    local tyMin, tyMax = math.min(ty1, ty2), math.max(ty1, ty2)
 
-    local function penetrationX()
-        return (half + playerRadius) - math.abs(diff.X)
-    end
-    local function penetrationY()
-        return (half + playerRadius) - math.abs(diff.Y)
-    end
+    local tmin = math.max(0, txMin, tyMin)
+    local tmax = math.min(txMax, tyMax)
 
-    if towardsX and towardsY then
-        if math.abs(playerVel.X) >= math.abs(playerVel.Y) then
-            normal, penetration = Vector(diff.X > 0 and 1 or -1, 0), penetrationX()
-        else
-            normal, penetration = Vector(0, diff.Y > 0 and 1 or -1), penetrationY()
-        end
-    elseif towardsX then
-        normal, penetration = Vector(diff.X > 0 and 1 or -1, 0), penetrationX()
-    elseif towardsY then
-        normal, penetration = Vector(0, diff.Y > 0 and 1 or -1), penetrationY()
+    if tmin > tmax then return nil end
+
+    local normal
+    if txMin > tyMin then
+        normal = Vector(dir.X > 0 and -1 or 1, 0)
     else
-        if penetrationX() < penetrationY() then
-            normal, penetration = Vector(diff.X > 0 and 1 or -1, 0), penetrationX()
-        else
-            normal, penetration = Vector(0, diff.Y > 0 and 1 or -1), penetrationY()
-        end
+        normal = Vector(0, dir.Y > 0 and -1 or 1)
     end
 
-    return normal, math.max(penetration, 0)
+    return tmin, normal
 end
+
+local GRID_SIZE = 40
 
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_GRID_COLLISION, function (_, player, index, grid)
     local flingParams = params(player)
@@ -486,58 +479,51 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_GRID_COLLISION, function (_, player, 
     if not grid then return end
 
     local door = grid:ToDoor()
-    local isBlockingDoor = door and not door:IsOpen()
+    if door and door:IsOpen() then return end
 
     local pData = data(player)
     local now = Isaac.GetFrameCount()
+    if pData.LastProcessedFrame == now then return true end
+    pData.LastProcessedFrame = now
 
-    if pData.LastBounceFrame == now then
+    local prevPos = pData.PrevPosition or player.Position
+    local prevVel = pData.PrevVelocity or player.Velocity
+    local speed = prevVel:Length()
+    if speed < 0.01 then return end
+
+    local dir = prevVel:Normalized()
+    local half = GRID_SIZE / 2 + player.Size
+    local center = grid.Position
+
+    local t, normal = RaySweptAABBIntersect(prevPos, dir, center - Vector(half, half), center + Vector(half, half))
+
+    if not t then
+        local diff = prevPos - center
+        normal = math.abs(diff.X) > math.abs(diff.Y) and Vector(diff.X > 0 and 1 or -1, 0) or Vector(0, diff.Y > 0 and 1 or -1)
+    end
+
+    local sizeMargin = player.Size 
+
+    -- Si esta normal es básicamente la misma que la del último rebote real y reciente,
+    -- es la misma pared (celda vecina) — no reflejar de nuevo, solo reafirmar posición.
+    local sameWallAsLastBounce = pData.LastRealBounceNormal
+        and (now - (pData.LastRealBounceFrame or -99)) <= math.ceil(18 * (player.Size / 10))
+        and pData.LastRealBounceNormal:Dot(normal) > 0.5
+
+    if sameWallAsLastBounce then
+        player.Position = prevPos + pData.LastRealBounceNormal * sizeMargin
         return true
     end
 
-    local vel = player.Velocity
-    local gridSize = 40
-    local normal, penetration
+    local reflectVel = ReflectVelocity(prevVel, normal, 1)
+    player.Velocity = reflectVel
+    player.Position = prevPos + normal * (sizeMargin)
 
-    -- Reusar normal si seguimos en contacto con la MISMA celda dentro de una ventana corta,
-    -- sin importar si es puerta, pared o roca — evita recalcular con vel ya contaminada
-    if pData.LastBlockGridIndex == index and now - (pData.LastBlockFrame or -99) <= 3 then
-        normal = pData.LastBlockNormal
-        local center = grid.Position
-        local diff = player.Position - center
-        local half = gridSize / 2
-        local axisDiff = normal.X ~= 0 and diff.X or diff.Y
-        penetration = math.max((half + player.Size) - math.abs(axisDiff), 0)
-    else
-        if vel:Length() < 0.01 and not isBlockingDoor then return end
-        normal, penetration = ComputeGridNormal(player.Position, vel, player.Size, grid, gridSize)
-    end
+    flingParams.FlingDirection = reflectVel:Normalized()
+    flingParams.FlingVel = reflectVel
 
-    if isBlockingDoor then
-        local d = vel:Dot(normal)
-        local blockedVel = vel - normal * d
-
-        player.Velocity = blockedVel
-        player.Position = player.Position + normal * (penetration + 2)
-
-        flingParams.FlingDirection = blockedVel:Length() > 0 and blockedVel:Normalized() or flingParams.FlingDirection
-        flingParams.FlingVel = blockedVel
-    else
-        if not (player.CanFly and grid:GetType() ~= GridEntityType.GRID_WALL) then
-            if vel:Length() < 0.01 then return end
-            local reflectVel = ReflectVelocity(vel, normal, 1)
-            player.Velocity = reflectVel
-            player.Position = player.Position + normal * (penetration + 2)
-    
-            flingParams.FlingDirection = reflectVel:Normalized()
-            flingParams.FlingVel = reflectVel
-        end
-    end
-
-    pData.LastBlockGridIndex = index
-    pData.LastBlockNormal = normal
-    pData.LastBlockFrame = now
-    pData.LastBounceFrame = now
+    pData.LastRealBounceNormal = normal
+    pData.LastRealBounceFrame = now
 
     Isaac.RunCallback(TRCallbacks.STRIKE_HIT_GRID, player, grid, flingParams)
 
