@@ -63,6 +63,17 @@ mod:AddPriorityCallback(ModCallbacks.MC_INPUT_ACTION, CallbackPriority.IMPORTANT
     return tables.OverrideActions[action]
 end)
 
+---@param velocity Vector
+---@param normal Vector
+---@param restitution number
+---@return Vector
+local function ReflectVelocity(velocity, normal, restitution)
+    restitution = restitution or 1
+    local d = velocity:Dot(normal)
+    return (velocity - normal * (2 * d)) * restitution
+end
+
+
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     if not TREdithMod.IsTREdith(player) then return end
@@ -241,11 +252,54 @@ local function ResetFlingState(player, flingParams)
         player:SetMinDamageCooldown(30)
         flingParams.FlingMoveCharge = 0
         flingParams.FlingStaticCharge = 0
+        flingParams.StruckEntities = {}
     end
 
     if flingParams.FlingDuration == 0 and flingParams.IsFlinging == true then
         flingParams.IsFlinging = false
     end
+end
+
+---@param player EntityPlayer
+---@param ent Entity
+---@param hash integer
+local function TriggerEnemyBounce(player, ent, hash)
+    local flingParams = params(player)
+
+    if not flingParams.IsFlinging then return end
+    if not Helpers.IsEnemy(ent) then return end
+
+    flingParams.StruckEntities[hash] = nil
+
+    if flingParams.StrikeDamage > ent.HitPoints then return end
+
+    local pData = data(player)
+    local now = Isaac.GetFrameCount()
+    if pData.LastBounceFrame == now then return end
+
+    local vel = player.Velocity
+    if vel:Length() < 0.01 then return end
+
+    -- Normal = dirección desde el centro del enemigo hacia el jugador (igual que con obstáculos redondos)
+    local diff = player.Position - ent.Position
+    if diff:Length() < 0.01 then return end
+    local normal = diff:Normalized()
+
+    local combinedRadius = player.Size + ent.Size
+    local penetration = math.max(combinedRadius - diff:Length(), 0)
+
+    flingParams.StruckEntities[hash] = nil
+
+    local reflectVel = ReflectVelocity(vel, normal, 1)
+    player.Velocity = reflectVel
+    player.Position = player.Position + normal * (penetration + 2)
+
+    flingParams.FlingDirection = reflectVel:Normalized()
+    flingParams.FlingVel = reflectVel
+
+    pData.LastBounceFrame = now
+
+    return true
 end
 
 ---@param player EntityPlayer
@@ -259,8 +313,6 @@ local function StrikeManager(player, flingParams)
     local StrikeRadius = player.Size + (5 * (Player.GetPlayerRange(player) / 9) * charge)
     local StrikeCapsule = Capsule(player.Position, Vector.One, 0, StrikeRadius)
 
-    DebugRenderer.Get(1, false):Capsule(StrikeCapsule)
-
     flingParams.StrikeDamage = (15 + player.Damage) / 1.25 * (chargeMod + 0.5)
     flingParams.StrikeKnockback = 50 * player.ShotSpeed * chargeMod
 
@@ -273,14 +325,16 @@ local function StrikeManager(player, flingParams)
 
         if flingParams.StruckEntities[entHash] then goto continue end
 
-        Isaac.RunCallback(TRCallbacks.STRIKE_HIT_ENEMY, player, ent, flingParams)
-
         flingParams.StruckEntities[entHash] = true
 
-        player:ForceCollide(player, true)
+        Isaac.RunCallback(TRCallbacks.STRIKE_HIT_ENEMY, player, ent, flingParams)
+
+        player:ForceCollide(player, false)
 
         Land.LandDamage(ent, player, flingParams.StrikeDamage, flingParams.StrikeKnockback)
         sfx:Play(SoundEffect.SOUND_MEATY_DEATHS)
+
+        TriggerEnemyBounce(player, ent, entHash)
         ::continue::
     end
 end
@@ -381,20 +435,10 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, function ()
 	end, playerType.PLAYER_EDITH_C)
 end)
 
----@param velocity Vector
----@param normal Vector
----@param restitution number
----@return Vector
-local function ReflectVelocity(velocity, normal, restitution)
-    restitution = restitution or 1
-    local d = velocity:Dot(normal)
-    return (velocity - normal * (2 * d)) * restitution
-end
-
 ---@param playerPos Vector
 ---@param playerVel Vector
 ---@param playerRadius number
----@param gridEntity Entity
+---@param gridEntity GridEntity
 ---@param gridSize any
 ---@return Vector
 ---@return number
@@ -435,43 +479,6 @@ local function ComputeGridNormal(playerPos, playerVel, playerRadius, gridEntity,
 
     return normal, math.max(penetration, 0)
 end
-
----@param player EntityPlayer
----@param collider Entity
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function (_, player, collider, low)
-    local flingParams = params(player)
-    if not flingParams.IsFlinging then return end
-
-    if not Helpers.IsEnemy(collider) then return end
-    if flingParams.StrikeDamage > collider.HitPoints then return end
-
-    local pData = data(player)
-    local now = Isaac.GetFrameCount()
-    if pData.LastBounceFrame == now then return true end
-
-    local vel = player.Velocity
-    if vel:Length() < 0.01 then return end
-
-    -- Normal = dirección desde el centro del enemigo hacia el jugador (igual que con obstáculos redondos)
-    local diff = player.Position - collider.Position
-    if diff:Length() < 0.01 then return end
-    local normal = diff:Normalized()
-
-    local combinedRadius = player.Size + collider.Size
-    local penetration = math.max(combinedRadius - diff:Length(), 0)
-
-    local reflectVel = ReflectVelocity(vel, normal, 1)
-    player.Velocity = reflectVel
-    player.Position = player.Position + normal * (penetration + 2)
-
-    flingParams.FlingDirection = reflectVel:Normalized()
-    flingParams.FlingVel = reflectVel
-    flingParams.StruckEntities[GetPtrHash(collider)] = nil
-
-    pData.LastBounceFrame = now
-
-    return true
-end)
 
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_GRID_COLLISION, function (_, player, index, grid)
     local flingParams = params(player)
