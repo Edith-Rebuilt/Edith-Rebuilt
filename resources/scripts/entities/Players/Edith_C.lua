@@ -110,6 +110,19 @@ local function ManageCounters(flingParams)
 end
 
 ---@param player EntityPlayer
+---@param flingParams TREdithFlingStrikeParams
+local function AfterImages(player, flingParams)
+
+    if not flingParams.IsFlinging then return end
+
+    local charge = TREdithMod.GetFlingBurstCharge(player, false)
+
+    local quantity = 1 + math.ceil(4 * charge)
+
+    player:CreateAfterimage(quantity, player.Position)
+end
+
+---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
     local flingParams = params(player)
     local speed = player.MoveSpeed - 1
@@ -117,6 +130,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
 	Player.ManageLeoEffect(player)
     ManageCounters(flingParams)
     ChargeFling(player, 0.025 + (0.025 * (speed * speed)))
+    AfterImages(player, flingParams)
 end)
 
 ---@param IsParryLand boolean
@@ -138,18 +152,19 @@ local function FlingSpecialEffects(player)
     Land.SpawnLandGFX(player, GetTEdithLandParams(false), Helpers.IsChap4())
     Helpers.SpawnSaltGib(player, 3, 4, player.Color, true)
     sfx:Play(SoundEffect.SOUND_SHELLGAME)
-    sfx:Play(Trenums.SoundEffect.SOUND_JARONA, 5)
+    -- sfx:Play(Trenums.SoundEffect.SOUND_JARONA, 5)
 end
 
 ---@param player EntityPlayer
 ---@param flingParams TREdithFlingStrikeParams
 local function SetFlingParams(player, flingParams)
     local charge = TREdithMod.GetFlingBurstCharge(player, false)
+    local chargeMult = charge * charge
 
     flingParams.IsFlinging = true
     flingParams.FlingDirection = TRTarget.GetEdithTargetDirection(player)
-    flingParams.FlingDuration = math.ceil((40 * (charge * charge)) * Player.GetPlayerRange(player) / 9)
-    flingParams.FlingVel = flingParams.FlingDirection * 15 * charge
+    flingParams.FlingDuration = math.ceil((40 * chargeMult) * Player.GetPlayerRange(player) / 9)
+    flingParams.FlingVel = flingParams.FlingDirection * 15 * chargeMult
 end
 
 ---@param player EntityPlayer
