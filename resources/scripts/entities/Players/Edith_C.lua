@@ -164,7 +164,7 @@ local function SetFlingParams(player, flingParams)
     flingParams.IsFlinging = true
     flingParams.FlingDirection = TRTarget.GetEdithTargetDirection(player)
     flingParams.FlingDuration = math.ceil((40 * chargeMult) * Player.GetPlayerRange(player) / 9)
-    flingParams.FlingVel = flingParams.FlingDirection * 15 * chargeMult
+    flingParams.FlingVel = flingParams.FlingDirection * 15 * charge
 end
 
 ---@param player EntityPlayer
