@@ -73,4 +73,8 @@
 		<sample weight="1" path="Epiphany/Jarona3.wav" />
 		<sample weight="1" path="Epiphany/Jarona4.wav" />
 	</sound>
+		<sound name="RevolverChangeGeneric">
+		<sample weight="1" path="Epiphany/RevolverChange1.wav" />
+		<sample weight="1" path="Epiphany/RevolverChange2.wav" />
+	</sound>
 </sounds>
