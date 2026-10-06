@@ -124,6 +124,8 @@ end
 
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
+    if not TREdithMod.IsTREdith(player) then return end
+    
     local flingParams = params(player)
     local speed = player.MoveSpeed - 1
 

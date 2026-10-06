@@ -522,6 +522,9 @@ EdithRebuilt.Enums = {
 		EffectVariant = {
 			EFFECT_EDITH_C_TARGET = Isaac.GetEntityVariantByName("TR. Edith Target"),
 		},
+		CollectibleType = {
+			COLLECTIBLE_SPICE_CHAMBER = Isaac.GetItemIdByName("Spice Chamber")
+		},
 		Callbacks = {
 			-- Called everytime TR. Edith hits a grid entity
 			---* player `EntityPlayer`
@@ -543,6 +546,7 @@ EdithRebuilt.Enums = {
 		},
 		SoundEffect = {
 			SOUND_JARONA = Isaac.GetSoundIdByName("Jarona"),
+			REVOLVER_CHANGE_GENERIC = Isaac.GetSoundIdByName("RevolverChangeGeneric")
 		}
 	}
 }

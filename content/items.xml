@@ -208,6 +208,18 @@
 		hidden="true"
 	/>
 
+	<!-- Epiphany -->
+	<active
+		id="17" 
+		name="Spice Chamber" 
+		description="Pending Description" 
+		gfx="Epiphany/SpiceChamber.png"
+		quality="2"
+		tags="offensive summonable"
+		achievement="Chunk of Basalt"
+	/>
+
+
 	<!-- Null items -->
 	<null
 		id="1" 

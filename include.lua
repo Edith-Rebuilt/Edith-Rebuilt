@@ -42,6 +42,8 @@ local includeFiles = {
 	col .. "items/TEdith/DivineWrath",
 	col .. "items/Challenges/Effigy",
 	col .. "items/Challenges/ChunkOfBasalt",
+
+	col .. "items/TREdith/SpiceChamber",
 	-- Items fin
 
 	-- Trinkets
