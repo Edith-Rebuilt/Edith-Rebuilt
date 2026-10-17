@@ -525,6 +525,9 @@ EdithRebuilt.Enums = {
 		CollectibleType = {
 			COLLECTIBLE_SPICE_CHAMBER = Isaac.GetItemIdByName("Spice Chamber")
 		},
+		NullItemID = {
+			EDITH_C = Isaac.GetNullItemIdByName("Edith_Rebuilt_TREdith")
+		},
 		Callbacks = {
 			-- Called everytime TR. Edith hits a grid entity
 			---* player `EntityPlayer`

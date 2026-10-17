@@ -236,6 +236,13 @@
 		range="100"
 	/>
 	<null
+		id="3" 
+		name="Edith_Rebuilt_TREdith" 
+		persistent="true"
+		damagemult="1.5"
+		range="100"
+	/>
+	<null
 		id="1000" 
 		name="Edith_Rebuilt_Effigy" 
 		persistent="true"

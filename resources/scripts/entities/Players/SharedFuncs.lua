@@ -34,11 +34,13 @@ end
 local ModCostumes = {
     [costumes.EDITH] = true,
     [costumes.T_EDITH] = true,
+    [mod.Enums.Epiphany.NullItemID.EDITH_C] = true,
 }
 
 local whiteListCostumes = {
     [costumes.EDITH] = true,
     [costumes.T_EDITH] = true,
+    [mod.Enums.Epiphany.NullItemID.EDITH_C] = true,
     [CollectibleType.COLLECTIBLE_HOLY_MANTLE] = true,
     [CollectibleType.COLLECTIBLE_FATE] = true,
     [CollectibleType.COLLECTIBLE_BOOK_OF_SHADOWS] = true,
@@ -137,21 +139,23 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM, function(_, ID, _, player)
 end)
 
 local InitParams = {
-    [true] = {
+    [enums.PlayerType.PLAYER_EDITH] = {
         ANM2 = "gfx/EdithAnim.anm2",
         Costume = costumes.EDITH,
     },
-    [false] = {
+    [enums.PlayerType.PLAYER_EDITH_B] = {
         ANM2 = "gfx/EdithTaintedAnim.anm2",
         Costume = costumes.T_EDITH,
-    }
+    },
 }
 
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function(_, player)
 	if not Player.IsAnyEdith(player) then return end
 
-    local params = InitParams[Player.IsEdith(player, false)]
+    local params = InitParams[player:GetPlayerType()]
+
+    if not params then return end
 
 	Player.SetNewANM2(player, params.ANM2)
 	player:AddNullItemEffect(params.Costume, true)

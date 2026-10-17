@@ -60,6 +60,7 @@ EdithRebuilt.Modules = {
 
 	TR_EDITH = include("resources.scripts.functions.Epiphany.TREdith"),
 	TARGET = include("resources.scripts.functions.Epiphany.Target"),
+	BOUNCE = include("resources.scripts.functions.Epiphany.Bounce"),
 }
 
 include("include")
@@ -71,8 +72,8 @@ end)
 
 local version = {
 	1,
-	9,
-	1,
+	10,
+	0,
 	""
 }
 local beta = true
