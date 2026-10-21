@@ -274,7 +274,7 @@ local function BurstKnockback(player, charge, capsule)
         end
 
         if Helpers.IsEnemy(ent) then
-            data(ent).HitStunDuration = 5 + math.ceil((10 * charge) * shotSpeed)
+            data(ent).HitStunDuration = 10 + math.ceil((10 * charge) * shotSpeed)
         end
     end
 end
