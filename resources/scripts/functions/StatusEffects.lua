@@ -200,10 +200,11 @@ end
 ---@param radius number
 ---@param knockback number
 function StatusEffects.TriggerSpiceEffect(ent, spice, radius, knockback)
-    local Helpers = mod.Modules.HELPERS
+    local modules = mod.Modules
+    local Helpers = modules.HELPERS
 
     local player = ent:ToPlayer()
-    local JudasBR = player and mod.Modules.PLAYER.IsJudasWithBirthright(player) or false
+    local JudasBR = player and modules.PLAYER.IsJudasWithBirthright(player) or false
 
     for _, enemy in ipairs(Isaac.FindInRadius(ent.Position, radius, EntityPartition.ENEMY)) do
         if not Helpers.IsEnemy(enemy) then goto continue end

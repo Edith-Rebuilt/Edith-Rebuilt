@@ -1,16 +1,4 @@
---[[
-    Módulo BOUNCE (mod.Modules.BOUNCE) - Rebotes del Fling de TR. Edith.
-
-    Este módulo NO registra callbacks. El script del personaje debe:
-      1) MC_PRE_PLAYER_UPDATE        -> Bounce.SnapshotMotion(player)
-      2) MC_PRE_PLAYER_GRID_COLLISION -> Bounce.ResolveGridCollision(player, flingParams, grid)
-      3) Al golpear un enemigo        -> Bounce.TriggerEnemyBounce(player, flingParams, ent, hash)
-
-    DEBUG = true imprime logs en la consola de Isaac (~).
-]]
-
 local mod = EdithRebuilt
-
 local Bounce = {}
 
 ---@enum BounceResult
@@ -20,12 +8,14 @@ Bounce.Result = {
     BOUNCED = 2,    -- rebote real aplicado: cancelar resolución y disparar STRIKE_HIT_GRID
 }
 
+local data = mod.DataHolder.GetEntityData
+
 local Result = Bounce.Result
 
 -------------------------------------------------------------------------------
 -- CONSTANTES
 -------------------------------------------------------------------------------
-local DEBUG = true
+local DEBUG = false
 
 local GRID_SIZE = 40
 local BASE_PLAYER_SIZE = 10
@@ -34,16 +24,6 @@ local MIN_SPEED = 0.01
 local SAME_WALL_DOT = 0.5
 local RESTITUTION = 1
 local ENEMY_PUSH_MARGIN = 2
-
--------------------------------------------------------------------------------
--- UTILIDADES
--------------------------------------------------------------------------------
----Resuelto al llamar (no al cargar) para no depender del orden de carga de módulos.
----@param player EntityPlayer
----@return table
-local function GetData(player)
-    return mod.DataHolder.GetEntityData(player)
-end
 
 ---@param tag string
 ---@param fmt string
@@ -102,7 +82,7 @@ end
 ---Guarda posición y velocity ANTES de que el motor mueva al jugador este frame.
 ---@param player EntityPlayer
 function Bounce.SnapshotMotion(player)
-    local pData = GetData(player)
+    local pData = data(player)
     pData.PrevPosition = Vector(player.Position.X, player.Position.Y)
     pData.PrevVelocity = Vector(player.Velocity.X, player.Velocity.Y)
 end
@@ -204,7 +184,7 @@ end
 function Bounce.ResolveGridCollision(player, flingParams, grid)
     if not grid or IsPassableGrid(grid) then return Result.IGNORED end
 
-    local pData = GetData(player)
+    local pData = data(player)
     local now = Isaac.GetFrameCount()
 
     -- Un solo procesamiento por frame; si ya rebotamos contra un enemigo este frame, no reflejar de nuevo
@@ -258,7 +238,7 @@ function Bounce.TriggerEnemyBounce(player, flingParams, ent, hash)
     flingParams.StruckEntities[hash] = nil
     if flingParams.StrikeDamage > ent.HitPoints then return end
 
-    local pData = GetData(player)
+    local pData = data(player)
     local now = Isaac.GetFrameCount()
     if pData.LastBounceFrame == now then
         Log("ENEMY", "SKIP (ya rebotó este frame)")

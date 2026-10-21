@@ -193,19 +193,31 @@ function Player.GetplayerTears(p)
     return mod.Modules.MATHS.Round(30 / (p.MaxFireDelay + 1), 2)
 end
 
----Checks if player is shooting by checking if shoot inputs are being pressed
----@param p EntityPlayer
+---@param player EntityPlayer
 ---@return boolean
-function Player.IsPlayerShooting(p)
-	local ci = p.ControllerIndex
+function Player.IsPlayerMoving(player)
+	local idx = player.ControllerIndex
 
-	local shoot = {
-        l = Input.IsActionPressed(ButtonAction.ACTION_SHOOTLEFT, ci),
-        r = Input.IsActionPressed(ButtonAction.ACTION_SHOOTRIGHT, ci),
-        u = Input.IsActionPressed(ButtonAction.ACTION_SHOOTUP, ci),
-        d = Input.IsActionPressed(ButtonAction.ACTION_SHOOTDOWN, ci)
-    }
-	return (shoot.l or shoot.r or shoot.u or shoot.d)
+	return (
+		Input.IsActionPressed(ButtonAction.ACTION_DOWN, idx) or
+		Input.IsActionPressed(ButtonAction.ACTION_UP, idx) or
+		Input.IsActionPressed(ButtonAction.ACTION_LEFT, idx) or
+		Input.IsActionPressed(ButtonAction.ACTION_RIGHT, idx) 
+	)
+end
+
+---Checks if player is shooting by checking if shoot inputs are being pressed
+---@param player EntityPlayer
+---@return boolean
+function Player.IsPlayerShooting(player)
+	local idx = player.ControllerIndex
+
+	return (
+		Input.IsActionPressed(ButtonAction.ACTION_SHOOTLEFT, idx) or
+		Input.IsActionPressed(ButtonAction.ACTION_SHOOTRIGHT, idx) or
+		Input.IsActionPressed(ButtonAction.ACTION_SHOOTUP, idx) or
+		Input.IsActionPressed(ButtonAction.ACTION_SHOOTDOWN, idx) 
+	)
 end
 
 local JudasTypes = {
@@ -232,7 +244,7 @@ function Player.SetChallengeSprite(player, challenge)
 	if challenge == Challenge.CHALLENGE_NULL then return end
 
 	local spritePath = (
-		challenge == challenges.CHALLENGE_GRUDGE and misc.GrudgeSpritePath or 
+		challenge == challenges.CHALLENGE_GRUDGE and misc.GrudgeSpritePath or
 		challenge == challenges.CHALLENGE_VESTIGE and misc.VestigeSpritePath
 	)
 
@@ -275,12 +287,11 @@ function Player.SetCustomSprite(player, tainted)
 		challenge = challenges.CHALLENGE_GRUDGE
 	end
 
-	if challenge ~= Challenge.CHALLENGE_NULL then
-		local hoodPath = tainted and enums.Misc.GrudgeHoodPath or enums.Misc.VestigeHoodPath
+	if challenge == Challenge.CHALLENGE_NULL then return end
+	local hoodPath = tainted and misc.GrudgeHoodPath or misc.VestigeHoodPath
 
-		Player.SetChallengeSprite(player, challenge)
-		Player.SetHoodSprite(player, hoodPath)
-	end
+	Player.SetChallengeSprite(player, challenge)
+	Player.SetHoodSprite(player, hoodPath)
 end
 
 ---@param player any
@@ -316,6 +327,5 @@ function Player.ManageLeoEffect(player)
 		Peffects:RemoveCollectibleEffect(CollectibleType.COLLECTIBLE_LEO, -1)
 	end
 end
-
 
 return Player

@@ -1,20 +1,18 @@
 local mod = EdithRebuilt
 local VecDir = {}
 
---- Helper function to convert a given amount of angle degrees into the corresponding `Direction` enum (From Library of Isaac, tweaked a bit)
+local DIRECTION_BY_QUADRANT = {
+    [0] = Direction.RIGHT,
+    [1] = Direction.DOWN,
+    [2] = Direction.LEFT,
+    [3] = Direction.UP,
+}
+
+--- Convierte un ángulo en grados a su `Direction` correspondiente (From Library of Isaac, tweaked a bit)
 ---@param angleDegrees number
 ---@return Direction
 function VecDir.AngleToDirection(angleDegrees)
-    local normalizedDegrees = angleDegrees % 360
-    if normalizedDegrees < 45 or normalizedDegrees >= 315 then
-        return Direction.RIGHT
-    elseif normalizedDegrees < 135 then
-        return Direction.DOWN
-    elseif normalizedDegrees < 225 then
-        return Direction.LEFT
-    else
-        return Direction.UP
-    end
+    return DIRECTION_BY_QUADRANT[math.floor(((angleDegrees + 45) % 360) / 90)]
 end
 
 --- Returns a direction corresponding to the direction the provided vector is pointing (from Library of Isaac)

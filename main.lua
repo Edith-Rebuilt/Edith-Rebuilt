@@ -1,4 +1,5 @@
-EdithRebuilt = RegisterMod("Edith: Rebuilt", 1) --[[@as table|ModReference]]
+---@type ModReference | table
+EdithRebuilt = RegisterMod("Edith: Rebuilt", 1) 
 local mod = EdithRebuilt
 local font = Font()
 font:Load("font/pftempestasevencondensed.fnt")
@@ -31,6 +32,9 @@ EdithRebuilt.TempStatsLib = require("resources.scripts.libs.TempStatsLib")
 EdithRebuilt.SaveManager = require("resources.scripts.libs.EdithRebuiltSaveManager")
 EdithRebuilt.SaveManager.Init(mod)
 EdithRebuilt.Hsx = require("resources.scripts.libs.lhsx")
+EdithRebuilt.Pallete = include("resources.scripts.libs.palette")
+
+EdithRebuilt.Pallete:Init(mod)
 
 mod.TempStatsLib(function (player)
 	return mod.SaveManager.GetRunSave(player)

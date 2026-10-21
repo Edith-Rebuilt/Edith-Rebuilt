@@ -1,22 +1,26 @@
 local mod = EdithRebuilt
 local enums = mod.Enums
+
 local Vars = enums.EffectVariant
 local utils = enums.Utils
-local level = utils.Level
-local room = utils.Room
 local misc = enums.Misc
 local tables = enums.Tables
 local ConfigData = enums.ConfigDataTypes
-local Hsx = mod.Hsx
-local defColor = Color.Default
-local RGBColors = { Target = Color(1, 0, 0), Arrow = Color(1, 0, 0) }
+
+local level = utils.Level
+local room = utils.Room
+
 local modules = mod.Modules
 local Edith = modules.EDITH
 local TEdith = modules.TEDITH
 local Helpers = modules.HELPERS
 local targetArrow = modules.TARGET_ARROW
 local Jump = modules.JUMP
+
 local data = mod.DataHolder.GetEntityData
+
+local Hsx = mod.Hsx
+local RGBColors = { Target = Color(1, 0, 0), Arrow = Color(1, 0, 0) }
 
 local teleportPoints = {
 	Vector(110, 135),
@@ -280,7 +284,7 @@ local function ApplyEffectColor(effect, saveData, effectData)
 
     local isDesign1 = saveData.TargetDesign.Idx == 1
     local activeColor = saveData.RGBMode and RGBColors.Target or effect.Color
-    local newColor = (not isTDOV and isDesign1) and activeColor or defColor
+    local newColor = (not isTDOV and isDesign1) and activeColor or Color.Default
     effect:SetColor(newColor, -1, 100, false, false)
 end
 

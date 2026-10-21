@@ -41,8 +41,8 @@
 		noshake="true"
 		nomarks="true"
 		damagemultiplier="1.5"
-		pocketActive="Spice Chamber"
 		rangemodifier="2.5"
+		pocketActive="Spice Chamber"
 		modcostume="1001"
 	/>
 </players>

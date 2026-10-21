@@ -105,6 +105,11 @@ HudHelper.RegisterHUDElement({
         ChamberSprite.Rotation = rotation
         FilledSprite.Rotation = rotation
 
+        -- local color = Colors[player:GetActiveItemDesc(slot).VarData]
+
+        -- color:SetColorize(color.R, color.G, color.B, 1)
+        -- color:SetOffset(color.R / 2, color.G / 2, color.B /2)
+
         SelectedSprite.Color = Colors[player:GetActiveItemDesc(slot).VarData]
 
         SelectedSprite:Render(RenderPos, VecZero, VecZero)

@@ -40,6 +40,15 @@ function Target.SpawnTREdithTarget(player)
     Data.TREdithTarget = target
 end
 
+---Returns distance between Edith and her target
+---@param player EntityPlayer
+---@return number
+function Target.GetEdithTargetDistance(player)
+	local target = Target.GetTREdithTarget(player)
+	if not target then return 0 end
+	return target and player.Position:Distance(target.Position) or 0
+end
+
 ---@param player EntityPlayer
 ---@return Vector
 function Target.GetEdithTargetDirection(player)
@@ -60,5 +69,7 @@ function Target.RemoveEdithTarget(player)
 
 	Data.TREdithTarget = nil
 end
+
+
 
 return Target

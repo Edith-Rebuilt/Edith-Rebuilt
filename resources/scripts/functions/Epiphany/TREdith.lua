@@ -27,6 +27,7 @@ TREdith = {}
 ---@field BurstRadius number
 ---@field BurstKnockback number
 ---@field Cooldown integer
+---@field IsBraking boolean
 ---@field IsFlinging boolean
 ---@field StruckEntities {integer: boolean}
 
@@ -44,6 +45,7 @@ local function NewFlingShoveParams()
 		BurstRadius = 0,
 		BurstKnockback = 0,
 		Cooldown = 0,
+		IsBraking = false,
 		IsFlinging = false,
 		StruckEntities = {},
 	} --[[@as TREdithFlingStrikeParams]]
@@ -73,6 +75,8 @@ end
 ---@param charge number
 function TREdith.AddFlingCharge(player, charge)
     local flingParams = TREdith.GetFlingStrikeParams(player)
+
+	if flingParams.Cooldown > 0 then return end
 
     flingParams.FlingMoveCharge = AddCharge(flingParams.FlingMoveCharge, charge)
     flingParams.FlingStaticCharge = AddCharge(flingParams.FlingStaticCharge, charge)
