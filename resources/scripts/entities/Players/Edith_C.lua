@@ -366,7 +366,7 @@ end
 
 ---@param player EntityPlayer
 local function TREdithTrapdoor(player)
-    if TREdithMod.GetFlingBurstCharge(player, false) < 30 then return end
+    if TREdithMod.GetFlingBurstCharge(player, false) < 0.3 then return end
 
     local gridPos = utils.Room:GetGridEntityFromPos(player.Position)
 
