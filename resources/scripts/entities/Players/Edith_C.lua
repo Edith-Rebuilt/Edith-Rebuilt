@@ -46,7 +46,7 @@ local function AddTREdith()
     Epiphany.API.AddCharacter(TrEdithInfo)
 
     mod:RemoveCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddTREdith)
-end 
+end
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddTREdith)
 
@@ -189,7 +189,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
     Player.ManageLeoEffect(player)
     ManageCounters(flingParams)
     ManageFlingBurstReady(player, flingParams)
-    ChargeFling(player, 0.025 + (0.025 * (speed * speed)))
+    ChargeFling(player, 0.0325 + (0.025 * (speed * speed)))
     AfterImages(player, flingParams)
     SetFlingFaceDirection(player, flingParams)
 end)
@@ -252,10 +252,10 @@ end
 ---@param flingParams TREdithFlingStrikeParams
 local function ResetFlingState(player, flingParams)
     if flingParams.FlingDuration == 1 then
-        player:SetMinDamageCooldown(30)
+        player:SetMinDamageCooldown(40)
         flingParams.FlingMoveCharge = 0
         flingParams.FlingStaticCharge = 0
-        flingParams.Cooldown = 15
+        flingParams.Cooldown = 10
         flingParams.StruckEntities = {}
     end
 
@@ -284,6 +284,8 @@ local function BurstKnockback(player, charge, capsule)
     local shotSpeed = player.ShotSpeed
 
     for _, ent in ipairs(Isaac.FindInCapsule(capsule, misc.ParryPartitions)) do
+        if ent:ToBomb() then goto continue end
+        
         Helpers.TriggerPush(ent, player, 25)
 
         if ent.Type == EntityType.ENTITY_FIREPLACE and ent.Variant ~= 4 then
@@ -293,6 +295,8 @@ local function BurstKnockback(player, charge, capsule)
         if Helpers.IsEnemy(ent) then
             data(ent).HitStunDuration = 10 + math.ceil((10 * charge) * shotSpeed)
         end
+
+        ::continue::
     end
 end
 
@@ -361,6 +365,8 @@ local function StrikeManager(player, flingParams)
     flingParams.StrikeKnockback = 50 * player.ShotSpeed * chargeMod
 
     for _, ent in ipairs(Isaac.FindInCapsule(strikeCapsule, EntityPartition.ENEMY)) do
+        if ent:ToBomb() then goto continue end
+
         Land.HandleEntityInteraction(ent, player, flingParams.StrikeKnockback)
 
         if not Helpers.IsEnemy(ent) then goto continue end
@@ -460,7 +466,7 @@ mod:AddCallback(TRCallbacks.STRIKE_HIT_GRID, function (_, player, grid)
     sfx:Play(SoundEffect.SOUND_STONE_IMPACT)
     game:ShakeScreen(3 + math.ceil(5 * charge))
 
-    if charge >= 0.25 and not grid:ToDoor() then
+    if IsTREdithMovingReallyFast(player) and not grid:ToDoor() then
         grid:DestroyWithSource(false, EntityRef(player))
     end
 end)
@@ -543,6 +549,8 @@ local BlacklistedPickupVars = {
 ---@param player EntityPlayer
 ---@param collider Entity
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function(_, player, collider)
+    if collider:ToBomb() then return true end
+
     local pickup = collider:ToPickup()
 
     if not pickup then return end
