@@ -1,12 +1,6 @@
 local mod = EdithRebuilt
 local enums = mod.Enums
 local TRenums = enums.Epiphany
-
--- local mainModules = mainMod.Modules
--- local effectVariant = mod.Enums.EffectVariant
--- local Helpers = mainModules.HELPERS
--- local TargetArrow = mainModules.TARGET_ARROW
-
 local Target = {}
 
 ---Function to get Edith's Target, setting `tainted` to `true` will return Tainted Edith's Arrow
@@ -25,7 +19,7 @@ function Target.SpawnTREdithTarget(player)
 	if Target.GetTREdithTarget(player) then return end
 
 	local Data = modules.TARGET_ARROW.getTargetData(player)
-	local target = Isaac.Spawn(	
+	local target = Isaac.Spawn(
 		EntityType.ENTITY_EFFECT,
 		TRenums.EffectVariant.EFFECT_EDITH_C_TARGET,
 		0,
@@ -45,7 +39,6 @@ end
 ---@return number
 function Target.GetEdithTargetDistance(player)
 	local target = Target.GetTREdithTarget(player)
-	if not target then return 0 end
 	return target and player.Position:Distance(target.Position) or 0
 end
 
@@ -55,7 +48,7 @@ function Target.GetEdithTargetDirection(player)
 	local target = Target.GetTREdithTarget(player)
 	if not target then return Vector.Zero end
 
-	return (target.Position - player.Position):Normalized()
+	return target and (target.Position - player.Position):Normalized() or Vector.Zero
 end
 
 ---Function to remove Edith's target
@@ -69,7 +62,5 @@ function Target.RemoveEdithTarget(player)
 
 	Data.TREdithTarget = nil
 end
-
-
 
 return Target

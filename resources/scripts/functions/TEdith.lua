@@ -131,10 +131,6 @@ function TEdith.IsTaintedEdithJump(player)
 	return JumpLib:GetData(player).Tags["edithRebuilt_TaintedEdithJump"] or false
 end
 
--- local function SetArrowDirection(player, arrow)
--- 	arrow.Velocity = 
--- end	
-
 ---@param player EntityPlayer
 ---@param arrow EntityEffect
 ---@param arrowVel Vector

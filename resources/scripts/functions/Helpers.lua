@@ -237,6 +237,24 @@ function Helpers.GetEnemies()
     return enemyTable
 end
 
+
+---@param color Color
+---@param step number
+---@param value number
+---@return number
+function Helpers.RGBFunction(color, step, value)
+	value = value + step
+
+	if value > 1 then value = 0 end
+
+	color.R, color.G, color.B = Hsx.rgb2hsv(color.R, color.G, color.B)
+	color.R = color.R + step
+	color.R, color.G, color.B = Hsx.hsv2rgb(color.R, color.G, color.B)
+
+	return value
+end
+
+
 ---@param entity Entity
 ---@return EntityPlayer?
 function Helpers.GetPlayerFromTear(entity)

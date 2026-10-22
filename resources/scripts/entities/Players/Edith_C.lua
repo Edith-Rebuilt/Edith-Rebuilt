@@ -29,6 +29,8 @@ local BounceResult = Bounce.Result
 local params = TREdithMod.GetFlingStrikeParams
 local data = mod.DataHolder.GetEntityData
 
+local Jarona = false
+
 local TrEdithInfo = {
     charName = "EDITH", -- Internal character name (REQUIRED)
     charID = playerType.PLAYER_EDITH_C, -- Character ID (REQUIRED)
@@ -40,11 +42,13 @@ local TrEdithInfo = {
     floorTutorial = "gfx/Epiphany/grid/tutorial_Edith.anm2"
 }
 
-mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, function ()
-    if not (Epiphany and Epiphany.API) then return end
-
+local function AddTREdith()
     Epiphany.API.AddCharacter(TrEdithInfo)
-end)
+
+    mod:RemoveCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddTREdith)
+end 
+
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddTREdith)
 
 ---@param player EntityPlayer
 local function HandleTargetSpawn(player)
@@ -66,6 +70,10 @@ local function ManageTargetCounter(player, targetData)
     end
 
     targetData.Count = targetData.Count + 1
+end
+
+local function IsTREdithMovingReallyFast(player)
+    return TREdithMod.GetFlingBurstCharge(player, false) >= 0.3
 end
 
 ---@param target EntityEffect
@@ -169,7 +177,7 @@ local function ManageFlingBurstReady(player, flingParams)
 
     sfx:Play(SoundEffect.SOUND_BEEP)
     player:SetColor(readyColor, 5, 1000, true, true)
-end 
+end
 
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
@@ -220,14 +228,23 @@ local function TriggerFling(player, flingParams)
     Land.SpawnLandGFX(player, GetFlingLandParams(), Helpers.IsChap4())
     sfx:Play(SoundEffect.SOUND_SHELLGAME)
 
+    if Jarona then
+        sfx:Play(Trenums.SoundEffect.SOUND_JARONA)
+    end
+
     TRTarget.RemoveEdithTarget(player)
 end
+
+local JaronaColor = Color(1, 1, 1, 1, 0.01, 0.2, 1)
 
 ---@param player EntityPlayer
 ---@param flingParams TREdithFlingStrikeParams
 local function KeepFling(player, flingParams)
     if flingParams.FlingDuration <= 0 then return end
 
+    if Jarona then
+        player:SetColor(JaronaColor, 5, 1000, true, true)
+    end
     player.Velocity = flingParams.FlingVel
 end
 
@@ -293,7 +310,7 @@ local function TriggerBurst(player, flingParams)
     player:SetMinDamageCooldown(30)
 
     flingParams.FlingMoveCharge = 0
-    flingParams.Cooldown = 15
+    flingParams.Cooldown = 8
 end
 
 mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, function (_, npc)
@@ -304,7 +321,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, function (_, npc)
     npcData.HitStunDuration = npcData.HitStunDuration - 1
 
     if npcData.HitStunDuration <= 0 then return end
-    npc.State = NpcState.STATE_APPEAR
+
     return true
 end)
 
@@ -366,7 +383,7 @@ end
 
 ---@param player EntityPlayer
 local function TREdithTrapdoor(player)
-    if TREdithMod.GetFlingBurstCharge(player, false) < 0.3 then return end
+    if not IsTREdithMovingReallyFast(player) then return end
 
     local gridPos = utils.Room:GetGridEntityFromPos(player.Position)
 
@@ -399,14 +416,25 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
     end
 end)
 
+-- Primero el rebote predictivo contra puertas cerradas, después el snapshot
+-- (así el snapshot toma la posición/velocity ya rebotadas)
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_UPDATE, function (_, player)
     if not TREdithMod.IsTREdith(player) then return end
-    if not params(player).IsFlinging then return end
+
+    local flingParams = params(player)
+    if not flingParams.IsFlinging then return end
+
+    local door = Bounce.ResolveDoorCollision(player, flingParams)
+
+    if door then
+        Isaac.RunCallback(TRCallbacks.STRIKE_HIT_GRID, player, door, flingParams)
+    end
 
     Bounce.SnapshotMotion(player)
 end)
 
+-- Paredes y rocas; las puertas se resuelven en MC_PRE_PLAYER_UPDATE
 ---@param player EntityPlayer
 ---@param grid GridEntity
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_GRID_COLLISION, function (_, player, _index, grid)
@@ -500,6 +528,34 @@ end)
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_POCKET_ITEMS_SWAP, function (_, player)
     if not TREdithMod.IsTREdith(player) then return end
     if params(player).IsFlinging then return end
+
+    return true
+end)
+
+local BlacklistedPickupVars = {
+    [PickupVariant.PICKUP_COLLECTIBLE] = true,
+    [PickupVariant.PICKUP_SHOPITEM] = true,
+    [PickupVariant.PICKUP_TRINKET] = true,
+    [PickupVariant.PICKUP_TAROTCARD] = true,
+    [PickupVariant.PICKUP_PILL] = true,
+}
+
+---@param player EntityPlayer
+---@param collider Entity
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function(_, player, collider)
+    local pickup = collider:ToPickup()
+
+    if not pickup then return end
+    if not TREdithMod.IsTREdith(player) then return end
+
+    local flingParams = params(player)
+
+    if not flingParams.IsFlinging then return end
+    if not IsTREdithMovingReallyFast(player) then return end
+
+    if not (Helpers.When(pickup.Variant, BlacklistedPickupVars) or pickup:IsShopItem()) then return end
+
+    pickup.Wait = 1
 
     return true
 end)

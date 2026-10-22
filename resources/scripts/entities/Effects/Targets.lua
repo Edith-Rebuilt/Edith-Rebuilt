@@ -44,22 +44,6 @@ local function interpolateVector2D(vectorA, vectorB, t)
     return Vector(minT * vectorA.X + t * vectorB.X, minT * vectorA.Y + t * vectorB.Y)
 end
 
----@param color Color
----@param step number
----@param value number
----@return number
-local function RGBFunction(color, step, value)
-	value = value + step
-
-	if value > 1 then value = 0 end
-
-	color.R, color.G, color.B = Hsx.rgb2hsv(color.R, color.G, color.B)
-	color.R = color.R + step
-	color.R, color.G, color.B = Hsx.hsv2rgb(color.R, color.G, color.B)
-
-	return value
-end
-
 ---@param effect EntityEffect
 ---@param rgbColor {R: number, G: number, B: number}
 ---@param solidColor {Red: number, Green: number, Blue: number}
@@ -69,7 +53,7 @@ end
 ---@return number rgbState
 local function ApplyRGBOrSolidColor(effect, rgbColor, solidColor, rgbMode, rgbSpeed, rgbState)
     if rgbMode then
-        rgbState = RGBFunction(rgbColor, rgbSpeed, rgbState)
+        rgbState = Helpers.RGBFunction(rgbColor, rgbSpeed, rgbState)
         Helpers.ChangeColor(effect, rgbColor.R, rgbColor.G, rgbColor.B)
     else
         Helpers.ChangeColor(effect, solidColor.Red, solidColor.Green, solidColor.Blue)
@@ -305,7 +289,6 @@ local function UpdateArrowRotation(effect, player, saveData)
     if not (saveData.ArrowDesign ~= 2 and not Helpers.IsGrudgeChallenge()) then return end
 	effect:GetSprite().Rotation = TEdith.GetHopParryParams(player).HopDirection:GetAngleDegrees()
 end
-
 
 ---@param effect EntityEffect
 ---@param player EntityPlayer

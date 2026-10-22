@@ -1,4 +1,24 @@
+--[[
+    Módulo BOUNCE (mod.Modules.BOUNCE) - Rebotes del Fling de TR. Edith.
+
+    Este módulo NO registra callbacks. El script del personaje debe:
+      1) MC_PRE_PLAYER_UPDATE        -> Bounce.ResolveDoorCollision(player, flingParams)
+                                        y DESPUÉS Bounce.SnapshotMotion(player)
+      2) MC_PRE_PLAYER_GRID_COLLISION -> Bounce.ResolveGridCollision(player, flingParams, grid)
+      3) Al golpear un enemigo        -> Bounce.TriggerEnemyBounce(player, flingParams, ent, hash)
+
+    Las puertas NO pasan por el callback de grid: se detectan de forma predictiva
+    (swept test contra cada puerta, abierta o cerrada) en ResolveDoorCollision.
+
+    DEBUG = true imprime logs en la consola de Isaac (~).
+]]
+
 local mod = EdithRebuilt
+
+local room = mod.Enums.Utils.Room
+
+local data = mod.DataHolder.GetEntityData
+
 local Bounce = {}
 
 ---@enum BounceResult
@@ -8,14 +28,12 @@ Bounce.Result = {
     BOUNCED = 2,    -- rebote real aplicado: cancelar resolución y disparar STRIKE_HIT_GRID
 }
 
-local data = mod.DataHolder.GetEntityData
-
 local Result = Bounce.Result
 
 -------------------------------------------------------------------------------
 -- CONSTANTES
 -------------------------------------------------------------------------------
-local DEBUG = false
+local DEBUG = true
 
 local GRID_SIZE = 40
 local BASE_PLAYER_SIZE = 10
@@ -24,6 +42,11 @@ local MIN_SPEED = 0.01
 local SAME_WALL_DOT = 0.5
 local RESTITUTION = 1
 local ENEMY_PUSH_MARGIN = 2
+local DOOR_PUSH_MARGIN = 2
+
+-------------------------------------------------------------------------------
+-- UTILIDADES
+-------------------------------------------------------------------------------
 
 ---@param tag string
 ---@param fmt string
@@ -114,33 +137,61 @@ end
 -------------------------------------------------------------------------------
 -- GRID
 -------------------------------------------------------------------------------
----Las puertas abiertas no cuentan como colisión.
+---Las puertas se resuelven aparte (ResolveDoorCollision), no por el callback de grid.
 ---@param grid GridEntity
 ---@return boolean
-local function IsPassableGrid(grid)
-    local door = grid:ToDoor()
-    return door ~= nil and door:IsOpen()
+local function IsDoor(grid)
+    return grid:ToDoor() ~= nil
+end
+
+---¿Hay otra celda sólida pegada a esta cara? Si la hay, la cara es interna y no se puede golpear.
+---@param grid GridEntity
+---@param normal Vector
+---@return boolean
+local function IsFaceBlocked(grid, normal)
+    local neighbor = Game():GetRoom():GetGridEntityFromPos(grid.Position + normal * GRID_SIZE)
+    if not neighbor then return false end
+    if neighbor:ToDoor() then return true end
+
+    local collClass = neighbor.CollisionClass
+    return collClass ~= GridCollisionClass.COLLISION_NONE and collClass ~= GridCollisionClass.COLLISION_PIT
 end
 
 ---Normal de impacto contra la celda: swept test, con fallback por diferencia de posición.
+---Si el swept test cae en una cara interna (celda vecina sólida), se usa la normal del otro eje.
 ---@param prevPos Vector
 ---@param prevVel Vector
 ---@param grid GridEntity
 ---@param playerSize number
 ---@return Vector
 local function ComputeBounceNormal(prevPos, prevVel, grid, playerSize)
+    local dir = prevVel:Normalized()
     local half = GRID_SIZE / 2 + playerSize
     local center = grid.Position
     local halfExtent = Vector(half, half)
 
-    local _, normal = RaySweptAABBIntersect(prevPos, prevVel:Normalized(), center - halfExtent, center + halfExtent)
-    if normal then return normal end
+    local _, normal = RaySweptAABBIntersect(prevPos, dir, center - halfExtent, center + halfExtent)
 
-    local diff = prevPos - center
-    if math.abs(diff.X) > math.abs(diff.Y) then
-        return Vector(diff.X > 0 and 1 or -1, 0)
+    if not normal then
+        local diff = prevPos - center
+        if math.abs(diff.X) > math.abs(diff.Y) then
+            normal = Vector(diff.X > 0 and 1 or -1, 0)
+        else
+            normal = Vector(0, diff.Y > 0 and 1 or -1)
+        end
     end
-    return Vector(0, diff.Y > 0 and 1 or -1)
+
+    if not IsFaceBlocked(grid, normal) then return normal end
+
+    local altNormal = normal.X ~= 0
+        and Vector(0, dir.Y > 0 and -1 or 1)
+        or Vector(dir.X > 0 and -1 or 1, 0)
+
+    if IsFaceBlocked(grid, altNormal) then return normal end
+
+    Log("GRID", "CARA_INTERNA n=(%.0f,%.0f) -> n=(%.0f,%.0f)", normal.X, normal.Y, altNormal.X, altNormal.Y)
+
+    return altNormal
 end
 
 ---¿Esta colisión es la misma pared (celda vecina) que el último rebote real?
@@ -182,7 +233,7 @@ end
 ---@param grid GridEntity
 ---@return BounceResult
 function Bounce.ResolveGridCollision(player, flingParams, grid)
-    if not grid or IsPassableGrid(grid) then return Result.IGNORED end
+    if not grid or IsDoor(grid) then return Result.IGNORED end
 
     local pData = data(player)
     local now = Isaac.GetFrameCount()
@@ -211,6 +262,80 @@ function Bounce.ResolveGridCollision(player, flingParams, grid)
     ApplyGridBounce(player, flingParams, pData, prevPos, prevVel, normal, now)
 
     return Result.BOUNCED
+end
+
+-------------------------------------------------------------------------------
+-- PUERTAS (detección predictiva, sin callback de grid)
+-------------------------------------------------------------------------------
+-- Normal hacia el interior de la sala según el lado de la puerta (slot % 4):
+-- izquierda, arriba, derecha, abajo
+local DOOR_NORMALS = { [0] = Vector(1, 0), Vector(0, 1), Vector(-1, 0), Vector(0, -1) }
+
+---Puerta más cercana contra la que choca el movimiento de este frame.
+---Abiertas o cerradas: durante el Fling ninguna puerta se puede atravesar.
+---Solo cuenta si el jugador se mueve hacia la puerta (vel · normal < 0).
+---@param pos Vector
+---@param vel Vector
+---@param playerSize number
+---@return GridEntityDoor? door
+---@return Vector? normal
+---@return number? t distancia hasta el impacto
+local function FindDoorHit(pos, vel, playerSize)
+    local dir = vel:Normalized()
+    local half = GRID_SIZE / 2 + playerSize
+    local halfExtent = Vector(half, half)
+
+    local bestDoor, bestNormal, bestT = nil, nil, vel:Length()
+
+    for slot = 0, DoorSlot.DOWN1 do
+        local door = room:GetDoor(slot)
+
+        if not door then goto continue end
+
+        local normal = DOOR_NORMALS[slot % 4]
+
+        if vel:Dot(normal) >= 0 then goto continue end
+
+        local center = door.Position
+        local t = RaySweptAABBIntersect(pos, dir, center - halfExtent, center + halfExtent)
+
+        if not t then goto continue end
+        if t > bestT then goto continue end
+
+        bestDoor, bestNormal, bestT = door, normal, t
+        ::continue::
+    end
+
+    return bestDoor, bestNormal, bestT
+end
+
+---Llamar al inicio de MC_PRE_PLAYER_UPDATE (antes de SnapshotMotion) mientras haya Fling.
+---Refleja contra cualquier puerta (abierta o cerrada) ANTES de que el motor mueva al jugador.
+---Devuelve la puerta contra la que rebotó, o nil si no hubo rebote.
+---@param player EntityPlayer
+---@param flingParams TREdithFlingStrikeParams
+---@return GridEntityDoor?
+function Bounce.ResolveDoorCollision(player, flingParams)
+    local pData = data(player)
+    local now = Isaac.GetFrameCount()
+    if pData.LastBounceFrame == now then return nil end
+
+    local vel = player.Velocity
+    if vel:Length() < MIN_SPEED then return nil end
+
+    local door, normal, t = FindDoorHit(player.Position, vel, player.Size)
+    if not (door and normal and t) then return nil end
+
+    Log("DOOR", "REFLECT vel=(%.2f,%.2f) n=(%.0f,%.0f) t=%.1f", vel.X, vel.Y, normal.X, normal.Y, t)
+
+    ApplyReflection(player, flingParams, vel, normal)
+    player.Position = player.Position + vel:Normalized() * t + normal * DOOR_PUSH_MARGIN
+
+    pData.LastRealBounceNormal = normal
+    pData.LastRealBounceFrame = now
+    pData.LastBounceFrame = now
+
+    return door
 end
 
 -------------------------------------------------------------------------------
