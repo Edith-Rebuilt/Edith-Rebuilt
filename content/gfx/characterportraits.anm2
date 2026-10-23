@@ -30,7 +30,7 @@
             </RootAnimation>
             <LayerAnimations>
                 <LayerAnimation LayerId="0" Visible="true">
-                    <Frame XPivot="24" YPivot="24" XCrop="176" YCrop="0" Width="48" Height="48" XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    <Frame XPivot="24" YPivot="24" XCrop="176" YCrop="0" Width="48" Height="50" XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
                 </LayerAnimation>
             </LayerAnimations>
             <NullAnimations/>
@@ -52,12 +52,12 @@
         <Animations DefaultAnimation="Edith​​​">
             <Animation Name="Edith​​​" FrameNum="2" Loop="false">
                 <RootAnimation>
-                    <Frame XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    <Frame XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" ShearX="0" ShearY="0" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
                 </RootAnimation>
                 <LayerAnimations>
                     <LayerAnimation LayerId="0" Visible="true">
-                        <Frame XPivot="24" YPivot="24" XCrop="80" YCrop="0" Width="48" Height="48" XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
-                        <Frame XPivot="24" YPivot="24" XCrop="80" YCrop="48" Width="48" Height="48" XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                        <Frame XPivot="24" YPivot="24" XCrop="80" YCrop="0" Width="48" Height="48" XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" ShearX="0" ShearY="0" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                        <Frame XPivot="24" YPivot="24" XCrop="80" YCrop="48" Width="48" Height="48" XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" ShearX="0" ShearY="0" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
                     </LayerAnimation>
                 </LayerAnimations>
                 <NullAnimations/>
@@ -65,11 +65,11 @@
             </Animation>
             <Animation Name="Edith​​​​" FrameNum="1" Loop="true">
                 <RootAnimation>
-                    <Frame XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                    <Frame XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" ShearX="0" ShearY="0" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
                 </RootAnimation>
                 <LayerAnimations>
                     <LayerAnimation LayerId="0" Visible="true">
-                        <Frame XPivot="24" YPivot="24" XCrop="176" YCrop="0" Width="48" Height="48" XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
+                        <Frame XPivot="24" YPivot="24" XCrop="176" YCrop="0" Width="48" Height="50" XPosition="0" YPosition="0" Delay="1" Visible="true" XScale="100" YScale="100" ShearX="0" ShearY="0" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
                     </LayerAnimation>
                 </LayerAnimations>
                 <NullAnimations/>

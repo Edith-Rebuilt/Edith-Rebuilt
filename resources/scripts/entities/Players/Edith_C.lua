@@ -285,7 +285,7 @@ local function BurstKnockback(player, charge, capsule)
 
     for _, ent in ipairs(Isaac.FindInCapsule(capsule, misc.ParryPartitions)) do
         if ent:ToBomb() then goto continue end
-        
+
         Helpers.TriggerPush(ent, player, 25)
 
         if ent.Type == EntityType.ENTITY_FIREPLACE and ent.Variant ~= 4 then
@@ -526,7 +526,6 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
 
         flingParams.FlingDuration = 0
         flingParams.FlingMoveCharge = 0
-        flingParams.FlingStaticCharge = 0
     end, playerType.PLAYER_EDITH_C)
 end)
 
@@ -566,4 +565,19 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function(_, player, collid
     pickup.Wait = 1
 
     return true
+end)
+
+---@param tear EntityTear
+mod:AddPriorityCallback(ModCallbacks.MC_POST_FIRE_TEAR, CallbackPriority.LATE ,function(_, tear)
+    local player = Helpers.GetPlayerFromTear(tear)
+
+    if not player then return end
+    if not TREdithMod.IsTREdith(player) then return end
+
+    local color = tear.Color
+
+    color:SetTint(1, 157/255, 66/255, 1)
+    color:SetOffset(0.7, 47/255, 17/255)
+
+    tear.Color = color
 end)
