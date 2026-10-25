@@ -22,9 +22,11 @@ EdithRebuilt.Enums = {
 	PlayerType = {
 		PLAYER_EDITH = EdithPlayer,
 		PLAYER_EDITH_B = EdithBPlayer,
+		PLAYER_EDITH_C = Isaac.GetPlayerTypeByName("Edith​​​​")
 	},
 	CollectibleType = {
 		-- Edith Items
+
 		COLLECTIBLE_SALTSHAKER = Isaac.GetItemIdByName("Salt Shaker"),
 		COLLECTIBLE_PEPPERGRINDER = Isaac.GetItemIdByName("Pepper Grinder"),
 		COLLECTIBLE_EDITHS_HOOD = Isaac.GetItemIdByName("Edith's Hood"),
@@ -39,11 +41,19 @@ EdithRebuilt.Enums = {
 		COLLECTIBLE_SPICES_MIX = Isaac.GetItemIdByName("Spices Mix"),
 
 		--- Tainted Edith Items
+
 		COLLECTIBLE_BURNT_HOOD = Isaac.GetItemIdByName("Burnt Hood"),
 		COLLECTIBLE_DIVINE_WRATH = Isaac.GetItemIdByName("Divine Wrath"),
 
+		--- Challenge Items
+
 		COLLECTIBLE_EFFIGY = Isaac.GetItemIdByName("Effigy"),
 		COLLECTIBLE_CHUNK_OF_BASALT = Isaac.GetItemIdByName("Chunk of Basalt"),
+
+		--- Tarnished Edith Items		
+
+		COLLECTIBLE_SPICE_CHAMBER = Isaac.GetItemIdByName("Spice Chamber")
+
 	},
 	TrinketType = {
 		TRINKET_GEODE = Isaac.GetTrinketIdByName("Geode"),
@@ -59,11 +69,13 @@ EdithRebuilt.Enums = {
 	NullItemID = {
 		EDITH = Isaac.GetNullItemIdByName("Edith_Rebuilt_Edith"),
 		T_EDITH = Isaac.GetNullItemIdByName("Edith_Rebuilt_TEdith"),
+		TR_EDITH = Isaac.GetNullItemIdByName("Edith_Rebuilt_TREdith"),
 		EFFIGY = Isaac.GetNullItemIdByName("Edith_Rebuilt_Effigy"),
 	},
 	EffectVariant = {
 		EFFECT_EDITH_TARGET = Isaac.GetEntityVariantByName("Edith Target"),
 		EFFECT_EDITH_B_TARGET = Isaac.GetEntityVariantByName("Edith Tainted Arrow"),
+		EFFECT_EDITH_C_TARGET = Isaac.GetEntityVariantByName("TR. Edith Target"),
 	},
 	Challenge = {
 		CHALLENGE_VESTIGE = Isaac.GetChallengeIdByName("[Edith: Rebuilt] Vestige"),
@@ -100,12 +112,44 @@ EdithRebuilt.Enums = {
 		TARGET_SPRITE_CHANGE = "EdithRebuilt_TARGET_SPRITE_CHANGE",
 		-- Called everytime Tainted Edith's trail sprite is changed
 		TRAIL_SPRITE_CHANGE = "EdithRebuilt_TRAIL_SPRITE_CHANGE",
+		-- Called everytime TR. Edith hits a grid entity
+		---* player `EntityPlayer`
+		---* grid `GridEntity`
+		---* params `TREdithFlingStrikeParams`
+		STRIKE_HIT_GRID = "EdithRebuilt_STRIKE_HIT_GRID", --(player: EntityPlayer, grid: GridEntity, params)
+
+		--- Called everytime TR. Edith hits an enemy
+		---* player `EntityPlayer`
+		---* ent `Entity`
+		---* params `TREdithFlingStrikeParams`
+		STRIKE_HIT_ENEMY = "EdithRebuilt_STRIKE_HIT_ENEMY",
+
+		--- Called everytime TR. Edith kills an enemy with the Strike
+		---* player `EntityPlayer`
+		---* grid `GridEntity`
+		---* params `TREdithFlingStrikeParams`
+		STRIKE_KILL_ENEMY = "EdithRebuilt_STRIKE_KILL_ENEMY",
+
+		--- Called everytime TR. Edith triggers a Burst
+		---* player `EntityPlayer`
+		---* params `TREdithFlingStrikeParams`
+		BURST_TRIGGER = "EdithRebuilt_BURST_TRIGGER",
+
+		--- Called everytime TR. Edith triggers a Burst
+		---* player `EntityPlayer`
+		---* params `TREdithFlingStrikeParams`
+		BURST_PUSH_ENEMY = "EdithRebuilt_BURST_PUSH_ENEMY"
 	},
 	SubTypes = {
 		SALT_CREEP = Isaac.GetEntitySubTypeByName("Salt Creep"),
 		PEPPER_CREEP = Isaac.GetEntitySubTypeByName("Pepper Creep"),
-		CINDER_CREEP = Isaac.GetEntitySubTypeByName("Cinder Creep"),
+		GINGER_CREEP = Isaac.GetEntitySubTypeByName("Ginger Creep"),
+		TURMERIC_CREEP = Isaac.GetEntitySubTypeByName("Turmeric Creep"),
+		CUMIN_CREEP = Isaac.GetEntitySubTypeByName("Cumin Creep"),
+		GARLIC_CREEP = Isaac.GetEntitySubTypeByName("Garlic Creep"),
+		CINNAMON_CREEP = Isaac.GetEntitySubTypeByName("Cinnamon Creep"),
 		OREGANO_CREEP = Isaac.GetEntitySubTypeByName("Oregano Creep"),
+		CINDER_CREEP = Isaac.GetEntitySubTypeByName("Cinder Creep"),
 	},
 	SoundEffect = {
 		SOUND_EDITH_STOMP = Isaac.GetSoundIdByName("Edith Stomp"),
@@ -129,6 +173,9 @@ EdithRebuilt.Enums = {
 		SOUND_HAWK_TUAH = Isaac.GetSoundIdByName("HawkTuah"),
 		SOUND_CINNAMON_COUGH = Isaac.GetSoundIdByName("CinnamonCough"),
 		SOUND_PEPPER_SNEEZE = Isaac.GetSoundIdByName("PepperSneeze"),
+
+		SOUND_JARONA = Isaac.GetSoundIdByName("Jarona"),
+		SOUND_REVOLVER_CHANGE_GENERIC = Isaac.GetSoundIdByName("RevolverChangeGeneric")
 	},
 	Achievements = {
 		-- Edith unlocks
@@ -515,41 +562,4 @@ EdithRebuilt.Enums = {
 		ChargeBarrightVector = Vector(8, 10),
 		ParryPartitions = EntityPartition.ENEMY | EntityPartition.BULLET | EntityPartition.TEAR,
 	},
-	Epiphany = {
-		PlayerType = {
-			PLAYER_EDITH_C = Isaac.GetPlayerTypeByName("Edith​​​​")
-		},
-		EffectVariant = {
-			EFFECT_EDITH_C_TARGET = Isaac.GetEntityVariantByName("TR. Edith Target"),
-		},
-		CollectibleType = {
-			COLLECTIBLE_SPICE_CHAMBER = Isaac.GetItemIdByName("Spice Chamber")
-		},
-		NullItemID = {
-			EDITH_C = Isaac.GetNullItemIdByName("Edith_Rebuilt_TREdith")
-		},
-		Callbacks = {
-			-- Called everytime TR. Edith hits a grid entity
-			---* player `EntityPlayer`
-			---* grid `GridEntity`
-			---* params `TREdithFlingStrikeParams`
-			STRIKE_HIT_GRID = "EdithRebuilt_STRIKE_HIT_GRID", --(player: EntityPlayer, grid: GridEntity, params)
-
-			--- Called everytime TR. Edith hits an enemy
-			---* player `EntityPlayer`
-			---* grid `GridEntity`
-			---* params `TREdithFlingStrikeParams`
-			STRIKE_HIT_ENEMY = "EdithRebuilt_STRIKE_HIT_ENEMY",
-
-			--- Called everytime TR. Edith kills an enemy with the Strike
-			---* player `EntityPlayer`
-			---* grid `GridEntity`
-			---* params `TREdithFlingStrikeParams`
-			STRIKE_KILL_ENEMY = "EdithRebuilt_STRIKE_KILL_ENEMY"
-		},
-		SoundEffect = {
-			SOUND_JARONA = Isaac.GetSoundIdByName("Jarona"),
-			REVOLVER_CHANGE_GENERIC = Isaac.GetSoundIdByName("RevolverChangeGeneric")
-		}
-	}
 }

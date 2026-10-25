@@ -1,14 +1,19 @@
 local mod = EdithRebuilt
 local enums = mod.Enums
+
 local tables = enums.Tables
 local utils = enums.Utils
+local challenges = enums.Challenge
+
 local pool = utils.ItemPool
 local room = utils.Room
+
 local modules = mod.Modules
 local Player = modules.PLAYER
 local Helpers = modules.HELPERS
 local TargetArrow = modules.TARGET_ARROW
 local BitMask = modules.BIT_MASK
+
 local costumes = enums.NullItemID
 
 ---@param entity Entity
@@ -34,13 +39,13 @@ end
 local ModCostumes = {
     [costumes.EDITH] = true,
     [costumes.T_EDITH] = true,
-    [mod.Enums.Epiphany.NullItemID.EDITH_C] = true,
+    [costumes.TR_EDITH] = true,
 }
 
 local whiteListCostumes = {
     [costumes.EDITH] = true,
     [costumes.T_EDITH] = true,
-    [mod.Enums.Epiphany.NullItemID.EDITH_C] = true,
+    [costumes.TR_EDITH] = true,
     [CollectibleType.COLLECTIBLE_HOLY_MANTLE] = true,
     [CollectibleType.COLLECTIBLE_FATE] = true,
     [CollectibleType.COLLECTIBLE_BOOK_OF_SHADOWS] = true,
@@ -185,8 +190,8 @@ local GrudgePath = "gfx/ui/stage/TEdithPortraitGrudge.png"
 ---@param layer integer
 local function replacePortrait(sprite, layer)
     local challenge = Isaac.GetChallenge()
-    local isVestige = challenge == enums.Challenge.CHALLENGE_VESTIGE
-    local isGrudge = challenge == enums.Challenge.CHALLENGE_GRUDGE
+    local isVestige = challenge == challenges.CHALLENGE_VESTIGE
+    local isGrudge = challenge == challenges.CHALLENGE_GRUDGE
     local path = isVestige and VestigePath or isGrudge and GrudgePath
 
     if not path then return end

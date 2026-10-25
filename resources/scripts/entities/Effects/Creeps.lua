@@ -1,14 +1,18 @@
 local mod = EdithRebuilt
 local enums = mod.Enums
+
 local subtype = enums.SubTypes
-local game = enums.Utils.Game
 local saltTypes = enums.SaltTypes
+
+local game = enums.Utils.Game
+
 local modules = mod.Modules
 local StatusEffects = modules.STATUS_EFFECTS
 local Helpers = modules.HELPERS
 local Player = modules.PLAYER
 local BitMask = modules.BIT_MASK
 local Creeps = modules.CREEPS
+
 local data = mod.DataHolder.GetEntityData
 
 local ModCreeps = {

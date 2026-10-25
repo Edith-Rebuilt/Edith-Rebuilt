@@ -81,12 +81,13 @@ end
 ---@param p EntityPlayer
 ---@return boolean
 function Player.IsAnyEdith(p)
-	return Player.IsEdith(p, true) or Player.IsEdith(p, false) or (p:GetPlayerType() == enums.Epiphany.PlayerType.PLAYER_EDITH_C) 
+	return Player.IsEdith(p, true) or Player.IsEdith(p, false) or (p:GetPlayerType() == players.PLAYER_EDITH_C)
 end
 
 function Player.AnyoneIsEdith()
-    return PlayerManager.AnyoneIsPlayerType(enums.PlayerType.PLAYER_EDITH)
-        or PlayerManager.AnyoneIsPlayerType(enums.PlayerType.PLAYER_EDITH_B)
+    return PlayerManager.AnyoneIsPlayerType(players.PLAYER_EDITH)
+        or PlayerManager.AnyoneIsPlayerType(players.PLAYER_EDITH_B)
+		or PlayerManager.AnyoneIsPlayerType(players.PLAYER_EDITH_C)
 end
 
 ---@param p EntityPlayer

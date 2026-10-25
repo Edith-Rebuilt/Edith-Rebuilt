@@ -27,7 +27,7 @@ local Effects = {
     Oregano = {
         ID = "EDITH_REBUILT_OREGANO",
         Sprite = Sprite(spritePath .. "EdithRebuiltOregano.anm2", true),
-        Color = Color(1, 1, 1, 1, 113/255, 120/255, 82/255),
+        Color = Color(1, 1, 1, 1, 113/255, 140/255, 82/255),
     },
     Cumin = {
         ID = "EDITH_REBUILT_CUMIN",
@@ -80,14 +80,13 @@ local Flags = {
 }
 
 ---@class SpiceEffect
----@field ID string
+---@field ID EdithStatusEffects 
 ---@field Duration integer
 ---@field Color Color
 ---@field Cooldown integer
-
 local Spices = {
     [effects.SALTED] = {
-        ID = effects.SALTED,
+        ID = effects.SALTED ,
         Duration = 120,
         Color = Color(1, 1, 1, 1, 1.1, 1.1, 1.1),
         Cooldown = 180,

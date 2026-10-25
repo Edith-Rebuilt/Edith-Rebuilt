@@ -1,18 +1,7 @@
 local mod = EdithRebuilt
-
 local data = mod.DataHolder.GetEntityData
 
-local enums = mod.Enums
-local utils = enums.Utils
-
-local room = utils.Room
--- local
-
-
-local TRenums = enums.Epiphany
-local TRCallbacks = TRenums.Callbacks
-
-TREdith = {}
+local TREdith = {}
 
 ---@class TREdithFlingStrikeParams
 ---@field StrikeDamage number
@@ -61,7 +50,7 @@ end
 
 ---@param player EntityPlayer
 function TREdith.IsTREdith(player)
-	return player:GetPlayerType() == mod.Enums.Epiphany.PlayerType.PLAYER_EDITH_C
+	return player:GetPlayerType() == mod.Enums.PlayerType.PLAYER_EDITH_C
 end
 
 ---@param current number

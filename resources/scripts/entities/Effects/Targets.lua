@@ -19,7 +19,6 @@ local Jump = modules.JUMP
 
 local data = mod.DataHolder.GetEntityData
 
-local Hsx = mod.Hsx
 local RGBColors = { Target = Color(1, 0, 0), Arrow = Color(1, 0, 0) }
 
 local teleportPoints = {
@@ -31,7 +30,7 @@ local teleportPoints = {
 local targetArrows = {
 	[Vars.EFFECT_EDITH_TARGET] = true,
 	[Vars.EFFECT_EDITH_B_TARGET] = true,
-	[enums.Epiphany.EffectVariant.EFFECT_EDITH_C_TARGET] = true,
+	[Vars.EFFECT_EDITH_C_TARGET] = true,
 }
 
 ---@param effect EntityEffect
@@ -152,7 +151,7 @@ end
 
 local Targets = {
 	[Vars.EFFECT_EDITH_TARGET] = true,
-	[enums.Epiphany.EffectVariant.EFFECT_EDITH_C_TARGET] = true
+	[Vars.EFFECT_EDITH_C_TARGET] = true
 }
 
 ---@param effect EntityEffect
@@ -312,8 +311,8 @@ end
 
 local doorRadius = {
 	[Vars.EFFECT_EDITH_TARGET] = 28,
-	[enums.Epiphany.EffectVariant.EFFECT_EDITH_C_TARGET] = 28,
-	[Vars.EFFECT_EDITH_B_TARGET] = 20
+	[Vars.EFFECT_EDITH_B_TARGET] = 20,
+	[Vars.EFFECT_EDITH_C_TARGET] = 28,
 }
 
 ---@param effect EntityEffect

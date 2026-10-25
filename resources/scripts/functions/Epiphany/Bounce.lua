@@ -1,24 +1,6 @@
---[[
-    Módulo BOUNCE (mod.Modules.BOUNCE) - Rebotes del Fling de TR. Edith.
-
-    Este módulo NO registra callbacks. El script del personaje debe:
-      1) MC_PRE_PLAYER_UPDATE        -> Bounce.ResolveDoorCollision(player, flingParams)
-                                        y DESPUÉS Bounce.SnapshotMotion(player)
-      2) MC_PRE_PLAYER_GRID_COLLISION -> Bounce.ResolveGridCollision(player, flingParams, grid)
-      3) Al golpear un enemigo        -> Bounce.TriggerEnemyBounce(player, flingParams, ent, hash)
-
-    Las puertas NO pasan por el callback de grid: se detectan de forma predictiva
-    (swept test contra cada puerta, abierta o cerrada) en ResolveDoorCollision.
-
-    DEBUG = true imprime logs en la consola de Isaac (~).
-]]
-
 local mod = EdithRebuilt
-
 local room = mod.Enums.Utils.Room
-
 local data = mod.DataHolder.GetEntityData
-
 local Bounce = {}
 
 ---@enum BounceResult
@@ -40,7 +22,7 @@ local BASE_PLAYER_SIZE = 10
 local BOUNCE_WINDOW_BASE = 18 -- frames de ventana "misma pared" con Size = BASE_PLAYER_SIZE
 local MIN_SPEED = 0.01
 local SAME_WALL_DOT = 0.5
-local RESTITUTION = 1
+local RESTITUTION = 0.99
 local ENEMY_PUSH_MARGIN = 2
 local DOOR_PUSH_MARGIN = 2
 
@@ -137,19 +119,13 @@ end
 -------------------------------------------------------------------------------
 -- GRID
 -------------------------------------------------------------------------------
----Las puertas se resuelven aparte (ResolveDoorCollision), no por el callback de grid.
----@param grid GridEntity
----@return boolean
-local function IsDoor(grid)
-    return grid:ToDoor() ~= nil
-end
-
+---
 ---¿Hay otra celda sólida pegada a esta cara? Si la hay, la cara es interna y no se puede golpear.
 ---@param grid GridEntity
 ---@param normal Vector
 ---@return boolean
 local function IsFaceBlocked(grid, normal)
-    local neighbor = Game():GetRoom():GetGridEntityFromPos(grid.Position + normal * GRID_SIZE)
+    local neighbor = room:GetGridEntityFromPos(grid.Position + normal * GRID_SIZE)
     if not neighbor then return false end
     if neighbor:ToDoor() then return true end
 
@@ -233,7 +209,7 @@ end
 ---@param grid GridEntity
 ---@return BounceResult
 function Bounce.ResolveGridCollision(player, flingParams, grid)
-    if not grid or IsDoor(grid) then return Result.IGNORED end
+    if not grid or grid:ToDoor() ~= nil then return Result.IGNORED end
 
     local pData = data(player)
     local now = Isaac.GetFrameCount()
@@ -375,6 +351,8 @@ function Bounce.TriggerEnemyBounce(player, flingParams, ent, hash)
 
     local normal, penetration = ComputeEnemyNormal(player, ent)
     if not normal then return end
+
+    print(ent.Type)
 
     Log("ENEMY", "REFLECT vel=(%.2f,%.2f) n=(%.2f,%.2f) pen=%.1f",
         vel.X, vel.Y, normal.X, normal.Y, penetration)

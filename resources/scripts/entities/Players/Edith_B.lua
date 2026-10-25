@@ -1,13 +1,18 @@
 local mod = EdithRebuilt
 local enums = mod.Enums
 local utils = enums.Utils
+local tables = enums.Tables
+local misc = enums.Misc
+local parryTypes = enums.ParryTypes
+
+local Pallete = mod.Pallete
+
 local game = utils.Game
 local sfx = utils.SFX
 local room = utils.Room
-local tables = enums.Tables
+
 local jumpTags = tables.JumpTags
-local parryTypes = enums.ParryTypes
-local misc = enums.Misc
+
 local modules = mod.Modules
 local VecDir = modules.VEC_DIR
 local maths = modules.MATHS
@@ -19,6 +24,7 @@ local Helpers = modules.HELPERS
 local effects = modules.STATUS_EFFECTS
 local BitMask = modules.BIT_MASK
 local Jump = modules.JUMP
+
 local data = mod.DataHolder.GetEntityData
 
 local Colors = {
@@ -101,26 +107,26 @@ local function TEdithHeatColor(player, heat)
 
 	player:SetColor(color, 1, 10, true, false)
 
-	if player.FrameCount % (10 - (math.ceil(6 * (heat * heat)))) == 0 then
-		local playerScale = player.SpriteScale
+	if player.FrameCount % (10 - (math.ceil(6 * (heat * heat)))) ~= 0 then return end
+	
+	local playerScale = player.SpriteScale
 
-		local smoke = Isaac.Spawn(
-			EntityType.ENTITY_EFFECT, 
-			EffectVariant.POOF02, 2, 
-			player.Position - Vector(0, 30 * playerScale.Y), 
-			Vector(0, -1) * (3 * heat), 
-			player):
-		ToEffect() ---@cast smoke EntityEffect
+	local smoke = Isaac.Spawn(
+		EntityType.ENTITY_EFFECT, 
+		EffectVariant.POOF02, 2, 
+		player.Position - Vector(0, 30 * playerScale.Y), 
+		Vector(0, -1) * (3 * heat), 
+		player):
+	ToEffect() ---@cast smoke EntityEffect
 
-		local rng = smoke:GetDropRNG()
-		local smokeColorize = 1 - (0.5 * heat)
-		local smokeSize = 0.4 + (0.1 * heat)
-		local sprite = smoke:GetSprite()
+	local rng = smoke:GetDropRNG()
+	local smokeColorize = 1 - (0.5 * heat)
+	local smokeSize = 0.4 + (0.1 * heat)
+	local sprite = smoke:GetSprite()
 
-		sprite.Color:SetColorize(smokeColorize, smokeColorize, smokeColorize, 1)
-		sprite.PlaybackSpeed = 1.3 + (0.3 * heat)
-		sprite.Scale = Vector(smokeSize, smokeSize) * playerScale * modules.RNG.RandomFloat(rng, 0.9, 1.1)
-	end
+	sprite.Color:SetColorize(smokeColorize, smokeColorize, smokeColorize, 1)
+	sprite.PlaybackSpeed = 1.3 + (0.3 * heat)
+	sprite.Scale = Vector(smokeSize, smokeSize) * playerScale * modules.RNG.RandomFloat(rng, 0.9, 1.1)
 end
 
 ---@param player EntityPlayer

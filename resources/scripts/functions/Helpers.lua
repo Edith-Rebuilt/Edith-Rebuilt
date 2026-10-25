@@ -1,14 +1,18 @@
 ---@diagnostic disable: undefined-global
 local mod = EdithRebuilt
 local enums = mod.Enums
+
 local utils = enums.Utils
-local game = utils.Game
-local room = utils.Room
 local misc = enums.Misc
 local tables = enums.Tables
 local ConfigDataTypes = enums.ConfigDataTypes
 local saveManager = mod.SaveManager
+
+local game = utils.Game
+local room = utils.Room
+
 local data = mod.DataHolder.GetEntityData
+local Hsx = mod.Hsx
 
 local Helpers = {}
 
@@ -236,7 +240,6 @@ function Helpers.GetEnemies()
     end
     return enemyTable
 end
-
 
 ---@param color Color
 ---@param step number
@@ -698,6 +701,5 @@ end
 function Helpers.IDToMarkup(ID)
     return "{{Collectible" .. tostring(ID) .. "}} "
 end
-
 
 return Helpers

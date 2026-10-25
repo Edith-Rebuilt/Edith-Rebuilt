@@ -21,7 +21,7 @@ function Target.SpawnTREdithTarget(player)
 	local Data = modules.TARGET_ARROW.getTargetData(player)
 	local target = Isaac.Spawn(
 		EntityType.ENTITY_EFFECT,
-		TRenums.EffectVariant.EFFECT_EDITH_C_TARGET,
+		enums.EffectVariant.EFFECT_EDITH_C_TARGET,
 		0,
 		player.Position,
 		Vector.Zero,
@@ -46,8 +46,6 @@ end
 ---@return Vector
 function Target.GetEdithTargetDirection(player)
 	local target = Target.GetTREdithTarget(player)
-	if not target then return Vector.Zero end
-
 	return target and (target.Position - player.Position):Normalized() or Vector.Zero
 end
 
