@@ -125,7 +125,7 @@ local function IsTargetNearDoor(origin, target, maxDistanceSquared)
     return target ~= nil and origin:DistanceSquared(target) <= maxDistanceSquared*maxDistanceSquared
 end
 
----@return {Sprite: Sprite, Mausoleum: boolean, Strange: boolean, StrangeOpened: boolean}?
+---@return {Sprite: Sprite, Mausoleum: boolean, Strange: boolean, Mirror: boolean,StrangeOpened: boolean}?
 local function GetDoorFlags(door)
     local sprite = door:GetSprite()
     local layer = sprite:GetLayer(0)
@@ -135,11 +135,13 @@ local function GetDoorFlags(door)
     local path = layer:GetSpritesheetPath()
     local mausoleum = path:find("mausoleum", 1, true) ~= nil or path:find("gehenna", 1, true) ~= nil
     local strange = path:find("mausoleum_alt", 1, true) ~= nil
+    local mirror = path:find("mirror", 1, true) ~= nil
 
     return {
         Sprite = sprite,
         Mausoleum = mausoleum,
         Strange = strange,
+        Mirror = mirror,
         StrangeOpened = strange and sprite:WasEventTriggered("FX")
     }
 end
@@ -227,7 +229,7 @@ function targetArrow.TargetDoorManager(effect, player, triggerDistance)
 
         playerNearDoor = true
 
-        if door:IsOpen() or mirrorRoom or flags.StrangeOpened  then
+        if door:IsOpen() or flags.Mirror or flags.StrangeOpened  then
             MovePlayerThroughDoor(player, doorPos, isTainted)
         else
             TryOpenDoor(door, flags, player, roomClear)
