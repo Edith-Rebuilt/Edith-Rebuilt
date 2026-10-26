@@ -1,5 +1,6 @@
 *.it
 .vscode
-.luarc.json
 .vscode/settings.json
 .luarc.json
+.gitignore
+ComoOrganizarElCodigo.md
