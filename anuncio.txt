@@ -1,0 +1,7 @@
+# About the next major update
+
+The mod is currently in a good state, v1.9 is solid enough and the mod can go for a while without getting critical updates or balance changes
+
+I know i've been making the next update's focus Tarnished Edith and overall Epiphany support, but i think that i could also work to improve one core aspect of this mod, the mod support
+
+Not only content mod support like Fiend Folio and such, but other things like Unique Items, 

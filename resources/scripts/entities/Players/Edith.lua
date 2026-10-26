@@ -23,11 +23,13 @@ local params = EdithMod.GetJumpStompParams
 -- #endregion Imports
 
 -- #region Constants
-local JUMP_WINDUP_FRAMES = 8 
-local SALT_SHAKER_POCKET_SLOT = 1 
+local JUMP_WINDUP_FRAMES = 8
+local SALT_SHAKER_POCKET_SLOT = 1
 
 local LANDING_DAMAGE_COOLDOWN = 25
 local LANDING_FRICTION_MULT = 0.1
+local LAND_ENEMY_JUMP_HEIGHT = 8
+local LAND_ENEMY_JUMP_SPEED = 2
 
 local COAL_BONUS_MIN = 0.5
 local COAL_BONUS_MAX = 0.6
@@ -41,8 +43,7 @@ local BIRTHCAKE_SALT_FRAMES = 120
 local MAX_FALL_SCALE = Vector(0.7, 1.3)
 -- #endregion Constants
 
--- #region Utilidades
-
+-- #region Utilities
 ---@param callback any
 ---@param fn fun(player: EntityPlayer, ...): any
 ---@param filter any?
@@ -65,9 +66,9 @@ end
 local function IsInJumpWindup(pData)
 	return (pData.JumpCount or 0) > 0
 end
--- #endregion Utilidades
+-- #endregion Utilities
 
--- #region Escala del sprite
+-- #region Sprite scale
 local FrameScale = {
 	BeforeJump = {
 		[1] = Vector(1.05, 0.95),
@@ -154,9 +155,10 @@ end)
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, function (_, player)
 	data(player).BaseSpriteScale = player.SpriteScale
 end, CacheFlag.CACHE_SIZE)
--- #endregion Escala del sprite
+-- #endregion Sprite scale
 
--- #region Inicio del salto
+-- #region Jump start
+
 ---@param player EntityPlayer
 ---@param state EdithUpdateState
 local function SetInitJumpState(player, state)
@@ -199,9 +201,10 @@ local function ManageJumpStretchSquash(player, pData, state)
 	TriggerEdithJump(player, pData, state)
 	ManageStretchSquashScale(player, pData)
 end
--- #endregion Inicio del salto
+-- #endregion Jump start
 
 -- #region Target
+
 ---@param player EntityPlayer
 ---@param state EdithUpdateState
 local function HandleTargetSpawn(player, state)
@@ -227,7 +230,8 @@ local function HandleTargetManagers(player, target, state)
 end
 -- #endregion Target
 
--- #region Update principal
+-- #region Main update
+
 ---@class EdithUpdateState
 ---@field isMoving boolean
 ---@field isKeyStompPressed boolean
@@ -300,9 +304,9 @@ AddEdithCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (player)
 
 	HandleTargetManagers(player, TargetArrow.GetEdithTarget(player), state)
 end)
--- #endregion Update principal
+-- #endregion Main update
 
--- #region Durante el salto
+-- #region During jump
 ---@param player EntityPlayer
 ---@param jumpParams EdithJumpStompParams
 local function ApplyCoalBonus(player, jumpParams)
@@ -313,6 +317,25 @@ local function ApplyCoalBonus(player, jumpParams)
 
 	jumpParams.CoalBonus = bonus * jumpParams.JumpStartDist / COAL_DISTANCE_DIVISOR
 end
+
+---@param pressurePlate GridEntityPressurePlate
+mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_PRESSUREPLATE_UPDATE, function(_, pressurePlate)
+	local playersInPlateRadius = Isaac.FindInRadius(pressurePlate.Position, 20, EntityPartition.PLAYER)
+
+	local cancelUpdate = false
+
+	for _, ent in ipairs(playersInPlateRadius) do
+		local player = ent:ToPlayer() ---@cast player EntityPlayer
+
+		if not Player.IsEdith(player, false) then goto continue end
+		if not Jump.IsJumping(player) then goto continue end
+
+		cancelUpdate = true
+		::continue::
+	end
+
+	if cancelUpdate then return false end
+end)
 
 ---@param player EntityPlayer
 mod:AddCallback(jumpCallbacks.POST_ENTITY_JUMP, function (_, player)
@@ -337,9 +360,9 @@ AddEdithCallback(jumpCallbacks.ENTITY_UPDATE_60, function (player, jumpdata)
 	Jump.SetBombJump(player, jumpParams)
 	EdithMod.BombFall(player, jumpdata, jumpParams)
 end, JumpParams.EdithJump)
--- #endregion Durante el salto
+-- #endregion During jump
 
--- #region Aterrizaje
+-- #region Landing
 ---@param player EntityPlayer
 ---@param jumpParams EdithJumpStompParams
 local function ExecuteStompSequence(player, jumpParams)
@@ -351,7 +374,13 @@ local function ExecuteStompSequence(player, jumpParams)
 
 	Land.EdithStomp(player, jumpParams, true)
 
-	Land.TriggerLandenemyJump(player, jumpParams.StompedEntities, jumpParams.Knockback, 8, 2)
+	Land.TriggerLandenemyJump(
+		player,
+		jumpParams.StompedEntities,
+		jumpParams.Knockback,
+		LAND_ENEMY_JUMP_HEIGHT,
+		LAND_ENEMY_JUMP_SPEED
+	)
 	Land.BombLandManager(player, jumpParams)
 end
 
@@ -435,9 +464,9 @@ mod:AddCallback(jumpCallbacks.ENTITY_LAND, function (_, player, jumpData, pitfal
 
 	HandleStompLand(player, jumpData, jumpParams, edithTarget)
 end, JumpParams.EdithJump)
--- #endregion Aterrizaje
+-- #endregion Landing
 
--- #region Stomp y Sal
+-- #region Stomp and Salt
 ---@param player EntityPlayer
 AddEdithCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (player)
 	local jumpParams = params(player)
@@ -452,7 +481,7 @@ mod:AddCallback(enums.Callbacks.OFFENSIVE_STOMP_KILL, function (_, _, ent)
 	data(ent).KilledByStomp = true
 end)
 
----NPCs (no jefes) con Sal muertos por un stomp: se cancela su update.
+---Non-boss NPCs with Salt killed by a stomp skip their update.
 ---@param npc EntityNPC
 mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, function (_, npc)
 	if npc:IsBoss() then return end
@@ -461,9 +490,9 @@ mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, function (_, npc)
 
 	return true
 end)
--- #endregion Stomp y Sal
+-- #endregion Stomp and Salt
 
--- #region Daño y objetos
+-- #region Damage and items
 ---@param damage number
 ---@param source EntityRef
 ---@return boolean?
@@ -484,7 +513,6 @@ mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function (_, _, damage, _, sour
 	end
 end)
 
----Invulnerable durante la preparación del salto.
 ---@param player EntityPlayer
 AddEdithCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function (player)
 	if not IsInJumpWindup(data(player)) then return end
@@ -516,6 +544,7 @@ mod:AddCallback(ModCallbacks.MC_POST_BOMB_UPDATE, function (_, bomb)
 		local player = ent:ToPlayer() ---@cast player EntityPlayer
 
 		if not Player.IsEdith(player, false) then goto continue end
+
 		data(player).BombPropulsion = true
 		EdithMod.ExplosionRecoil(player, params(player), bomb)
 
@@ -529,9 +558,9 @@ AddEdithCallback(ModCallbacks.MC_PRE_PLAYER_POCKET_ITEMS_SWAP, function (player)
 
 	return true
 end)
--- #endregion Daño y objetos
+-- #endregion Damage and items
 
--- #region Cambio de sala
+-- #region Room change
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
 	Player.ForEachPlayerType(function (player)
 		helpers.ChangeColor(player, nil, nil, nil, 1)
@@ -539,9 +568,9 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
 		params(player).CanJump = false
 	end, enums.PlayerType.PLAYER_EDITH)
 end)
--- #endregion Cambio de sala
+-- #endregion Room change
 
--- #region Familiares
+-- #region Familiars
 ---@param fam EntityFamiliar
 ---@param jumpData JumpData
 mod:AddCallback(jumpCallbacks.ENTITY_UPDATE_60, function (_, fam, jumpData)
@@ -554,8 +583,8 @@ mod:AddCallback(jumpCallbacks.ENTITY_UPDATE_60, function (_, fam, jumpData)
 	if helpers.IsVestigeChallenge() then return end
 
 	EdithMod.ApplyFallPhysics(fam, jumpData)
-end, { tag = tables.JumpTags.EdithJump, type = EntityType.ENTITY_FAMILIAR, })
--- #endregion Familiares
+end, { tag = tables.JumpTags.EdithJump, type = EntityType.ENTITY_FAMILIAR })
+-- #endregion Familiars
 
 -- #region Birthcake
 ---@param player EntityPlayer
