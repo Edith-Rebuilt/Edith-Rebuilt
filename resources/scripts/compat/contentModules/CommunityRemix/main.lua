@@ -21,6 +21,7 @@ local function CRemixCompat()
 
     include(CRemixPath .. "Enums")
     include(CRemixPath .. "Unlock")
+    include(CRemixPath .. "Clot")
     include(CRemixPath .. "Health")
     include(CRemixPath .. "Replace")
 

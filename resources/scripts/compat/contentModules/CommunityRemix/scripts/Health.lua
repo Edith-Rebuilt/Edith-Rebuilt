@@ -37,12 +37,12 @@ CustomHealthAPI.Library.RegisterSoulHealth(
                 Sub = SubTypes.SALT_HEART_2_THIRDS
             },
             {
-                ID = EntityType.ENTITY_PICKUP, 
-                Var = PickupVariant.PICKUP_HEART, 
+                ID = EntityType.ENTITY_PICKUP,
+                Var = PickupVariant.PICKUP_HEART,
                 Sub = SubTypes.SALT_HEART_1_THIRD
             },
         },
-        SumptoriumSubType = 20,  -- immortal heart clot
+        SumptoriumSubType = enums.BloodClotSubtype.SALT,
         SumptoriumSplatColor = Color(1.00, 1.00, 1.00, 1.00, 214/255, 228/255, 1.00),
         SumptoriumTrailColor = Color(1.00, 1.00, 1.00, 1.00, 214/255, 228/255, 1.00),
         SumptoriumCollectSoundSettings = {
@@ -72,7 +72,6 @@ for heart, amount in pairs(health) do
         AllowMagneto = true,
     })
 end
-
 
 CustomHealthAPI.Library.AddCallback("EdithRebuilt", CustomHealthAPI.Enums.Callbacks.POST_HEALTH_DAMAGED, 0, function(player, flags, key, hpDamaged, wasDepleted, wasLastDamaged)
     if key ~= "HEART_SALT" then return end

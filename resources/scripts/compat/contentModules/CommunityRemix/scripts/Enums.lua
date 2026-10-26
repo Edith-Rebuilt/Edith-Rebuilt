@@ -6,6 +6,9 @@ EdithRebuilt_SaltHearts.Enums = {
         SALT_HEART_2_THIRDS = Isaac.GetEntitySubTypeByName("Salt Heart (pickup 2/3)"),
         SALT_HEART_1_THIRD = Isaac.GetEntitySubTypeByName("Salt Heart (pickup 1/3)"),
     },
+    BloodClotSubtype = {
+        SALT = Isaac.GetEntitySubTypeByName("Salt Clot")
+    },
     Achievement = {
         SALT_HEART = Isaac.GetAchievementIdByName("Salt Hearts"),
     },
