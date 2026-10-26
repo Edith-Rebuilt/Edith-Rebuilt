@@ -1,3 +1,5 @@
+-- #region Imports
+
 local mod = EdithRebuilt
 
 local enums = mod.Enums
@@ -27,6 +29,7 @@ local BounceResult = Bounce.Result
 
 local params = TREdithMod.GetFlingStrikeParams
 local data = mod.DataHolder.GetEntityData
+-- #endregion Imports
 
 -- #region Constants
 
@@ -84,7 +87,6 @@ local function AddTREdithCallback(callback, fn)
     end)
 end
 
--- Wrappers sobre GetFlingBurstCharge(player, modo): evitan el booleano suelto en cada llamada.
 ---@param player EntityPlayer
 ---@return number
 local function GetFlingCharge(player)
@@ -103,7 +105,6 @@ local function HasHighFlingCharge(player)
     return GetFlingCharge(player) >= HIGH_CHARGE_THRESHOLD
 end
 
----Las bombas no interactúan con el Fling (ni golpe, ni Burst, ni colisión).
 ---@param ent Entity
 ---@return boolean
 local function IsIgnoredByFling(ent)
@@ -655,9 +656,7 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
     Player.ForEachPlayerType(function(player)
         if RoomTransition:GetTransitionMode() == 3 then return end
 
-        local flingCharge = params(player).FlingStaticCharge
-        if not flingCharge then return end
-
+        local flingCharge = GetBurstCharge(player)
         local playerData = data(player)
 
         playerData.ChargeBar = playerData.ChargeBar or Sprite("gfx/TEdithChargebar.anm2", true)
