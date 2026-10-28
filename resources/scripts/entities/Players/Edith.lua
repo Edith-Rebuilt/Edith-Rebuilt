@@ -496,3 +496,21 @@ mod:AddCallback(enums.Callbacks.OFFENSIVE_STOMP_HIT, function(_, player, ent)
 	if not ModRNG.RandomBoolean(rng, BIRTHCAKE_SALT_CHANCE) then return end
 	StatusEffects.SetStatusEffect(enums.EdithStatusEffects.SALTED, ent, SALTED_DURATION, player)
 end)
+
+mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_PRESSUREPLATE_UPDATE, function(_, pressurePlate)
+	local playersInPlateRadius = Isaac.FindInRadius(pressurePlate.Position, 20, EntityPartition.PLAYER)
+
+	local cancelUpdate = false
+
+	for _, ent in ipairs(playersInPlateRadius) do
+		local player = ent:ToPlayer() ---@cast player EntityPlayer
+
+		if not Player.IsEdith(player, false) then goto continue end
+		if not Jump.IsJumping(player) then goto continue end
+
+		cancelUpdate = true
+		::continue::
+	end
+
+	if cancelUpdate then return false end
+end)
