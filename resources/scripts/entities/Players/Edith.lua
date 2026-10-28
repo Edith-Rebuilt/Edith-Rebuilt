@@ -1,74 +1,87 @@
 ---@diagnostic disable: undefined-field, undefined-global
-
--- #region Imports
 local mod = EdithRebuilt
 local enums = mod.Enums
 local tables = enums.Tables
 local JumpParams = tables.JumpParams
-
 local modules = mod.Modules
 local EdithMod = modules.EDITH
 local Land = modules.LAND
 local TargetArrow = modules.TARGET_ARROW
-local StatusEffects = modules.STATUS_EFFECTS
 local helpers = modules.HELPERS
 local Player = modules.PLAYER
 local ModRNG = modules.RNG
 local Jump = modules.JUMP
-
 local room = enums.Utils.Room
+local StatusEffects = modules.STATUS_EFFECTS
 local jumpCallbacks = JumpLib.Callbacks
 local data = mod.DataHolder.GetEntityData
 local params = EdithMod.GetJumpStompParams
--- #endregion Imports
 
--- #region Constants
-local JUMP_WINDUP_FRAMES = 8
-local SALT_SHAKER_POCKET_SLOT = 1
-
-local LANDING_DAMAGE_COOLDOWN = 25
-local LANDING_FRICTION_MULT = 0.1
-local LAND_ENEMY_JUMP_HEIGHT = 8
-local LAND_ENEMY_JUMP_SPEED = 2
-
+local MAX_JUMP_COUNT = 8
+local PRESSURE_PLATE_RADIUS = 20
+local LAND_DAMAGE_COOLDOWN = 25
+local LAND_FRICTION = 0.1
+local MOMS_HEELS_DAMAGE = 12
 local COAL_BONUS_MIN = 0.5
 local COAL_BONUS_MAX = 0.6
-local COAL_DISTANCE_DIVISOR = 40
-
-local MOMS_HEELS_DAMAGE = 12
-
+local COAL_BONUS_DISTANCE_DIVISOR = 40
 local BIRTHCAKE_SALT_CHANCE = 0.25
-local BIRTHCAKE_SALT_FRAMES = 120
+local SALTED_DURATION = 120
 
-local MAX_FALL_SCALE = Vector(0.7, 1.3)
--- #endregion Constants
+---@class EdithUpdateState
+---@field isMoving boolean
+---@field isKeyStompPressed boolean
+---@field hasMarked boolean
+---@field isShooting boolean
+---@field jumpData JumpData
+---@field isPitfall boolean
+---@field isJumping boolean
+---@field jumpParams EdithJumpStompParams
 
--- #region Utilities
----@param callback any
----@param fn fun(player: EntityPlayer, ...): any
----@param filter any?
-local function AddEdithCallback(callback, fn, filter)
-	local function wrapped(_, player, ...)
-		if not Player.IsEdith(player, false) then return end
+---@param player EntityPlayer
+local function EdithTeleportManager(player)
+	if not player:GetSprite():IsPlaying("TeleportDown") then return end
+	JumpLib:QuitJump(player)
+	TargetArrow.RemoveEdithTarget(player, false)
+end
 
-		return fn(player, ...)
-	end
+---@param player EntityPlayer
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function(_, player)
+	local pData = data(player)
 
-	if filter == nil then
-		mod:AddCallback(callback, wrapped)
-	else
-		mod:AddCallback(callback, wrapped, filter)
-	end
+	pData.BaseSpriteScale = player.SpriteScale
+	pData.JumpCount = 0
+end)
+
+---@param player EntityPlayer
+local function SetInitJumpState(player)
+	if helpers.IsVestigeChallenge() then return end
+	if not helpers.IsKeyStompPressed(player) then return end
+	if not params(player).CanJump then return end
+	if Jump.IsJumping(player) then return end
+	data(player).InitJump = true
+end
+
+---@param player EntityPlayer
+---@param pData table
+---@param jumpParams EdithJumpStompParams
+local function TriggerEdithJump(player, pData, jumpParams)
+	if pData.JumpCount ~= 0 then return end
+	pData.InitJump = false
+	player.SpriteScale = pData.BaseSpriteScale
+	EdithMod.JumpTriggerManager(player, helpers.IsVestigeChallenge())
+	jumpParams.CanJump = false
 end
 
 ---@param pData table
----@return boolean
-local function IsInJumpWindup(pData)
-	return (pData.JumpCount or 0) > 0
-end
--- #endregion Utilities
+local function ManageStretchSquashCounter(pData)
+	pData.JumpCount = pData.JumpCount or 0
+	pData.JumpCount = math.min(pData.JumpCount + 1, MAX_JUMP_COUNT)
 
--- #region Sprite scale
+	if pData.JumpCount < MAX_JUMP_COUNT then return end
+	pData.JumpCount = 0
+end
+
 local FrameScale = {
 	BeforeJump = {
 		[1] = Vector(1.05, 0.95),
@@ -101,120 +114,58 @@ local FrameScale = {
 			[1] = Vector(0.9, 1.1),
 			[2] = Vector(0.8, 1.2),
 			[3] = Vector(0.7, 1.3),
-		},
-	},
+		}
+	}
 }
 
 ---@param player EntityPlayer
 ---@param pData table
 local function ManageStretchSquashScale(player, pData)
-	local vecScale = FrameScale.BeforeJump[pData.JumpCount]
-	if not vecScale then return end
+	local VecScale = FrameScale.BeforeJump[pData.JumpCount]
 
-	player.SpriteScale = pData.BaseSpriteScale * vecScale
+	if not VecScale then return end
+	player.SpriteScale = pData.BaseSpriteScale * VecScale
 end
 
 ---@param player EntityPlayer
-local function JumpInitScale(player)
-	local baseScale = data(player).BaseSpriteScale
-	local vecScale = FrameScale.AfterJump[Jump.GetJumpFrame(player)]
-
-	player.SpriteScale = vecScale and baseScale * vecScale or baseScale
-end
-
----@param player EntityPlayer
-local function JumpFallScale(player)
-	local canFly = player.CanFly
-	local frame = Jump.GetFallFrame(player)
-	local startFrame = canFly and 1 or 5
-
-	if frame < startFrame then return end
-	if canFly and params(player).IsDefensiveStomp then return end
-
-	local vecScale = FrameScale.OnFalling[canFly][frame] or MAX_FALL_SCALE
-
-	player.SpriteScale = data(player).BaseSpriteScale * vecScale
-end
-
----@param player EntityPlayer
-local function ResetEdithScale(player)
+---@param pData table
+local function ManageJumpStretchSquash(player, pData)
 	if Jump.IsJumping(player) then return end
-
-	player.SpriteScale = data(player).BaseSpriteScale
-end
-
----@param player EntityPlayer
-mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function (_, player)
-	local pData = data(player)
-
-	pData.BaseSpriteScale = player.SpriteScale
-	pData.JumpCount = 0
-end)
-
----@param player EntityPlayer
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, function (_, player)
-	data(player).BaseSpriteScale = player.SpriteScale
-end, CacheFlag.CACHE_SIZE)
--- #endregion Sprite scale
-
--- #region Jump start
-
----@param player EntityPlayer
----@param state EdithUpdateState
-local function SetInitJumpState(player, state)
-	if state.isVestige then return end
-	if not state.isKeyStompPressed then return end
-	if not state.jumpParams.CanJump then return end
-	if state.isJumping then return end
-
-	data(player).InitJump = true
-end
-
----@param pData table
-local function ManageStretchSquashCounter(pData)
-	pData.JumpCount = ((pData.JumpCount or 0) + 1) % JUMP_WINDUP_FRAMES
-end
-
----@param player EntityPlayer
----@param pData table
----@param state EdithUpdateState
-local function TriggerEdithJump(player, pData, state)
-	if pData.JumpCount ~= 0 then return end
-
-	pData.InitJump = false
-	player.SpriteScale = pData.BaseSpriteScale
-
-	EdithMod.JumpTriggerManager(player, state.isVestige)
-	state.jumpParams.CanJump = false
-end
-
----@param player EntityPlayer
----@param pData table
----@param state EdithUpdateState
-local function ManageJumpStretchSquash(player, pData, state)
-	if state.isJumping then return end
 	if not pData.InitJump then return end
-	if state.jumpParams.Cooldown ~= 0 then return end
-	if not state.jumpParams.CanJump then return end
+
+	local jumpParams = params(player)
+
+	if jumpParams.Cooldown ~= 0 then return end
+	if not jumpParams.CanJump then return end
 
 	ManageStretchSquashCounter(pData)
-	TriggerEdithJump(player, pData, state)
+	TriggerEdithJump(player, pData, jumpParams)
 	ManageStretchSquashScale(player, pData)
 end
--- #endregion Jump start
 
--- #region Target
+---@param player EntityPlayer
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, function(_, player)
+	data(player).BaseSpriteScale = player.SpriteScale
+end, CacheFlag.CACHE_SIZE)
+
+---@param player EntityPlayer
+local function HandleEdithInit(player)
+	if player.FrameCount ~= 0 then return end
+
+	Player.SetCustomSprite(player, false)
+	if helpers.GetConfigData(enums.ConfigDataTypes.EDITH).SaltShakerSlot == 1 then
+		player:RemoveCollectible(enums.CollectibleType.COLLECTIBLE_SALTSHAKER)
+		player:SetPocketActiveItem(enums.CollectibleType.COLLECTIBLE_SALTSHAKER, ActiveSlot.SLOT_POCKET, false)
+	end
+end
 
 ---@param player EntityPlayer
 ---@param state EdithUpdateState
 local function HandleTargetSpawn(player, state)
 	if player.FrameCount == 0 then return end
 	if player.ControlsCooldown > 0 then return end
-	if state.jumpData.Tags.EdithRebuilt_FlatStoneLand then return end
-
 	local shouldSpawn = state.isMoving or state.isKeyStompPressed or (state.hasMarked and state.isShooting)
-
-	if shouldSpawn then
+	if shouldSpawn and not state.isPitfall and not state.jumpData.Tags.EdithRebuilt_FlatStoneLand then
 		TargetArrow.SpawnEdithTarget(player)
 	end
 end
@@ -224,63 +175,14 @@ end
 ---@param state EdithUpdateState
 local function HandleTargetManagers(player, target, state)
 	if not target then return end
-
 	EdithMod.TargetMovementManager(player, target, state.isMoving)
 	EdithMod.HeadDirectionManager(player, state.isJumping, state.isShooting, state.isKeyStompPressed)
 end
--- #endregion Target
-
--- #region Main update
-
----@class EdithUpdateState
----@field isMoving boolean
----@field isKeyStompPressed boolean
----@field hasMarked boolean
----@field isShooting boolean
----@field jumpData JumpData
----@field isPitfall boolean
----@field isJumping boolean
----@field isVestige boolean
----@field jumpParams EdithJumpStompParams
 
 ---@param player EntityPlayer
----@return EdithUpdateState
-local function BuildUpdateState(player)
-	return {
-		isMoving = TargetArrow.IsEdithTargetMoving(player),
-		isKeyStompPressed = helpers.IsKeyStompPressed(player),
-		hasMarked = player:HasCollectible(CollectibleType.COLLECTIBLE_MARKED),
-		isShooting = Player.IsPlayerShooting(player),
-		jumpData = JumpLib:GetData(player),
-		isPitfall = JumpLib:IsPitfalling(player),
-		isJumping = Jump.IsJumping(player),
-		isVestige = helpers.IsVestigeChallenge(),
-		jumpParams = params(player),
-	}
-end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
+	if not Player.IsEdith(player, false) then return end
 
----@param player EntityPlayer
-local function HandleEdithInit(player)
-	if player.FrameCount ~= 0 then return end
-
-	Player.SetCustomSprite(player, false)
-
-	if helpers.GetConfigData(enums.ConfigDataTypes.EDITH).SaltShakerSlot == SALT_SHAKER_POCKET_SLOT then
-		player:RemoveCollectible(enums.CollectibleType.COLLECTIBLE_SALTSHAKER)
-		player:SetPocketActiveItem(enums.CollectibleType.COLLECTIBLE_SALTSHAKER, ActiveSlot.SLOT_POCKET, false)
-	end
-end
-
----@param player EntityPlayer
-local function EdithTeleportManager(player)
-	if not player:GetSprite():IsPlaying("TeleportDown") then return end
-
-	JumpLib:QuitJump(player)
-	TargetArrow.RemoveEdithTarget(player, false)
-end
-
----@param player EntityPlayer
-AddEdithCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (player)
 	if player:IsDead() then
 		TargetArrow.RemoveEdithTarget(player)
 		return
@@ -289,38 +191,33 @@ AddEdithCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (player)
 	local pData = data(player)
 	pData.BaseSpriteScale = pData.BaseSpriteScale or Vector.One
 
-	local state = BuildUpdateState(player)
+	local state = {
+		isMoving = TargetArrow.IsEdithTargetMoving(player),
+		isKeyStompPressed = helpers.IsKeyStompPressed(player),
+		hasMarked = player:HasCollectible(CollectibleType.COLLECTIBLE_MARKED),
+		isShooting = Player.IsPlayerShooting(player),
+		jumpData = JumpLib:GetData(player),
+		isPitfall = JumpLib:IsPitfalling(player),
+		isJumping = Jump.IsJumping(player),
+		jumpParams = params(player),
+	} ---@cast state EdithUpdateState
 
 	if not state.isPitfall then
-		SetInitJumpState(player, state)
-		ManageJumpStretchSquash(player, pData, state)
+		SetInitJumpState(player)
+		ManageJumpStretchSquash(player, pData)
 		HandleEdithInit(player)
 		HandleTargetSpawn(player, state)
 	end
-
 	EdithTeleportManager(player)
 	EdithMod.CustomDropBehavior(player, state.jumpParams)
 	EdithMod.DashItemBehavior(player)
 
 	HandleTargetManagers(player, TargetArrow.GetEdithTarget(player), state)
 end)
--- #endregion Main update
-
--- #region During jump
----@param player EntityPlayer
----@param jumpParams EdithJumpStompParams
-local function ApplyCoalBonus(player, jumpParams)
-	if not player:HasCollectible(CollectibleType.COLLECTIBLE_LUMP_OF_COAL) then return end
-
-	local rng = player:GetCollectibleRNG(CollectibleType.COLLECTIBLE_LUMP_OF_COAL)
-	local bonus = ModRNG.RandomFloat(rng, COAL_BONUS_MIN, COAL_BONUS_MAX)
-
-	jumpParams.CoalBonus = bonus * jumpParams.JumpStartDist / COAL_DISTANCE_DIVISOR
-end
 
 ---@param pressurePlate GridEntityPressurePlate
 mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_PRESSUREPLATE_UPDATE, function(_, pressurePlate)
-	local playersInPlateRadius = Isaac.FindInRadius(pressurePlate.Position, 20, EntityPartition.PLAYER)
+	local playersInPlateRadius = Isaac.FindInRadius(pressurePlate.Position, PRESSURE_PLATE_RADIUS, EntityPartition.PLAYER)
 
 	local cancelUpdate = false
 
@@ -338,31 +235,18 @@ mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_PRESSUREPLATE_UPDATE, function(_
 end)
 
 ---@param player EntityPlayer
-mod:AddCallback(jumpCallbacks.POST_ENTITY_JUMP, function (_, player)
+mod:AddCallback(jumpCallbacks.POST_ENTITY_JUMP, function(_, player)
 	local jumpParams = params(player)
 
 	jumpParams.JumpStartPos = player.Position
 	jumpParams.JumpStartDist = TargetArrow.GetEdithTargetDistance(player)
 
-	ApplyCoalBonus(player, jumpParams)
+	if not player:HasCollectible(CollectibleType.COLLECTIBLE_LUMP_OF_COAL) then return end
+
+	local rng = player:GetCollectibleRNG(CollectibleType.COLLECTIBLE_LUMP_OF_COAL)
+	jumpParams.CoalBonus = ModRNG.RandomFloat(rng, COAL_BONUS_MIN, COAL_BONUS_MAX) * jumpParams.JumpStartDist / COAL_BONUS_DISTANCE_DIVISOR
 end, JumpParams.EdithJump)
 
----@param player EntityPlayer
----@param jumpdata JumpData
-AddEdithCallback(jumpCallbacks.ENTITY_UPDATE_60, function (player, jumpdata)
-	local jumpParams = params(player)
-
-	JumpInitScale(player)
-	JumpFallScale(player)
-	EdithMod.JumpMovement(player, helpers.IsVestigeChallenge(), jumpParams, jumpdata)
-	EdithMod.DefensiveStompManager(player, jumpParams)
-	EdithMod.FlightFallBehavior(player, jumpdata, jumpParams)
-	Jump.SetBombJump(player, jumpParams)
-	EdithMod.BombFall(player, jumpdata, jumpParams)
-end, JumpParams.EdithJump)
--- #endregion During jump
-
--- #region Landing
 ---@param player EntityPlayer
 ---@param jumpParams EdithJumpStompParams
 local function ExecuteStompSequence(player, jumpParams)
@@ -374,13 +258,7 @@ local function ExecuteStompSequence(player, jumpParams)
 
 	Land.EdithStomp(player, jumpParams, true)
 
-	Land.TriggerLandenemyJump(
-		player,
-		jumpParams.StompedEntities,
-		jumpParams.Knockback,
-		LAND_ENEMY_JUMP_HEIGHT,
-		LAND_ENEMY_JUMP_SPEED
-	)
+	Land.TriggerLandenemyJump(player, jumpParams.StompedEntities, jumpParams.Knockback, 8, 2)
 	Land.BombLandManager(player, jumpParams)
 end
 
@@ -388,42 +266,23 @@ end
 ---@param edithTarget EntityEffect
 local function ApplyLandingState(player, edithTarget)
 	edithTarget:GetSprite():Play("Idle")
-	player:SetMinDamageCooldown(LANDING_DAMAGE_COOLDOWN)
-	player:MultiplyFriction(LANDING_FRICTION_MULT)
+	player:SetMinDamageCooldown(LAND_DAMAGE_COOLDOWN)
+	player:MultiplyFriction(LAND_FRICTION)
 end
 
 ---@param player EntityPlayer
----@param jumpParams EdithJumpStompParams
-local function ResetPropulsionState(player, jumpParams)
+local function ResetPropulsionState(player)
 	local playerData = data(player)
 
-	jumpParams.RocketLaunch = false
+	params(player).RocketLaunch = false
 	playerData.RocketPropulsion = false
 	playerData.BombPropulsion = false
 end
 
 ---@param player EntityPlayer
----@param jumpParams EdithJumpStompParams
-local function HandlePitfallLand(player, jumpParams)
-	TargetArrow.RemoveEdithTarget(player)
-	jumpParams.BombStomp = false
-end
-
----@param player EntityPlayer
----@param jumpData JumpData
----@param jumpParams EdithJumpStompParams
----@param edithTarget EntityEffect
-local function HandleStompLand(player, jumpData, jumpParams, edithTarget)
-	Land.TriggerLandAnimation(player)
-	Land.LandFeedbackManager(player, Land.GetLandSoundTable(false), player.Color, jumpData)
-
-	ExecuteStompSequence(player, jumpParams)
-	ApplyLandingState(player, edithTarget)
-	ResetPropulsionState(player, jumpParams)
-
-	jumpParams.IsCriticalStomp = false
-
-	EdithMod.StompTargetRemover(player)
+local function ResetEdithScale(player)
+	if Jump.IsJumping(player) then return end
+	player.SpriteScale = data(player).BaseSpriteScale
 end
 
 ---@param player EntityPlayer
@@ -431,15 +290,14 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
 	if not JumpLib:IsPitfalling(player) then return end
 
 	local sprite = player:GetSprite()
+	local anim = sprite:GetAnimation()
 
-	if sprite:GetAnimation() ~= "JumpOut" then return end
+	if anim ~= "JumpOut" then return end
 	if sprite:GetFrame() > 1 then return end
 
 	player:MultiplyFriction(0)
-
 	local newPos = room:FindFreePickupSpawnPosition(player.Position, 0, true, false)
 	local jumpIntData = JumpLib.Internal:GetData(player)
-
 	jumpIntData.PitPos = newPos
 	jumpIntData.JumpPos = newPos
 end)
@@ -447,41 +305,48 @@ end)
 ---@param player EntityPlayer
 ---@param jumpData JumpData
 ---@param pitfall boolean
-mod:AddCallback(jumpCallbacks.ENTITY_LAND, function (_, player, jumpData, pitfall)
+mod:AddCallback(jumpCallbacks.ENTITY_LAND, function(_, player, jumpData, pitfall)
+	local edithTarget = TargetArrow.GetEdithTarget(player)
 	ResetEdithScale(player)
 
-	local edithTarget = TargetArrow.GetEdithTarget(player)
 	if not edithTarget then return end
 
 	local jumpParams = params(player)
 
 	if pitfall then
-		HandlePitfallLand(player, jumpParams)
+		TargetArrow.RemoveEdithTarget(player)
+		jumpParams.BombStomp = false
 		return
 	end
 
 	if Player.IsInTrapdoor(player) then return end
 
-	HandleStompLand(player, jumpData, jumpParams, edithTarget)
-end, JumpParams.EdithJump)
--- #endregion Landing
+	Land.TriggerLandAnimation(player)
+	Land.LandFeedbackManager(player, Land.GetLandSoundTable(false), player.Color, jumpData)
+	ExecuteStompSequence(player, jumpParams)
+	ApplyLandingState(player, edithTarget)
+	ResetPropulsionState(player)
 
--- #region Stomp and Salt
+	jumpParams.IsCriticalStomp = false
+
+	EdithMod.StompTargetRemover(player)
+end, JumpParams.EdithJump)
+
 ---@param player EntityPlayer
-AddEdithCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (player)
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
+	if not Player.IsEdith(player, false) then return end
+
 	local jumpParams = params(player)
 
 	if jumpParams.RocketLaunch then return end
-
 	EdithMod.CooldownUpdate(player, jumpParams)
 end)
 
 ---@param ent Entity
-mod:AddCallback(enums.Callbacks.OFFENSIVE_STOMP_KILL, function (_, _, ent)
+mod:AddCallback(enums.Callbacks.OFFENSIVE_STOMP_KILL, function(_, _, ent)
 	data(ent).KilledByStomp = true
 end)
 
----Non-boss NPCs with Salt killed by a stomp skip their update.
 ---@param npc EntityNPC
 mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, function (_, npc)
 	if npc:IsBoss() then return end
@@ -490,92 +355,125 @@ mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, function (_, npc)
 
 	return true
 end)
--- #endregion Stomp and Salt
 
--- #region Damage and items
+local function JumpInitScale(player)
+	local frame = Jump.GetJumpFrame(player)
+	local VecScale = FrameScale.AfterJump[frame]
+	local pData = data(player)
+
+	if not VecScale then
+		player.SpriteScale = pData.BaseSpriteScale
+		return
+	end
+	player.SpriteScale = pData.BaseSpriteScale * VecScale
+end
+
+---@param player EntityPlayer
+local function JumpFallScale(player)
+	local frame = Jump.GetFallFrame(player)
+	local canFly = player.CanFly
+	local startframe = canFly and 1 or 5
+
+	if frame < startframe then return end
+	if canFly and params(player).IsDefensiveStomp then return end
+
+	local mainTable = FrameScale.OnFalling
+	local VecScale = mainTable[canFly][frame] or Vector(0.7, 1.3)
+
+	player.SpriteScale = data(player).BaseSpriteScale * VecScale
+end
+
+---@param player EntityPlayer
+---@param jumpdata JumpData
+mod:AddCallback(jumpCallbacks.ENTITY_UPDATE_60, function (_, player, jumpdata)
+	if not Player.IsEdith(player, false) then return end
+
+	local jumpParams = params(player)
+
+	JumpInitScale(player)
+	JumpFallScale(player)
+	EdithMod.JumpMovement(player, helpers.IsVestigeChallenge(), jumpParams, jumpdata)
+	EdithMod.DefensiveStompManager(player, jumpParams)
+	EdithMod.FlightFallBehavior(player, jumpdata, jumpParams)
+	Jump.SetBombJump(player, jumpParams)
+	EdithMod.BombFall(player, jumpdata, jumpParams)
+end, JumpParams.EdithJump)
+
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
+	Player.ForEachPlayerType(function(player)
+		helpers.ChangeColor(player, nil, nil, nil, 1)
+		TargetArrow.RemoveEdithTarget(player)
+		params(player).CanJump = false
+	end, enums.PlayerType.PLAYER_EDITH)
+end)
+
 ---@param damage number
 ---@param source EntityRef
 ---@return boolean?
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function (_, _, damage, _, source)
-	if source.Type == EntityType.ENTITY_NULL then return end
+	if source.Type == 0 then return end
 
+	local ent = source.Entity
+	local familiar = ent:ToFamiliar()
 	local player = helpers.GetPlayerFromRef(source)
 
 	if not player then return end
 	if not Player.IsEdith(player, false) then return end
 	if not Jump.IsJumping(player) then return end
 
-	local isFamiliarDamage = source.Entity:ToFamiliar() ~= nil
-	local isHeelsDamage = player:HasCollectible(CollectibleType.COLLECTIBLE_MOMS_HEELS) and damage == MOMS_HEELS_DAMAGE
+	local HasHeels = player:HasCollectible(CollectibleType.COLLECTIBLE_MOMS_HEELS)
 
-	if isFamiliarDamage or isHeelsDamage then
-		return false
-	end
+	if not (familiar or (HasHeels and damage == MOMS_HEELS_DAMAGE)) then return end
+	return false
 end)
 
----@param player EntityPlayer
-AddEdithCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function (player)
-	if not IsInJumpWindup(data(player)) then return end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function(_, player)
+	if not Player.IsEdith(player, false) then return end
+	if data(player).JumpCount and data(player).JumpCount <= 0 then return end
 
 	return false
 end)
 
 ---@param ID CollectibleType
 ---@param player EntityPlayer
-mod:AddCallback(ModCallbacks.MC_PRE_USE_ITEM, function (_, ID, _, player)
+mod:AddCallback(ModCallbacks.MC_PRE_USE_ITEM, function(_, ID, _, player)
 	if helpers.When(ID, tables.RemoveTargetItems, false) then
 		TargetArrow.RemoveEdithTarget(player)
 	end
 
-	if ID ~= CollectibleType.COLLECTIBLE_KAMIKAZE then return end
-	if not Player.IsEdith(player, false) then return end
-	if not Jump.IsJumping(player) then return end
-
-	return true
+	if ID == CollectibleType.COLLECTIBLE_KAMIKAZE then
+		if not Player.IsEdith(player, false) then return end
+		if not Jump.IsJumping(player) then return end
+		return true
+	end
 end)
 
 ---@param bomb EntityBomb
-mod:AddCallback(ModCallbacks.MC_POST_BOMB_UPDATE, function (_, bomb)
+mod:AddCallback(ModCallbacks.MC_POST_BOMB_UPDATE, function(_, bomb)
 	if not bomb:GetSprite():IsPlaying("Explode") then return end
-
-	local radius = helpers.GetBombRadiusFromDamage(bomb.ExplosionDamage)
-
-	for _, ent in ipairs(Isaac.FindInRadius(bomb.Position, radius, EntityPartition.PLAYER)) do
-		local player = ent:ToPlayer() ---@cast player EntityPlayer
-
+	local player
+	for _, ent in ipairs(Isaac.FindInRadius(bomb.Position, helpers.GetBombRadiusFromDamage(bomb.ExplosionDamage), EntityPartition.PLAYER)) do
+		player = ent:ToPlayer() ---@cast player EntityPlayer
 		if not Player.IsEdith(player, false) then goto continue end
 
 		data(player).BombPropulsion = true
 		EdithMod.ExplosionRecoil(player, params(player), bomb)
-
 		::continue::
 	end
 end)
 
 ---@param player EntityPlayer
-AddEdithCallback(ModCallbacks.MC_PRE_PLAYER_POCKET_ITEMS_SWAP, function (player)
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_POCKET_ITEMS_SWAP, function(_, player)
+	if not Player.IsEdith(player, false) then return end
 	if Jump.IsJumping(player) then return end
 
 	return true
 end)
--- #endregion Damage and items
 
--- #region Room change
-mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
-	Player.ForEachPlayerType(function (player)
-		helpers.ChangeColor(player, nil, nil, nil, 1)
-		TargetArrow.RemoveEdithTarget(player)
-		params(player).CanJump = false
-	end, enums.PlayerType.PLAYER_EDITH)
-end)
--- #endregion Room change
-
--- #region Familiars
 ---@param fam EntityFamiliar
 ---@param jumpData JumpData
-mod:AddCallback(jumpCallbacks.ENTITY_UPDATE_60, function (_, fam, jumpData)
+mod:AddCallback(jumpCallbacks.ENTITY_UPDATE_60, function(_, fam, jumpData)
 	if not JumpLib:IsFalling(fam) then return end
-
 	local player = fam:ToFamiliar().Player
 
 	if params(player).IsDefensiveStomp then return end
@@ -583,20 +481,18 @@ mod:AddCallback(jumpCallbacks.ENTITY_UPDATE_60, function (_, fam, jumpData)
 	if helpers.IsVestigeChallenge() then return end
 
 	EdithMod.ApplyFallPhysics(fam, jumpData)
-end, { tag = tables.JumpTags.EdithJump, type = EntityType.ENTITY_FAMILIAR })
--- #endregion Familiars
+end, {
+	tag = tables.JumpTags.EdithJump,
+	type = EntityType.ENTITY_FAMILIAR,
+})
 
--- #region Birthcake
 ---@param player EntityPlayer
 ---@param ent Entity
-mod:AddCallback(enums.Callbacks.OFFENSIVE_STOMP_HIT, function (_, player, ent)
-	if not BirthcakeRebaked then return end
+mod:AddCallback(enums.Callbacks.OFFENSIVE_STOMP_HIT, function(_, player, ent)
+	if not (BirthcakeRebaked and player:HasTrinket(BirthcakeRebaked.Birthcake.ID)) then return end
 
-	local birthcakeID = BirthcakeRebaked.Birthcake.ID
+	local rng = player:GetTrinketRNG(BirthcakeRebaked.Birthcake.ID)
 
-	if not player:HasTrinket(birthcakeID) then return end
-	if not ModRNG.RandomBoolean(player:GetTrinketRNG(birthcakeID), BIRTHCAKE_SALT_CHANCE) then return end
-
-	StatusEffects.SetStatusEffect(enums.EdithStatusEffects.SALTED, ent, BIRTHCAKE_SALT_FRAMES, player)
+	if not ModRNG.RandomBoolean(rng, BIRTHCAKE_SALT_CHANCE) then return end
+	StatusEffects.SetStatusEffect(enums.EdithStatusEffects.SALTED, ent, SALTED_DURATION, player)
 end)
--- #endregion Birthcake

@@ -1,5 +1,3 @@
--- #region Imports
-
 local mod = EdithRebuilt
 
 local enums = mod.Enums
@@ -29,15 +27,12 @@ local BounceResult = Bounce.Result
 
 local params = TREdithMod.GetFlingStrikeParams
 local data = mod.DataHolder.GetEntityData
--- #endregion Imports
-
--- #region Constants
 
 local JARONA_MODE = false
 local JARONA_COLOR = Color(1, 1, 1, 1, 0.01, 0.2, 1)
 
 local BASE_RANGE = 9
-local HIGH_CHARGE_THRESHOLD = 0.3 
+local HIGH_CHARGE_THRESHOLD = 0.3
 
 local CHARGE_RATE_BASE = 0.0325
 local CHARGE_RATE_SPEED_FACTOR = 0.025
@@ -73,19 +68,6 @@ local GRID_HIT_SHAKE_BASE = 3
 local GRID_HIT_SHAKE_PER_CHARGE = 5
 local DEATH_EXPLOSION_DAMAGE = 100
 local DEATH_SHAKE = 12
--- #endregion Constants
-
--- #region Utils
-
----@param callback ModCallbacks
----@param fn fun(player: EntityPlayer, ...): any
-local function AddTREdithCallback(callback, fn)
-    mod:AddCallback(callback, function (_, player, ...)
-        if not TREdithMod.IsTREdith(player) then return end
-
-        return fn(player, ...)
-    end)
-end
 
 ---@param player EntityPlayer
 ---@return number
@@ -105,14 +87,12 @@ local function HasHighFlingCharge(player)
     return GetFlingCharge(player) >= HIGH_CHARGE_THRESHOLD
 end
 
+---Las bombas no interactúan con el Fling (ni golpe, ni Burst, ni colisión).
 ---@param ent Entity
 ---@return boolean
 local function IsIgnoredByFling(ent)
     return ent:ToBomb() ~= nil
 end
--- #endregion Utils
-
--- #region CharRegister
 
 local TrEdithInfo = {
     charName = "EDITH", -- Internal character name (REQUIRED)
@@ -133,10 +113,6 @@ local function AddTREdith()
 end
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddTREdith)
-
--- #endregion CharRegister
-
--- #region TargetCharge
 
 ---@param player EntityPlayer
 local function HandleTargetSpawn(player)
@@ -219,10 +195,6 @@ local function ChargeFling(player, charge)
     TREdithMod.AddFlingCharge(player, charge)
     ManageTargetReturn(player)
 end
--- #endregion TargetCharge
-
--- #region PEffectUpdate
-
 ---@param flingParams TREdithFlingStrikeParams
 local function ManageCounters(flingParams)
     flingParams.Cooldown = math.max(flingParams.Cooldown - 1, 0)
@@ -264,8 +236,9 @@ local function ManageFlingBurstReady(player, flingParams)
     player:SetColor(readyColor, 5, 1000, true, true)
 end
 
----@param player EntityPlayer
-AddTREdithCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (player)
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
+    if not TREdithMod.IsTREdith(player) then return end
+
     local flingParams = params(player)
     local speed = player.MoveSpeed - 1
 
@@ -276,9 +249,6 @@ AddTREdithCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (player)
     AfterImages(player, flingParams)
     SetFlingFaceDirection(player, flingParams)
 end)
--- #endregion PEffectUpdate
-
--- #region Fling
 
 ---@return FeedbackLandParams
 local function GetFlingLandParams()
@@ -333,7 +303,6 @@ local function KeepFling(player, flingParams)
     player.Velocity = flingParams.FlingVel
 end
 
----Limpieza común al terminar el Fling (por duración o por cambio de sala).
 ---@param flingParams TREdithFlingStrikeParams
 local function ClearFlingState(flingParams)
     flingParams.FlingMoveCharge = 0
@@ -355,15 +324,16 @@ local function ResetFlingState(player, flingParams)
     end
 end
 
----@param player EntityPlayer
-AddTREdithCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function (player)
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function (_, player)
+    if not TREdithMod.IsTREdith(player) then return end
     if not params(player).IsFlinging then return end
 
-    return false
+    return false    
 end)
 
 ---@param player EntityPlayer
-AddTREdithCallback(ModCallbacks.MC_PRE_PLAYER_POCKET_ITEMS_SWAP, function (player)
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_POCKET_ITEMS_SWAP, function (_, player)
+
     if params(player).IsFlinging then return end
 
     return true
@@ -381,14 +351,11 @@ local BlockedPickupVariants = {
 local function IsBlockedPickup(pickup)
 	return (Helpers.When(pickup.Variant, BlockedPickupVariants) or pickup:IsShopItem())
 end
-
----@param player EntityPlayer
----@param collider Entity
-AddTREdithCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function (player, collider)
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function (_, player, collider)
     local pickup = collider:ToPickup()
 
 	if not params(player).IsFlinging then return end
-    if IsIgnoredByFling(collider) then return true end
+    if collider:ToBomb() then return true end
     if not pickup then return end
     if not HasHighFlingCharge(player) then return end
     if not IsBlockedPickup(pickup) then return end
@@ -397,10 +364,6 @@ AddTREdithCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function (player, colli
 
     return true
 end)
-
--- #endregion Fling
-
--- #region Burst
 
 local puffSize = Vector(0.6, 0.6)
 
@@ -492,9 +455,6 @@ local function ChargeRelease(player)
 
     flingParams.FlingStaticCharge = 0
 end
--- #endregion Burst
-
--- #region Strike
 
 ---@param player EntityPlayer
 ---@param flingParams TREdithFlingStrikeParams
@@ -567,7 +527,9 @@ local function UpdateFling(player, flingParams)
 end
 
 ---@param player EntityPlayer
-AddTREdithCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (player)
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (_, player)
+    if not TREdithMod.IsTREdith(player) then return end
+
     HandleTargetSpawn(player)
 
     local target = TRTarget.GetTREdithTarget(player)
@@ -579,12 +541,11 @@ AddTREdithCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function (player)
         EdithMod.TargetMovementManager(player, target, TargetArrow.IsEdithTargetMoving(player))
     end
 end)
--- #endregion Strike
-
--- #region Bounce
 
 ---@param player EntityPlayer
-AddTREdithCallback(ModCallbacks.MC_PRE_PLAYER_UPDATE, function (player)
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_UPDATE, function (_, player)
+    if not TREdithMod.IsTREdith(player) then return end
+
     local flingParams = params(player)
     if not flingParams.IsFlinging then return end
 
@@ -599,7 +560,7 @@ end)
 
 ---@param player EntityPlayer
 ---@param grid GridEntity
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_GRID_COLLISION, function (_, player, _index, grid)
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_GRID_COLLISION, function (_, player, _, grid)
     local flingParams = params(player)
     if not flingParams.IsFlinging then return end
 
@@ -626,12 +587,11 @@ mod:AddCallback(edithCallbacks.STRIKE_HIT_GRID, function (_, player, grid)
         grid:DestroyWithSource(false, EntityRef(player))
     end
 end)
--- #endregion Bounce
-
--- #region Death
 
 ---@param player EntityPlayer
-AddTREdithCallback(ModCallbacks.MC_POST_PLAYER_RENDER, function (player)
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, function (_, player)
+    if not TREdithMod.IsTREdith(player) then return end
+
     local pData = data(player)
     if pData.TREdithExplode then return end
 
@@ -645,18 +605,17 @@ AddTREdithCallback(ModCallbacks.MC_POST_PLAYER_RENDER, function (player)
 end)
 
 ---@param player EntityPlayer
-AddTREdithCallback(ModCallbacks.MC_POST_PLAYER_REVIVE, function (player)
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_REVIVE, function (_, player)
     data(player).TREdithExplode = false
 end)
--- #endregion Death
-
--- #region Misc
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
     Player.ForEachPlayerType(function(player)
         if RoomTransition:GetTransitionMode() == 3 then return end
 
-        local flingCharge = GetBurstCharge(player)
+        local flingCharge = params(player).FlingStaticCharge
+        if not flingCharge then return end
+
         local playerData = data(player)
 
         playerData.ChargeBar = playerData.ChargeBar or Sprite("gfx/TEdithChargebar.anm2", true)
@@ -691,4 +650,3 @@ mod:AddPriorityCallback(ModCallbacks.MC_POST_FIRE_TEAR, CallbackPriority.LATE, f
 
     tear.Color = color
 end)
--- #endregion Misc
