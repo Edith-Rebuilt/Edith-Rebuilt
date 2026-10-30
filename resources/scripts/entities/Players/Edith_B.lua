@@ -540,3 +540,40 @@ mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, function (_, npc)
 
 	StopVel(player, npc)
 end, EntityType.ENTITY_WILLO)
+
+
+local CabraRNG = RNG(math.min(Random(), 1), 35)
+
+Roll = CabraRNG:RandomInt(1, 100000)
+
+local cabra = Renderer.LoadImage("gfx/characters/secrets/cabra.png")
+local height = cabra:GetHeight()
+local width = cabra:GetWidth()
+
+mod:AddCallback(ModCallbacks.MC_POST_RENDER_CHARACTER_SELECT_PORTRAIT, function(_, playerType, sprite, position)
+	if Roll ~= 1 then return end
+	if playerType ~= enums.PlayerType.PLAYER_EDITH_B then return end
+
+	local scale = sprite.Scale
+
+	local destR = DestinationQuad(
+		Vector.Zero,
+        Vector.Zero,
+        Vector.Zero,
+        Vector(40, 40)
+	)
+
+	local cabraScale = Vector.One * scale
+
+    destR:Scale(cabraScale, cabraScale)
+    destR:Translate(position - (Vector(20, 30) * scale))
+
+	local source = SourceQuad(
+		Vector.Zero,
+		Vector(width, 0),
+		Vector(0, height),
+		Vector(width, height)
+	)
+
+	cabra:Render(source, destR, KColor(1, 1, 1, 1), Color(1))
+end)
