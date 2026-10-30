@@ -43,6 +43,8 @@ local includeFiles = {
 	col .. "items/Challenges/Effigy",
 	col .. "items/Challenges/ChunkOfBasalt",
 
+	col .. "items/Edith/Peppercorns",
+
 	col .. "items/TREdith/SpiceChamber",
 	-- Items fin
 

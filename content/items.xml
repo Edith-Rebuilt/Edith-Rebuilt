@@ -207,10 +207,19 @@
 		tearsmult="1.35"
 		hidden="true"
 	/>
+	<active 
+		id="17"
+		name="Peppercorns"
+		description="Whole spicy scatter"
+		gfx="GodMode/collectibles_Peppercorns.png"
+		maxcharges="2"
+		quality="1"
+	/>
+
 
 	<!-- Epiphany -->
 	<active
-		id="17" 
+		id="18" 
 		name="Spice Chamber" 
 		description="Pending Description" 
 		gfx="Epiphany/SpiceChamber.png"

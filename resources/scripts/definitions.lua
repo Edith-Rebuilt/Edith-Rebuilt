@@ -50,6 +50,10 @@ EdithRebuilt.Enums = {
 		COLLECTIBLE_EFFIGY = Isaac.GetItemIdByName("Effigy"),
 		COLLECTIBLE_CHUNK_OF_BASALT = Isaac.GetItemIdByName("Chunk of Basalt"),
 
+		--- GodMode Items
+		
+		COLLECTIBLE_PEPPERCORNS = Isaac.GetItemIdByName("Peppercorns"),
+
 		--- Tarnished Edith Items		
 
 		COLLECTIBLE_SPICE_CHAMBER = Isaac.GetItemIdByName("Spice Chamber")

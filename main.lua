@@ -44,6 +44,7 @@ include("resources.scripts.libs.hud_helper")
 include("resources.scripts.libs.prenpckillcallback")
 include("resources.scripts.libs.EdithKotryJumpLib").Init()
 include("resources.scripts.libs.status_effect_library")
+include("resources.scripts.libs.throwableitemlib")
 include("resources.scripts.definitions")
 
 EdithRebuilt.Modules = {
