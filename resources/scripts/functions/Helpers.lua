@@ -68,14 +68,16 @@ end
 ---@param radius number
 function Helpers.DestroyGrid(entity, radius)
     radius = radius or entity.Size
-    for i = 0, (room:GetGridSize()) do
+	local ref = EntityRef(entity)
+
+	for i = 0, (room:GetGridSize()) do
 		local grid = room:GetGridEntity(i)
 
 		if not grid then goto continue end
 		if (entity.Position - grid.Position):LengthSquared() > radius * radius then goto continue end
 		if grid:GetType() == GridEntityType.GRID_DOOR then goto continue end
 
-		grid:DestroyWithSource(false, EntityRef(entity))
+		grid:DestroyWithSource(false, ref)
 
 		::continue::
     end
