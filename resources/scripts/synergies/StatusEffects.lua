@@ -1,6 +1,5 @@
 local mod = EdithRebuilt
 local Callbacks = mod.Enums.Callbacks
-local bitMask = mod.Modules.BIT_MASK
 
 ---@param player EntityPlayer
 ---@param entity Entity

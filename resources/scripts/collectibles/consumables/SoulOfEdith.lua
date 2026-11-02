@@ -23,13 +23,14 @@ end, card.CARD_SOUL_EDITH)
 
 local function SpawnSaltTears(player)
 	for _ = 1, rng:RandomInt(18, 36) do 
-        local tear = Isaac.Spawn(EntityType.ENTITY_TEAR, TearVariant.ROCK, 0, Isaac.GetRandomPosition(), Vector.Zero, player):ToTear()
-		if not tear then return end
+        local tear = Isaac.Spawn(EntityType.ENTITY_TEAR, TearVariant.ROCK, 0, Isaac.GetRandomPosition(), Vector.Zero, player):ToTear() ---@cast tear EntityTear
+
 		tear.CollisionDamage = tear.CollisionDamage * 1.2
         tear.Height = -600 * ModRNG.RandomFloat(rng, 0.9, 1.1)
 		tear.FallingSpeed = 4 * ModRNG.RandomFloat(rng, 0.6, 1.8)
         tear.FallingAcceleration = 2.5 * ModRNG.RandomFloat(rng, 0.6, 1.8)
 		tear:AddTearFlags(TearFlags.TEAR_SPECTRAL | TearFlags.TEAR_PIERCING)
+
 		Helpers.ForceSaltTear(tear, false)
 		data(tear).IsSoulOfEdithTear = true
     end

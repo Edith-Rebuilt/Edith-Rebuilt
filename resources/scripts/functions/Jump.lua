@@ -1,11 +1,15 @@
 local mod = EdithRebuilt
+
 local enums = mod.Enums
 local utils = enums.Utils
 local tables = enums.Tables
+
 local jumpTags = tables.JumpTags
 local jumpFlags = tables.JumpFlags
+
 local sfx = utils.SFX
 local room = utils.Room
+
 local data = mod.DataHolder.GetEntityData
 local Jump = {}
 
