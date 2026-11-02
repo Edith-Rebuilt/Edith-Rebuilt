@@ -13,6 +13,9 @@
 		noshake="true"
 		achievement="Edith"
 		modcostume="1"
+		innatetrinkets="14"
+		damagemultiplier="1.5"
+		rangemodifier="2.5"
 	/>
 	<player 
 		bSkinParent="Edith​​​" 
@@ -28,6 +31,9 @@
 		noshake="true"
 		achievement="The Scorched"
 		modcostume="2"
+		innatetrinkets="14"
+		damagemultiplier="1.5"
+		rangemodifier="2.5"
 	/>
 	<player 
 		name="Edith​​​​"
@@ -44,5 +50,6 @@
 		rangemodifier="2.5"
 		pocketActive="Spice Chamber"
 		modcostume="3"
+		innatetrinkets="14"
 	/>
 </players>

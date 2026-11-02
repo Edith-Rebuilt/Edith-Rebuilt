@@ -21,7 +21,7 @@ mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function (_, entity, amount, fl
     local damage = ModRNG.RandomBoolean(rng, 0.8) and amount or 0
     local player = ent:ToFamiliar().Player
 
-    if damage > 0 and ModRNG.RandomBoolean(rng, 0.5) then
+    if damage > 0 and ModRNG.RandomBoolean(rng) then
         for rocks = 1, 6 do
             CustomShockwaveAPI:SpawnCustomCrackwave(
                 ent.Position,
