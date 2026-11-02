@@ -151,6 +151,7 @@ HudHelper.RegisterHUDElement({
 
         SelectedSprite.Color = GetSpiceHudColor(GetSelectedSpice(player, slot --[[@as ActiveSlot]]))
 
+        -- De atrás hacia adelante
         SelectedSprite:Render(renderPos, VecZero, VecZero)
         FilledSprite:Render(renderPos, VecZero, VecZero)
         ChamberSprite:Render(renderPos, VecZero, VecZero)

@@ -46,12 +46,8 @@ local function PepperHitsManager(entData)
 end
 
 ---@param entity EntityNPC
-mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, entity, amount, damageFlags, source, countdownFrames)
+mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, entity)
     if not Status.EntHasStatusEffect(entity, effects.PEPPERED) then return end
-    if amount <= 0 then return end
-
-    print(amount)
-
 
     local entData = data(entity)
     PepperHitsManager(entData)
@@ -74,6 +70,6 @@ mod:AddCallback(PRE_NPC_KILL.ID, function(_, entity)
     if not Status.EntHasStatusEffect(entity, effects.PEPPERED) then return end
 
     for i = 1, Peppers do
-        Creeps.SpawnPepperCreep(entity, entity.Position + Vector(0, 40):Rotated(i * degree), 0, 8)
+        Creeps.SpawnPepperCreep(entity, entity.Position + Vector(0, 40):Rotated(i * degree), 4, 8)
     end
 end)

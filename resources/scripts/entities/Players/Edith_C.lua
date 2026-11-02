@@ -87,6 +87,13 @@ local function HasHighFlingCharge(player)
     return GetFlingCharge(player) >= HIGH_CHARGE_THRESHOLD
 end
 
+---Las bombas no interactúan con el Fling (ni golpe, ni Burst, ni colisión).
+---@param ent Entity
+---@return boolean
+local function IsIgnoredByFling(ent)
+    return ent:ToBomb() ~= nil
+end
+
 local TrEdithInfo = {
     charName = "EDITH", -- Internal character name (REQUIRED)
     charID = playerType.PLAYER_EDITH_C, -- Character ID (REQUIRED)
@@ -393,7 +400,7 @@ local function BurstKnockback(player, charge, capsule)
     local stunFrames = BURST_STUN_BASE + math.ceil((BURST_STUN_PER_CHARGE * charge) * player.ShotSpeed)
 
     for _, ent in ipairs(Isaac.FindInCapsule(capsule, misc.ParryPartitions)) do
-        if not ent:ToBomb() then
+        if not IsIgnoredByFling(ent) then
             BurstHitEntity(player, ent, stunFrames)
         end
     end
@@ -487,7 +494,7 @@ local function StrikeManager(player, flingParams)
     UpdateStrikeStats(player, flingParams, charge)
 
     for _, ent in ipairs(Isaac.FindInCapsule(strikeCapsule, EntityPartition.ENEMY)) do
-        if ent:ToBomb() then goto continue end
+        if IsIgnoredByFling(ent) then goto continue end
 		Land.HandleEntityInteraction(ent, player, flingParams.StrikeKnockback)
 
 		if not Helpers.IsEnemy(ent) then goto continue end
@@ -607,7 +614,6 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
         if RoomTransition:GetTransitionMode() == 3 then return end
 
         local flingCharge = params(player).FlingStaticCharge
-
         if not flingCharge then return end
 
         local playerData = data(player)
