@@ -74,6 +74,7 @@ end
 ---@param tainted boolean set it to `true` to check if player is Tainted Edith
 ---@return boolean
 function Player.IsEdith(player, tainted)
+	tainted = tainted or false
 	return player:GetPlayerType() == (tainted and players.PLAYER_EDITH_B or players.PLAYER_EDITH)
 end
 

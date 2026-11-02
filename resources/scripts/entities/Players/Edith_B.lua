@@ -541,7 +541,6 @@ mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, function (_, npc)
 	StopVel(player, npc)
 end, EntityType.ENTITY_WILLO)
 
-
 local CabraRNG = RNG(math.min(Random(), 1), 35)
 
 Roll = CabraRNG:RandomInt(1, 100000)

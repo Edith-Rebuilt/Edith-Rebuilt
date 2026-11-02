@@ -3,12 +3,15 @@ if not Birthwrong then return end
 
 local mod = EdithRebuilt
 local enums = mod.Enums
+
+local room = enums.Utils.Room
+
 local modules = mod.Modules
 local Helpers = modules.HELPERS
 local Maths = modules.MATHS
 local Status = modules.STATUS_EFFECTS
 local Jump = modules.JUMP
-local room = enums.Utils.Room
+
 local saveManager = mod.SaveManager
 
 local DISSOLUTION = {
@@ -59,6 +62,9 @@ local function ManageSpeedReduction(player)
     player:AddCacheFlags(CacheFlag.CACHE_SPEED, true)
 end
 
+
+-- #region Callbacks
+
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
     local runSave = saveManager.GetRunSave(player)
     if not runSave then return end
@@ -94,3 +100,4 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
         ::continue::
     end
 end)
+-- #endregion Callbacks

@@ -1,12 +1,15 @@
 local mod = EdithRebuilt
 local enums = mod.Enums
+
 local utils = enums.Utils
 local game = utils.Game
 local level = utils.Level
 local sfx = utils.SFX
+
 local tables = enums.Tables
 local JumpTags = tables.JumpTags
 local jumpFlags = tables.JumpFlags
+
 local data = mod.DataHolder.GetEntityData
 local Edith = {}
 
@@ -75,11 +78,14 @@ end
 ---@param player EntityPlayer
 ---@return Direction
 local function GetHeadDirection(player)
-    local TargetArrow = mod.Modules.TARGET_ARROW
+	local modules = mod.Modules
+    local TargetArrow = modules.TARGET_ARROW
+
     if TargetArrow.GetEdithTargetDistanceSquared(player) <= 25 then
         return Direction.DOWN
     end
-    return mod.Modules.VEC_DIR.VectorToDirection(TargetArrow.GetEdithTargetDirection(player))
+
+    return modules.VEC_DIR.VectorToDirection(TargetArrow.GetEdithTargetDirection(player))
 end
 
 ---@param jumping boolean
@@ -102,7 +108,7 @@ end
 ---@param player EntityPlayer
 ---@param jumpParams EdithJumpStompParams
 function Edith.CustomDropBehavior(player, jumpParams)
-	if not mod.Modules.PLAYER.IsEdith(player, false) then return end	
+	if not mod.Modules.PLAYER.IsEdith(player, false) then return end
 	if not Input.IsActionTriggered(ButtonAction.ACTION_DROP, player.ControllerIndex) then return end
 	if jumpParams.Cooldown < 1 then return end
 
@@ -173,7 +179,7 @@ function Edith.DefensiveStompManager(player, jumpParams)
 	if not config then return end
 	if Helpers.IsVestigeChallenge() then return end
 	if not Helpers.IsKeyStompPressed(player) then return end
-	if mod.Modules.JUMP.GetJumpFrame(player) ~= config.DefensiveStompWindow then return end
+	if modules.JUMP.GetJumpFrame(player) ~= config.DefensiveStompWindow then return end
 
 	jumpParams.IsDefensiveStomp = true
 
@@ -189,17 +195,11 @@ local function ShouldTriggerFall(player, distance)
     return (TargetArrow.IsEdithTargetMoving(player) and distance <= 3600) or distance <= 100
 end
 
----@param jumpdata JumpData
----@return number
-local function GetFallSpeed(jumpdata)
-    return 15 + (jumpdata.Height / 10)
-end
-
 ---@param ent Entity
 ---@param jumpdata JumpData
 function Edith.ApplyFallPhysics(ent, jumpdata)
     ent:MultiplyFriction(0.5)
-    JumpLib:SetSpeed(ent, GetFallSpeed(jumpdata))
+    JumpLib:SetSpeed(ent, 15 + (jumpdata.Height / 10))
 end
 
 ---@param jumpdata JumpData
@@ -230,9 +230,19 @@ end
 local function SpawnRocket(player)
 	local TargetArrow = mod.Modules.TARGET_ARROW
 	local TargetAnglev = TargetArrow.GetEdithTargetDirection(player, false):GetAngleDegrees()
-	local bomb = Isaac.Spawn(EntityType.ENTITY_BOMB, BombVariant.BOMB_ROCKET, 0, player.Position, Vector.Zero, player):ToBomb() ---@cast bomb EntityBomb
+
+	local bomb = Isaac.Spawn(
+		EntityType.ENTITY_BOMB,
+		BombVariant.BOMB_ROCKET,
+		0,
+		player.Position,
+		Vector.Zero,
+		player
+	):ToBomb() ---@cast bomb EntityBomb
+
 	bomb:SetRocketAngle(TargetAnglev)
 	bomb:SetRocketSpeed(40)
+
 	data(player).RocketPropulsion = true
 	data(bomb).IsEdithRocket = true
 end
@@ -240,9 +250,7 @@ end
 ---@param player EntityPlayer
 ---@param jumpParams EdithJumpStompParams
 local function RocketInAJarManager(player, jumpParams)
-	local pData = data(player)
-
-	if pData.RocketPropulsion then return end
+	if data(player).RocketPropulsion then return end
 
 	if mod.Modules.PLAYER.ShouldConsumeBomb(player) then
 		player:AddBombs(-1)
@@ -253,7 +261,7 @@ local function RocketInAJarManager(player, jumpParams)
 	sfx:Play(SoundEffect.SOUND_ROCKET_LAUNCH)
 
 	Edith.ExplosionRecoil(player, jumpParams)
-end	
+end
 
 ---@param player EntityPlayer
 ---@param jumpData JumpData
@@ -264,7 +272,7 @@ function Edith.BombFall(player, jumpData, jumpParams)
 
 	if Helpers.IsVestigeChallenge() then return end
 	if jumpParams.IsDefensiveStomp then return end
-	if not jumpParams.BombStomp then 
+	if not jumpParams.BombStomp then
 		if jumpParams.RocketLaunch and not data(player).BombPropulsion then
 			RocketInAJarManager(player, jumpParams)
 		end
@@ -539,8 +547,11 @@ end
 ---@param jumpData JumpData
 local function PutEdithInTarget(player, jumpData)
 	if not JumpLib:IsFalling(player) then return end
-	if mod.Modules.MATHS.Round(jumpData.Height, 1) ~= 21.6 then return end
-	if mod.Modules.TARGET_ARROW.GetEdithTargetDistanceSquared(player) > 361 then return end
+
+	local modules = mod.Modules
+
+	if modules.MATHS.Round(jumpData.Height, 1) ~= 21.6 then return end
+	if modules.TARGET_ARROW.GetEdithTargetDistanceSquared(player) > 361 then return end
 
 	player:MultiplyFriction(0.2)
 	JumpLib:SetSpeed(player, 30)
