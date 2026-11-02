@@ -326,7 +326,7 @@ end)
 
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_POCKET_ITEMS_SWAP, function (_, player)
-
+    if not TREdithMod.IsTREdith(player) then return end
     if params(player).IsFlinging then return end
 
     return true
