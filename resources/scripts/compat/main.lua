@@ -1,14 +1,13 @@
 local mod = EdithRebuilt
 local loader = {}
 
-
 ---@class Patch
 ---@field Mod string
 ---@field PatchFunc function
 ---@field FailsafeFunc function?
 ---@field Loaded boolean
 
-loader.Patches = {} 
+loader.Patches = {}
 loader.AppliedPatches = false
 
 -- Registers a mod patch
@@ -36,8 +35,6 @@ function loader.ApplyPatches()
 		if modExists and not patch.Loaded then
 			patch.PatchFunc()
 			patch.Loaded = true
-
-			-- print(table.concat({ "Loaded", tostring(patch.Mod), "patch" }, " "))
 		else
 			if patch.FailsafeFunc then
 				patch.FailsafeFunc()

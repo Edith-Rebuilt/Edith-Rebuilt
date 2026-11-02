@@ -330,4 +330,10 @@ function Player.ManageLeoEffect(player)
 	end
 end
 
+---@param player EntityPlayer
+---@return unknown
+function Player.HasBirthcake(player)
+	return (BirthcakeRebaked and player:HasTrinket(BirthcakeRebaked.Birthcake.ID)) or false
+end
+
 return Player

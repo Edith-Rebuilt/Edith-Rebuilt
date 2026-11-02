@@ -86,7 +86,9 @@ local function TEdithCooling(player, HopParams, heat)
 	if player.FrameCount % 6 ~= 0 then return end
 	if heat <= 0 then return end
 
-	local decreaser = HopParams.IsHoping and 0.02 or 0.01
+	local mult = Player.HasBirthcake(player) and 1.5 or 1
+
+	local decreaser = (HopParams.IsHoping and 0.02 or 0.01) * mult
 
 	if heat <= decreaser then
 		sfx:Play(SoundEffect.SOUND_STEAM_HALFSEC, 0.25, 2, false, 0.5)
@@ -396,7 +398,9 @@ local function OverHeatManager(player, parryType)
 	local adder = Helpers.When(parryType, HeatAdders)
 	if not adder then return end
 
-	TEdithMod.AddParryHeat(player, adder)
+	local mult = Player.HasBirthcake(player) and 0.75 or 1
+
+	TEdithMod.AddParryHeat(player, adder * mult)
 end
 
 mod:AddCallback(enums.Callbacks.POST_PARRY_LAND, function(_, player)
@@ -541,7 +545,7 @@ mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, function (_, npc)
 	StopVel(player, npc)
 end, EntityType.ENTITY_WILLO)
 
-local CabraRNG = RNG(math.min(Random(), 1), 35)
+local CabraRNG = RNG(math.max(Random(), 1), 35)
 
 Roll = CabraRNG:RandomInt(1, 100000)
 

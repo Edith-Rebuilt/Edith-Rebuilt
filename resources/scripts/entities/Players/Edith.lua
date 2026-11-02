@@ -576,7 +576,8 @@ end, {
 ---@param player EntityPlayer
 ---@param ent Entity
 mod:AddCallback(enums.Callbacks.OFFENSIVE_STOMP_HIT, function(_, player, ent)
-	if not (BirthcakeRebaked and player:HasTrinket(BirthcakeRebaked.Birthcake.ID)) then return end
+	if not Player.IsEdith(player, false) then return end
+	if not Player.HasBirthcake(player) then return end
 
 	local rng = player:GetTrinketRNG(BirthcakeRebaked.Birthcake.ID)
 
