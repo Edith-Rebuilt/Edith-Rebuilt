@@ -34,7 +34,9 @@ local effects = {
     }
 
 ---@param player EntityPlayer
-local function ApplyPlaydoughEffect(player)
+---@param ent Entity
+---@param params TEdithHopParryParams|EdithJumpStompParams
+local function ApplyPlaydoughEffect(player, ent, params)
     if not player:HasCollectible(CollectibleType.COLLECTIBLE_PLAYDOUGH_COOKIE) then return end
 
     local itemRNG = player:GetCollectibleRNG(CollectibleType.COLLECTIBLE_PLAYDOUGH_COOKIE)
@@ -42,5 +44,5 @@ local function ApplyPlaydoughEffect(player)
     Helpers.WhenEval(itemRNG:RandomInt(1, 7), effects)
 end
 
-mod:AddCallback(Callbacks.PERFECT_PARRY, function(_, player) ApplyPlaydoughEffect(player) end)
-mod:AddCallback(Callbacks.OFFENSIVE_STOMP_HIT, function(_, player) ApplyPlaydoughEffect(player) end)
+mod:AddCallback(Callbacks.PERFECT_PARRY, function(_, player, ent, params) ApplyPlaydoughEffect(player, ent, params) end)
+mod:AddCallback(Callbacks.OFFENSIVE_STOMP_HIT, function(_, player, ent, params) ApplyPlaydoughEffect(player, ent, params) end)
