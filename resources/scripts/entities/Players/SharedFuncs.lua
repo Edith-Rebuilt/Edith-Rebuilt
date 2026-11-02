@@ -93,23 +93,6 @@ mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, function(_, tear)
 	tear.Mass = tear.Mass * 10
 end)
 
----@param player EntityPlayer
----@param flags DamageFlag
----@return boolean?
-mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_TAKE_DMG, function(_, player, _, flags)
-    if not IsStatue(player) then return end
-
-    local roomType = room:GetType()
-    local isAcid = BitMask.HasBitFlags(flags, DamageFlag.DAMAGE_ACID --[[@as BitSet128]])
-    local isSpike = BitMask.HasBitFlags(flags, DamageFlag.DAMAGE_SPIKES --[[@as BitSet128]])
-    local isSafeRoom = roomType == RoomType.ROOM_SACRIFICE or roomType == RoomType.ROOM_DEVIL
-    local shouldBlock = isAcid or (isSpike and not isSafeRoom)
-
-    if shouldBlock then
-        return false
-    end
-end)
-
 ---@param tear EntityTear
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function(_, tear)
     local player = Helpers.GetPlayerFromTear(tear)
@@ -163,7 +146,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function(_, player)
     if not params then return end
 
 	Player.SetNewANM2(player, params.ANM2)
-	player:AddNullItemEffect(params.Costume, true)
+	-- player:AddNullItemEffect(params.Costume, true)
 end)
 
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function()
@@ -222,28 +205,4 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_RENDER, function(_, player)
     if not IsStatue(player) then return end
 
     player:ClearEntityFlags(EntityFlag.FLAG_SLIPPERY_PHYSICS)
-end)
-
----@param player EntityPlayer
-mod:AddCallback(ModCallbacks.MC_POST_PLAYER_REVIVE, function(_, player)
-    if Player.IsAnyEdith(player) then return end
-
-    local effects = player:GetEffects()
-
-    if effects:HasNullEffect(costumes.EDITH) then
-        effects:RemoveNullEffect(costumes.EDITH, -1)
-    elseif effects:HasNullEffect(costumes.T_EDITH) then
-        effects:RemoveNullEffect(costumes.T_EDITH)
-    end
-
-    local plyrConfig = EntityConfig.GetPlayer(player:GetPlayerType())
-    local entConfig = EntityConfig.GetEntity(player.Type, player.Variant, player.SubType)
-
-    if not plyrConfig or not entConfig then return end
-
-    player:GetSprite():Load(entConfig:GetAnm2Path(), true)
-
-    for i = 0, 14 do
-        player:GetSprite():ReplaceSpritesheet(i, plyrConfig:GetSkinPath(), true)
-    end
 end)

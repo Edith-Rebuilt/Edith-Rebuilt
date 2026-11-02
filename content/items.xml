@@ -216,10 +216,17 @@
 		quality="1"
 	/>
 
+	<passive
+		id="18"
+		name="Pyroclastic Rock"
+		description="Volcano! Inferno!"
+		gfx="collectibles_Molten_Core.png"
+
+	/>
 
 	<!-- Epiphany -->
 	<active
-		id="18" 
+		id="19" 
 		name="Spice Chamber" 
 		description="Pending Description" 
 		gfx="Epiphany/SpiceChamber.png"
@@ -228,28 +235,21 @@
 		achievement="Chunk of Basalt"
 	/>
 
-
 	<!-- Null items -->
 	<null
 		id="1" 
 		name="Edith_Rebuilt_Edith" 
 		persistent="true"
-		damagemult="1.5"
-		range="100"
 	/>
 	<null
 		id="2" 
 		name="Edith_Rebuilt_TEdith" 
 		persistent="true"
-		damagemult="1.5"
-		range="100"
 	/>
 	<null
 		id="3" 
 		name="Edith_Rebuilt_TREdith" 
 		persistent="true"
-		damagemult="1.5"
-		range="100"
 	/>
 	<null
 		id="1000" 

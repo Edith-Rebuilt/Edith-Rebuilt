@@ -1,8 +1,10 @@
 ---@diagnostic disable: undefined-field, undefined-global
 local mod = EdithRebuilt
 local enums = mod.Enums
+
 local tables = enums.Tables
 local JumpParams = tables.JumpParams
+
 local modules = mod.Modules
 local EdithMod = modules.EDITH
 local Land = modules.LAND
@@ -11,22 +13,36 @@ local helpers = modules.HELPERS
 local Player = modules.PLAYER
 local ModRNG = modules.RNG
 local Jump = modules.JUMP
-local room = enums.Utils.Room
 local StatusEffects = modules.STATUS_EFFECTS
+
+local room = enums.Utils.Room
+
 local jumpCallbacks = JumpLib.Callbacks
+
 local data = mod.DataHolder.GetEntityData
 local params = EdithMod.GetJumpStompParams
 
 local MAX_JUMP_COUNT = 8
+
 local PRESSURE_PLATE_RADIUS = 20
+
 local LAND_DAMAGE_COOLDOWN = 25
 local LAND_FRICTION = 0.1
+
 local MOMS_HEELS_DAMAGE = 12
+
 local COAL_BONUS_MIN = 0.5
 local COAL_BONUS_MAX = 0.6
 local COAL_BONUS_DISTANCE_DIVISOR = 40
+
 local BIRTHCAKE_SALT_CHANCE = 0.25
+
 local SALTED_DURATION = 120
+
+local TRAPDOOR_HIDE_FRAME = 2
+local JUMP_OUT_END_FRAME = 14
+local PIT_HIDDEN_FRAMES = 6
+local PIT_PULL_FACTOR = 0.2
 
 ---@class EdithUpdateState
 ---@field isMoving boolean
@@ -197,7 +213,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 		hasMarked = player:HasCollectible(CollectibleType.COLLECTIBLE_MARKED),
 		isShooting = Player.IsPlayerShooting(player),
 		jumpData = JumpLib:GetData(player),
-		isPitfall = JumpLib:IsPitfalling(player),
+		isPitfall = data(player).CustomPitfall or false,
 		isJumping = Jump.IsJumping(player),
 		jumpParams = params(player),
 	} ---@cast state EdithUpdateState
@@ -285,9 +301,12 @@ local function ResetEdithScale(player)
 	player.SpriteScale = data(player).BaseSpriteScale
 end
 
----@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
-	if not JumpLib:IsPitfalling(player) then return end
+	
+end)
+
+local function SetNewPitfallPosition(player)
+	if not data(player).CustomPitfall then return end
 
 	local sprite = player:GetSprite()
 	local anim = sprite:GetAnimation()
@@ -300,12 +319,94 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
 	local jumpIntData = JumpLib.Internal:GetData(player)
 	jumpIntData.PitPos = newPos
 	jumpIntData.JumpPos = newPos
+end
+
+---@param player EntityPlayer
+---@param pData table
+---@param anim string
+---@param frame integer
+---@param isJumpOut boolean
+local function ManageTrapdoorAnim(player, pData, anim, frame, isJumpOut)
+	if isJumpOut then return end
+	if pData.InPitFrames > 0 then return end
+
+	if not player:GetSprite():IsPlaying("Trapdoor") then
+		player:PlayExtraAnimation("Trapdoor")
+	end
+
+	if anim ~= "Trapdoor" then return end
+	if frame ~= TRAPDOOR_HIDE_FRAME then return end
+
+	player:StopExtraAnimation()
+	pData.InPitFrames = PIT_HIDDEN_FRAMES
+end
+
+---@param player EntityPlayer
+---@param pData table
+local function ManagePitHiding(player, pData)
+	if pData.InPitFrames > 0 then
+		pData.InPitFrames = pData.InPitFrames - 1
+	end
+
+	player.Visible = pData.InPitFrames < 1
+
+	if pData.InPitFrames ~= 1 then return end
+
+	player:StopExtraAnimation()
+	player:PlayExtraAnimation("JumpOut")
+end
+
+---@param player EntityPlayer
+local function PullTowardsPit(player)
+	local pitPos = JumpLib.Internal:GetData(player).PitPos
+	local playerPos = player.Position
+
+	player.Velocity = (pitPos - playerPos):Resized(playerPos:Distance(pitPos) * PIT_PULL_FACTOR)
+end
+
+---@param player EntityPlayer
+local function CustomPitfallManager(player)
+	local pData = data(player)
+
+	if not pData.CustomPitfall then return end
+
+	local sprite = player:GetSprite()
+	local anim = sprite:GetAnimation()
+	local frame = sprite:GetFrame()
+	local isJumpOut = sprite:IsPlaying("JumpOut")
+
+	pData.InPitFrames = pData.InPitFrames or 0
+
+	ManageTrapdoorAnim(player, pData, anim, frame, isJumpOut)
+	ManagePitHiding(player, pData)
+
+	if not isJumpOut then return end
+
+	PullTowardsPit(player)
+
+	if frame ~= JUMP_OUT_END_FRAME then return end
+
+	pData.CustomPitfall = false
+end
+
+local function EdithCooldownManager(player)
+	local jumpParams = params(player)
+
+	if jumpParams.RocketLaunch then return end
+	EdithMod.CooldownUpdate(player, jumpParams)
+end
+
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
+	if not Player.IsEdith(player, false) then return end
+
+	CustomPitfallManager(player)
+	EdithCooldownManager(player)
+	SetNewPitfallPosition(player)
 end)
 
 ---@param player EntityPlayer
 ---@param jumpData JumpData
----@param pitfall boolean
-mod:AddCallback(jumpCallbacks.ENTITY_LAND, function(_, player, jumpData, pitfall)
+mod:AddCallback(jumpCallbacks.ENTITY_LAND, function(_, player, jumpData)
 	local edithTarget = TargetArrow.GetEdithTarget(player)
 	ResetEdithScale(player)
 
@@ -313,7 +414,7 @@ mod:AddCallback(jumpCallbacks.ENTITY_LAND, function(_, player, jumpData, pitfall
 
 	local jumpParams = params(player)
 
-	if pitfall then
+	if data(player).CustomPitfall then
 		TargetArrow.RemoveEdithTarget(player)
 		jumpParams.BombStomp = false
 		return
@@ -332,22 +433,11 @@ mod:AddCallback(jumpCallbacks.ENTITY_LAND, function(_, player, jumpData, pitfall
 	EdithMod.StompTargetRemover(player)
 end, JumpParams.EdithJump)
 
----@param player EntityPlayer
-mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
-	if not Player.IsEdith(player, false) then return end
-
-	local jumpParams = params(player)
-
-	if jumpParams.RocketLaunch then return end
-	EdithMod.CooldownUpdate(player, jumpParams)
-end)
-
 ---@param ent Entity
 mod:AddCallback(enums.Callbacks.OFFENSIVE_STOMP_KILL, function(_, _, ent)
 	data(ent).KilledByStomp = true
 end)
 
----@param npc EntityNPC
 mod:AddCallback(ModCallbacks.MC_PRE_NPC_UPDATE, function (_, npc)
 	if npc:IsBoss() then return end
 	if not StatusEffects.EntHasStatusEffect(npc, "Salt") then return end
@@ -407,9 +497,6 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
 	end, enums.PlayerType.PLAYER_EDITH)
 end)
 
----@param damage number
----@param source EntityRef
----@return boolean?
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function (_, _, damage, _, source)
 	if source.Type == 0 then return end
 
@@ -451,9 +538,9 @@ end)
 ---@param bomb EntityBomb
 mod:AddCallback(ModCallbacks.MC_POST_BOMB_UPDATE, function(_, bomb)
 	if not bomb:GetSprite():IsPlaying("Explode") then return end
-	local player
+
 	for _, ent in ipairs(Isaac.FindInRadius(bomb.Position, helpers.GetBombRadiusFromDamage(bomb.ExplosionDamage), EntityPartition.PLAYER)) do
-		player = ent:ToPlayer() ---@cast player EntityPlayer
+		local player = ent:ToPlayer() ---@cast player EntityPlayer
 		if not Player.IsEdith(player, false) then goto continue end
 
 		data(player).BombPropulsion = true
@@ -514,3 +601,9 @@ mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_PRESSUREPLATE_UPDATE, function(_
 
 	if cancelUpdate then return false end
 end)
+
+---@param player EntityPlayer
+mod:AddCallback(jumpCallbacks.PRE_PITFALL, function(_, player)
+	data(player).CustomPitfall = true
+	return true
+end, JumpParams.EdithJump)
