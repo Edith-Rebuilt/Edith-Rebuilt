@@ -53,6 +53,7 @@ EdithRebuilt.Enums = {
 		--- GodMode Items
 		
 		COLLECTIBLE_PEPPERCORNS = Isaac.GetItemIdByName("Peppercorns"),
+		COLLECTIBLE_PYROCLASTIC_ROCK = Isaac.GetItemIdByName("Pyroclastic Rock"),
 
 		--- Tarnished Edith Items		
 
@@ -80,6 +81,8 @@ EdithRebuilt.Enums = {
 		EFFECT_EDITH_TARGET = Isaac.GetEntityVariantByName("Edith Target"),
 		EFFECT_EDITH_B_TARGET = Isaac.GetEntityVariantByName("Edith Tainted Arrow"),
 		EFFECT_EDITH_C_TARGET = Isaac.GetEntityVariantByName("TR. Edith Target"),
+
+		EFFECT_PYROCLASTIC_ROCK = Isaac.GetEntityVariantByName("Pyroclastic Rock")
 	},
 	Challenge = {
 		CHALLENGE_VESTIGE = Isaac.GetChallengeIdByName("[Edith: Rebuilt] Vestige"),
