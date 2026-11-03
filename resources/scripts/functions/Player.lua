@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-global
 local mod = EdithRebuilt
 local enums = mod.Enums
 local challenges = enums.Challenge
@@ -331,9 +332,8 @@ function Player.ManageLeoEffect(player)
 end
 
 ---@param player EntityPlayer
----@return unknown
 function Player.HasBirthcake(player)
-	return (BirthcakeRebaked and player:HasTrinket(BirthcakeRebaked.Birthcake.ID)) or false
+	return (BirthcakeRebaked and player:HasTrinket(BirthcakeRebaked.Birthcake.ID)) 
 end
 
 return Player

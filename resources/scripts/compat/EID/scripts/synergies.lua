@@ -26,9 +26,9 @@ EID:addDescriptionModifier(modifName, function(descObj)
     local subType = descObj.SubType
     -- if not Player.AnyoneIsEdith() then return false end
 
-    for k, v in pairs(descObj) do
-        print(k, v)
-    end
+    -- for k, v in pairs(descObj) do
+    --     print(k, v)
+    -- end
 
     -- return true
 end, 

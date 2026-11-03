@@ -482,11 +482,13 @@ mod:AddCallback(jumpCallbacks.ENTITY_UPDATE_60, function (_, player, jumpdata)
 
 	JumpInitScale(player)
 	JumpFallScale(player)
+
 	EdithMod.JumpMovement(player, helpers.IsVestigeChallenge(), jumpParams, jumpdata)
 	EdithMod.DefensiveStompManager(player, jumpParams)
 	EdithMod.FlightFallBehavior(player, jumpdata, jumpParams)
-	Jump.SetBombJump(player, jumpParams)
 	EdithMod.BombFall(player, jumpdata, jumpParams)
+	
+	Jump.SetBombJump(player, jumpParams)
 end, JumpParams.EdithJump)
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()

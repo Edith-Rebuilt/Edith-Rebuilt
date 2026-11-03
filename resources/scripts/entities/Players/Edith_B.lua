@@ -546,8 +546,7 @@ mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, function (_, npc)
 end, EntityType.ENTITY_WILLO)
 
 local CabraRNG = RNG(math.max(Random(), 1), 35)
-
-Roll = CabraRNG:RandomInt(1, 100000)
+local Roll = CabraRNG:RandomInt(1, 100000)
 
 local cabra = Renderer.LoadImage("gfx/characters/secrets/cabra.png")
 local height = cabra:GetHeight()

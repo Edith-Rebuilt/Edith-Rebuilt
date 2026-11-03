@@ -133,7 +133,7 @@ EdithRebuilt.Enums = {
 
 		--- Called everytime TR. Edith kills an enemy with the Strike
 		---* player `EntityPlayer`
-		---* grid `GridEntity`
+		---* ent `Entity`
 		---* params `TREdithFlingStrikeParams`
 		STRIKE_KILL_ENEMY = "EdithRebuilt_STRIKE_KILL_ENEMY",
 

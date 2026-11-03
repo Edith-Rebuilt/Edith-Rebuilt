@@ -12,7 +12,6 @@ local modules = mod.Modules
 local Player = modules.PLAYER
 local Helpers = modules.HELPERS
 local TargetArrow = modules.TARGET_ARROW
-local BitMask = modules.BIT_MASK
 
 local costumes = enums.NullItemID
 
@@ -33,7 +32,7 @@ mod:AddPriorityCallback(ModCallbacks.MC_INPUT_ACTION, CallbackPriority.IMPORTANT
 end)
 
 local function IsStatue(player)
-    return Player.IsAnyEdith(player) or Player.IsEffigyStatue(player) 
+    return Player.IsAnyEdith(player) or Player.IsEffigyStatue(player)
 end
 
 local ModCostumes = {
@@ -146,7 +145,6 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function(_, player)
     if not params then return end
 
 	Player.SetNewANM2(player, params.ANM2)
-	-- player:AddNullItemEffect(params.Costume, true)
 end)
 
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function()

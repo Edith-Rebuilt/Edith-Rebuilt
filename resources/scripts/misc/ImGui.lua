@@ -14,7 +14,7 @@ local data = mod.DataHolder.GetEntityData
 local ImGuiMod = {}
 
 ---@class EdithData
----@field TargetDesign {Idx: integer	, Design: string}
+---@field TargetDesign {Idx: integer, Design: string}
 ---@field TargetColor table
 ---@field TargetLine boolean
 ---@field RGBMode boolean
@@ -1666,13 +1666,7 @@ v1.9.0a
 end
 
 local function AddModCompat()
-	print(ImGui.ElementExists(Menu.Windows.ModCompat))
-
 	local ModCompatTab = Menu.TabBars.ModCompat
-
-	-- ImGui.AddTabBar(Menu.Windows.ModCompat, ModCompatTab)
-
-
 	ImGui.AddText(Menu.Windows.ModCompat, [[
 * Antibirth Runes:
 	- Geode can spawn Antibirth runes

@@ -352,8 +352,6 @@ function Bounce.TriggerEnemyBounce(player, flingParams, ent, hash)
     local normal, penetration = ComputeEnemyNormal(player, ent)
     if not normal then return end
 
-    print(ent.Type)
-
     Log("ENEMY", "REFLECT vel=(%.2f,%.2f) n=(%.2f,%.2f) pen=%.1f",
         vel.X, vel.Y, normal.X, normal.Y, penetration)
 
