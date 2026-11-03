@@ -230,7 +230,7 @@ local function ManageEdithHop(player, hopParams, isHopVecZero, isJumping, isGrud
 	if isHopVecZero then return end
 
 	if not isJumping and not isGrudge then
-		mod.Modules.JUMP.InitTaintedEdithHop(player)
+		mod.Modules.JUMP.InitTaintedEdithHop(player, TEdith.GetHopDashCharge(player, false, false))
 	end
 
 	hopParams.IsHoping = true

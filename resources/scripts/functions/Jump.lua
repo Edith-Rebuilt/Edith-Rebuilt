@@ -150,9 +150,7 @@ local JumpHeightParams = {
 }
 
 ---@param player EntityPlayer
-function Jump.InitTaintedEdithHop(player)
-	local charge = mod.Modules.TEDITH.GetHopDashCharge(player, false, false)
-
+function Jump.InitTaintedEdithHop(player, charge)
 	if not charge or charge <= 0 then return end
 
 	local Maths = mod.Modules.MATHS
