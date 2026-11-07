@@ -87,25 +87,48 @@ local function HasHighFlingCharge(player)
     return GetFlingCharge(player) >= HIGH_CHARGE_THRESHOLD
 end
 
-local TrEdithInfo = {
-    charName = "EDITH", -- Internal character name (REQUIRED)
-    charID = playerType.PLAYER_EDITH_C, -- Character ID (REQUIRED)
-    costume = "gfx/EdithTarnishedAnim.anm2", -- Main costume (REQUIRED)
-    extraCostume = {Isaac.GetCostumeIdByPath("gfx/characters/EdithTarnishedHood.anm2")}, -- Extra costume (e.g. Maggy's Hair)
-    menuGraphics = "gfx/Epiphany/ui/menu_edith.anm2", -- Character menu graphics (portrait, text) (REQUIRED)
-    coopMenuSprite = "gfx/Epiphany/ui/Coop/coop_menu_opensauce.anm2", -- Co-op menu icon (REQUIRED)
-    unlockChecker = function() return true end, -- Whether the character is unlocked. Defaults to always true.
-    floorTutorial = "gfx/Epiphany/grid/tutorial_Edith.anm2"
+local table = {
+    charName = "EDITH",
+    charID = EdithRebuilt.Enums.PlayerType.PLAYER_EDITH_C,
+    taintedID = EdithRebuilt.Enums.PlayerType.PLAYER_EDITH_B,
+    playerAnm2 = "gfx/EdithTarnishedAnim.anm2",
+    menuGraphics = "gfx/Epiphany/ui/menu_edith.anm2", 
+    floorTutorial = "gfx/Epiphany/grid/tutorial_Edith.anm2",
+    unlockChecker = function() return true end,
 }
 
-local function AddTREdith()
-    if not (Epiphany and Epiphany.API) then return end
+mod:AddCallback(ModCallbacks.MC_POST_MODS_LOADED, function(_)
+    if not Epiphany then return end
+    if tonumber(Epiphany.WAVE_NUMBER) < 8 then return end
 
-    Epiphany.API.AddCharacter(TrEdithInfo)
-    mod:RemoveCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddTREdith)
-end
+    Epiphany.API.AddCharacter(table)
+end)
 
-mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddTREdith)
+
+-- mod:AddPriorityCallback(ModCallbacks.MC_POST_MODS_LOADED, CallbackPriority.LATE, function()
+--     if not Epiphany then return end
+--     if tonumber(Epiphany.WAVE_NUMBER) < 8 then return end
+
+--     local table = {
+--         charName = "EDITH",
+--         charID = playerType.PLAYER_EDITH_C,
+--         playerAnm2 = "gfx/EdithTarnishedAnim.anm2",
+--         menuGraphics = "gfx/Epiphany/ui/menu_edith.anm2", 
+--         floorTutorial = "gfx/Epiphany/grid/tutorial_Edith.anm2",
+--         unlockChecker = function() return true end,
+--     }
+
+--     Epiphany.API:AddCharacter(table)
+-- end)
+
+-- local function AddTREdith()
+--     if not (Epiphany and Epiphany.API) then return end
+
+--     Epiphany.API.AddCharacter(TrEdithInfo)
+--     mod:RemoveCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddTREdith)
+-- end
+
+-- mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, AddTREdith)
 
 ---@param player EntityPlayer
 local function HandleTargetSpawn(player)
@@ -628,19 +651,4 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
         flingParams.FlingDuration = 0
         ClearFlingState(flingParams)
     end, playerType.PLAYER_EDITH_C)
-end)
-
----@param tear EntityTear
-mod:AddPriorityCallback(ModCallbacks.MC_POST_FIRE_TEAR, CallbackPriority.LATE, function (_, tear)
-    local player = Helpers.GetPlayerFromTear(tear)
-
-    if not player then return end
-    if not TREdithMod.IsTREdith(player) then return end
-
-    local color = tear.Color
-
-    color:SetTint(1, 157/255, 66/255, 1)
-    color:SetOffset(0.7, 47/255, 17/255)
-
-    tear.Color = color
 end)

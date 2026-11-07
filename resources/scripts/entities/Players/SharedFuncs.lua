@@ -4,6 +4,7 @@ local enums = mod.Enums
 local tables = enums.Tables
 local utils = enums.Utils
 local challenges = enums.Challenge
+local playerType = enums.PlayerType
 
 local pool = utils.ItemPool
 local room = utils.Room
@@ -92,6 +93,17 @@ mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, function(_, tear)
 	tear.Mass = tear.Mass * 10
 end)
 
+local tearParams = {
+    [playerType.PLAYER_EDITH] = nil,
+    [playerType.PLAYER_EDITH_B] = {
+        brightness = 0.3,
+    }, --[[@as SaltTearParams]]
+    [playerType.PLAYER_EDITH_C] = {
+        tint = { 1, 207 / 255, 66 / 255 },
+        offset = { 0.7, 87 / 255, 17 / 255 },
+    }  --[[@as SaltTearParams]]
+}
+
 ---@param tear EntityTear
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function(_, tear)
     local player = Helpers.GetPlayerFromTear(tear)
@@ -102,7 +114,7 @@ mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function(_, tear)
     local isTainted = Player.IsEdith(player, true)
     local target = TargetArrow.GetEdithTarget(player)
 
-	Helpers.ForceSaltTear(tear, isTainted)
+    Helpers.ForceSaltTear(tear, tearParams[player:GetPlayerType()])
 
     if isTainted then return end
 	if not player:HasCollectible(CollectibleType.COLLECTIBLE_MARKED) then return end	

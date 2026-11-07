@@ -17,15 +17,15 @@ local Hsx = mod.Hsx
 local Helpers = {}
 
 function Helpers.GetScreenCenter()
-	local pos = room:WorldToScreenPosition(Vector(0,0)) - room:GetRenderScrollOffset() - game.ScreenShakeOffset	
+	local pos = room:WorldToScreenPosition(Vector(0,0)) - room:GetRenderScrollOffset() - game.ScreenShakeOffset
 	local rx = pos.X + 60 * 26 / 40
 	local ry = pos.Y + 140 * (26 / 40)
 	return Vector(rx * 2 + 13 * 26, ry * 2 + 7 * 26) / 2
-end 
+end
 
---[[Perform a Switch/Case-like selection.  
-    `value` is used to index `cases`.  
-    When `value` is `nil`, returns `default`.  
+--[[Perform a Switch/Case-like selection.
+    `value` is used to index `cases`.
+    When `value` is `nil`, returns `default`.
     **Note:** Type inference on this function is decent, but not perfect.
     You might want to use things such as [casting](https://luals.github.io/wiki/annotations/#as)
     the returned value.
@@ -40,10 +40,10 @@ function Helpers.When(value, cases, default)
 end
 
 --[[Perform a Switch/Case-like selection, like @{EdithRebuilt.When}, but takes a
-    table of functions and runs the found matching case to return its result.  
+    table of functions and runs the found matching case to return its result.
     `value` is used to index `cases`.
     When `value` is `nil`, returns `default`, or runs it and returns its value if
-    it is a function.  
+    it is a function.
     **Note:** Type inference on this function is decent, but not perfect.
     You might want to use things such as [casting](https://luals.github.io/wiki/annotations/#as)
     the returned value.
@@ -115,7 +115,7 @@ function Helpers.ShootArchedTear(player, rng, minTears, maxTears, config)
     for _ = 1, rng:RandomInt(minTears, maxTears) do
         local tear = Isaac.Spawn(
             EntityType.ENTITY_TEAR,
-            config.variant, 
+            config.variant,
 			0,
             config.position,
             rng:RandomVector() * config.velocity:Length(),
@@ -128,7 +128,7 @@ function Helpers.ShootArchedTear(player, rng, minTears, maxTears, config)
 end
 
 ---Makes the tear to receive a boost, increasing its speed and damage
----@param tear EntityTear	
+---@param tear EntityTear
 ---@param speed number
 ---@param dmgMult number
 function Helpers.BoostTear(tear, speed, dmgMult)
@@ -157,18 +157,12 @@ function Helpers.GetConfigData(Type)
 	if not config then return end
 
 	local switch = {
-		[ConfigDataTypes.EDITH] = config.EdithData --[[@as EdithData]], 
-		[ConfigDataTypes.TEDITH] = config.TEdithData --[[@as TEdithData]], 
-		[ConfigDataTypes.MISC] = config.MiscData --[[@as MiscData]], 
+		[ConfigDataTypes.EDITH] = config.EdithData --[[@as EdithData]],
+		[ConfigDataTypes.TEDITH] = config.TEdithData --[[@as TEdithData]],
+		[ConfigDataTypes.MISC] = config.MiscData --[[@as MiscData]],
 	}
 
 	return Helpers.When(Type, switch)
-end
-
----Converts seconds to game update frames
----@param seconds number
-function Helpers.SecondsToFrames(seconds)
-	return math.ceil(seconds * 30)
 end
 
 ---@param player EntityPlayer
@@ -212,14 +206,14 @@ end
 ---@return number
 function Helpers.GetPushFactor(ent)
 	return math.max(0.01, 1 + (5 - ent.Mass) * 1/250)
-end	
+end
 
 ---Triggers a push to `pushed` from `pusher`
 ---@param pushed Entity
 ---@param pusher Entity
 ---@param strength number
 function Helpers.TriggerPush(pushed, pusher, strength)
-	pushed:AddVelocity(((pusher.Position - pushed.Position) * -1):Resized(strength))	
+	pushed:AddVelocity(((pusher.Position - pushed.Position) * -1):Resized(strength))
 end
 
 ---Changes `Entity` velocity so now it goes to `Target`'s Position, `strenght` determines how fast it'll go
@@ -310,7 +304,7 @@ function Helpers.GetPlayerFromRef(EntityRef)
 
 	if not ent then return nil end
 	local familiar = ent:ToFamiliar()
-	return ent:ToPlayer() or Helpers.GetPlayerFromTear(ent) or familiar and familiar.Player 
+	return ent:ToPlayer() or Helpers.GetPlayerFromTear(ent) or familiar and familiar.Player
 end
 
 ---Helper function to directly change `entity`'s color
@@ -479,7 +473,7 @@ function Helpers.GetBombRadiusFromDamage(damage)
     end
 end
 
----Checks if player is in Last Judgement's Mortis 
+---Checks if player is in Last Judgement's Mortis
 ---@return boolean
 function Helpers.IsLJMortis()
 	if not StageAPI then return false end
@@ -526,67 +520,92 @@ function Helpers.IsChap4()
 end
 
 ---@param tear EntityTear
-mod:AddCallback(ModCallbacks.MC_POST_TEAR_DEATH, function (_, tear)
-	local tearData = data(tear)
-	if not tearData.IsEdithRebuiltSaltTear then return end
-
-	local var, sprite, Path
-
-	for _, ent in ipairs(Isaac.FindByType(EntityType.ENTITY_EFFECT)) do
-		var = ent.Variant
-		sprite = ent:GetSprite()
-
-		if not (var == EffectVariant.ROCK_POOF or var == EffectVariant.TOOTH_PARTICLE) then goto continue end
-		if ent.Position:DistanceSquared(tear.Position) > 100 then goto continue end
-
-		Path = var == EffectVariant.ROCK_POOF and tearData.ShatterSprite or tearData.SaltGibsSprite
-
-		if var == EffectVariant.TOOTH_PARTICLE then
-			if ent.SpawnerEntity then goto continue end
-			ent.Color = tear.Color
-		end
-
-		sprite:ReplaceSpritesheet(0, misc.TearPath .. Path .. ".png", true)
-		::continue::
-	end
-end)
-
----@param tear EntityTear
----@param IsBlood boolean
----@param isTainted boolean
-local function doEdithTear(tear, IsBlood, isTainted)
-	local player = Helpers.GetPlayerFromTear(tear)
-
-	if not player then return end
-
-	local tearData = data(tear)
-
-	if tearData.IsEdithRebuiltSaltTear then return end
-
+---@param player EntityPlayer
+local function SetSaltTearSize(tear, player)
 	local tearSizeMult = player:HasCollectible(CollectibleType.COLLECTIBLE_SOY_MILK) and 1 or 0.85
-
-	local path = (isTainted and (IsBlood and "burnt_blood_salt_tears" or "burnt_salt_tears") or (IsBlood and "blood_salt_tears" or "salt_tears"))
-	local newSprite = misc.TearPath .. path .. ".png"
-
 	tear.Scale = tear.Scale * tearSizeMult
 
-	tear:ChangeVariant(TearVariant.ROCK)
-
-	tearData.ShatterSprite = (isTainted and (IsBlood and "burnt_blood_salt_shatter" or "burnt_salt_shatter") or (IsBlood and "blood_salt_shatter" or "salt_shatter"))
-	tearData.SaltGibsSprite = (isTainted and (IsBlood and "burnt_blood_salt_gibs" or "burnt_salt_gibs") or (IsBlood and "blood_salt_gibs" or "salt_gibs"))
-
-	tear:GetSprite():ReplaceSpritesheet(0, newSprite, true)
-	tear.Color = player.Color
-	tearData.IsEdithRebuiltSaltTear = true
 end
 
----Forces tears to look like salt tears. `tainted` argument sets tears for Tainted Edith
+local SALT_TINT_BOOST = { 0.8, 1, 1 }
+local BLOODY_RED_FACTOR = 0.5
+
 ---@param tear EntityTear
----@param tainted boolean
-function Helpers.ForceSaltTear(tear, tainted)
-	local IsBloodTear = Helpers.When(tear.Variant, tables.BloodytearVariants, false)
-	doEdithTear(tear, IsBloodTear, tainted)
-	tear:Update()
+---@param tint? number[]
+---@return number r, number g, number b
+local function GetBaseTint(tear, tint)
+	if tint then
+		return tint[1], tint[2], tint[3]
+	end
+
+	local current = tear.Color:GetTint()
+	return current.R + SALT_TINT_BOOST[1], current.G + SALT_TINT_BOOST[2], current.B + SALT_TINT_BOOST[3]
+end
+
+---@class SaltTearParams
+---@field brightness? number 0 (muy oscura) a 1 (default)
+---@field tint? number[] {R, G, B} que reemplaza el tinte base
+---@field offset? number[] {R, G, B} 
+---@field colorize? number[] {R, G, B}
+
+---@param tear EntityTear
+---@param player EntityPlayer
+---@param params? SaltTearParams
+local function SetSaltTearColor(tear, player, params)
+	params = params or {}
+	local brightness = math.max(0, math.min(params.brightness or 1, 1))
+	local isBloodTear = Helpers.When(tear.Variant, tables.BloodytearVariants, false)
+
+	local tearColor = tear.Color
+	local tearOffset = tearColor:GetOffset()
+	local tearColorize = tearColor:GetColorize()
+
+	local playerColor = player.Color
+	local playerColorize = playerColor:GetColorize()
+	local playerOffset = playerColor:GetOffset()
+
+	local r, g, b = GetBaseTint(tear, params.tint)
+
+	if isBloodTear then
+		r, g, b = r * BLOODY_RED_FACTOR, 0, 0
+	end
+
+	local baseOffset = params.offset or { tearOffset.R, tearOffset.G, tearOffset.B }
+
+	tearColor:SetTint(r * brightness, g * brightness, b * brightness, 1)
+	tearColor:SetColorize(
+		playerColorize.R + tearColorize.R,
+		playerColorize.G + tearColorize.G,
+		playerColorize.B + tearColorize.B,
+		playerColorize.A
+	)
+	tearColor:SetOffset(
+		playerOffset.R + baseOffset[1],
+		playerOffset.G + baseOffset[2],
+		playerOffset.B + baseOffset[3]
+	)
+
+	tear.Color = tearColor
+end
+
+---Forces tears to look like salt tears
+---@param tear EntityTear
+---@param colorParams? SaltTearParams
+function Helpers.ForceSaltTear(tear, colorParams)
+    local tearData = data(tear)
+
+    if tearData.IsEdithRebuiltSaltTear then return end
+
+    local player = Helpers.GetPlayerFromTear(tear)
+    if not player then return end
+
+    SetSaltTearColor(tear, player, colorParams)
+    SetSaltTearSize(tear, player)
+
+    tear:ChangeVariant(TearVariant.ROCK)
+    tear:Update()
+
+    tearData.IsEdithRebuiltSaltTear = true
 end
 
 ---@param tear EntityTear
@@ -656,7 +675,7 @@ function Helpers.SpawnSaltTears(player, npc, rng, min, max)
 
     for _ = 1, randomTears do
         local tear = player:FireTear(npc.Position, rng:RandomVector():Resized(shotSpeed * 10), false, false, false, player, 1.2)
-		Helpers.ForceSaltTear(tear, false)
+		Helpers.ForceSaltTear(tear)
         tear:AddTearFlags(player.TearFlags)
     end
 end
