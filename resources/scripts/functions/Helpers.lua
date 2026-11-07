@@ -3,8 +3,8 @@ local mod = EdithRebuilt
 local enums = mod.Enums
 
 local utils = enums.Utils
-local misc = enums.Misc
 local tables = enums.Tables
+local challenge = enums.Challenge
 local ConfigDataTypes = enums.ConfigDataTypes
 local saveManager = mod.SaveManager
 
@@ -74,7 +74,7 @@ function Helpers.DestroyGrid(entity, radius)
 		local grid = room:GetGridEntity(i)
 
 		if not grid then goto continue end
-		if (entity.Position - grid.Position):LengthSquared() > radius * radius then goto continue end
+		if (entity.Position - grid.Position):LengthSquared() > radius^2 then goto continue end
 		if grid:GetType() == GridEntityType.GRID_DOOR then goto continue end
 
 		grid:DestroyWithSource(false, ref)
@@ -195,11 +195,11 @@ function Helpers.IsEnemy(ent)
 end
 
 function Helpers.IsVestigeChallenge()
-	return Isaac.GetChallenge() == enums.Challenge.CHALLENGE_VESTIGE or Helpers.GetConfigData(ConfigDataTypes.EDITH).EnableVestigeMode
+	return Isaac.GetChallenge() == challenge.CHALLENGE_VESTIGE or Helpers.GetConfigData(ConfigDataTypes.EDITH).EnableVestigeMode
 end
 
 function Helpers.IsGrudgeChallenge()
-	return Isaac.GetChallenge() == enums.Challenge.CHALLENGE_GRUDGE or Helpers.GetConfigData(ConfigDataTypes.TEDITH).EnableGrudgeMode
+	return Isaac.GetChallenge() == challenge.CHALLENGE_GRUDGE or Helpers.GetConfigData(ConfigDataTypes.TEDITH).EnableGrudgeMode
 end
 
 ---@param ent Entity
@@ -382,14 +382,14 @@ end
 function Helpers.IsKeyStompPressed(player)
 	local customButtom = Helpers.GetConfigData(ConfigDataTypes.MISC).CustomActionKey
 	local ctrlIdx = player.ControllerIndex
-
 	local k_stomp =
 		Input.IsButtonPressed(customButtom, ctrlIdx) or
         Input.IsButtonPressed(Keyboard.KEY_LEFT_SHIFT, ctrlIdx) or
         Input.IsButtonPressed(Keyboard.KEY_RIGHT_SHIFT, ctrlIdx) or
 		Input.IsButtonPressed(Keyboard.KEY_RIGHT_CONTROL, ctrlIdx) or
         Input.IsActionPressed(ButtonAction.ACTION_DROP, ctrlIdx)
-		return k_stomp
+
+	return k_stomp
 end
 
 ---Checks if player triggered Edith's jump button
@@ -398,7 +398,6 @@ end
 function Helpers.IsKeyStompTriggered(player)
 	local customButtom = Helpers.GetConfigData(ConfigDataTypes.MISC).CustomActionKey
 	local ctrlIdx = player.ControllerIndex
-
 	local k_stomp =
 		Input.IsButtonTriggered(customButtom, ctrlIdx) or
         Input.IsButtonTriggered(Keyboard.KEY_LEFT_SHIFT, ctrlIdx) or
