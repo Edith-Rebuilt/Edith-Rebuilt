@@ -20,12 +20,12 @@ local FilledSprite = Sprite("gfx/Epiphany/SpiceChamberBlacks.anm2", true)
 local VecZero = Vector.Zero
 local VecOne = Vector.One
 
-local SpiceRingRadiusVec = Vector(30, 0)
+local SpiceRingRadiusVec = Vector(50, 0)
 
 local SPICE_COUNT = 8
 local CHAMBER_COOLDOWN_FRAMES = 8
 local CHAMBER_DEGREES_PER_FRAME = 360 / CHAMBER_COOLDOWN_FRAMES -- una vuelta completa por cooldown
-local CREEP_BASE_COUNT = 10
+local CREEP_BASE_COUNT = 15
 
 local HUD_OFFSET_BY_SCALE = {
     [1] = Vector(16, 16),
@@ -181,11 +181,12 @@ local function SpawnSpiceCreeps(ent, spice, charge)
 end
 
 ---@param player EntityPlayer
----@param ent Entity
 ---@param flingParams TREdithFlingStrikeParams
-mod:AddCallback(edithCallbacks.STRIKE_HIT_ENEMY, function (_, player, ent, flingParams)
+mod:AddCallback(edithCallbacks.BURST_TRIGGER, function(_, player, flingParams)
     local slot = player:GetActiveItemSlot(SpiceChamberID)
     if slot == -1 then return end
 
-    SpawnSpiceCreeps(ent, GetSelectedSpice(player, slot), flingParams.FlingMoveCharge)
+    print(flingParams.FlingStaticCharge)
+
+    SpawnSpiceCreeps(player, GetSelectedSpice(player, slot), flingParams.FlingStaticCharge)
 end)
