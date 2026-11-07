@@ -27,11 +27,6 @@ local CHAMBER_COOLDOWN_FRAMES = 8
 local CHAMBER_DEGREES_PER_FRAME = 360 / CHAMBER_COOLDOWN_FRAMES -- una vuelta completa por cooldown
 local CREEP_BASE_COUNT = 15
 
-local HUD_OFFSET_BY_SCALE = {
-    [1] = Vector(16, 16),
-    [0.5] = Vector(8, 8),
-}
-
 local SpiceToCreep = {
     [effects.SALTED] = SubTypes.SALT_CREEP,
     [effects.PEPPERED] = SubTypes.PEPPER_CREEP,
@@ -122,30 +117,32 @@ end)
 
 ---@param sprite Sprite
 ---@param scale Vector
----@param rotation number
+---@param rotation? number
 local function PrepareSprite(sprite, scale, rotation)
     sprite:Play("Idle")
     sprite.Scale = scale
-    sprite.Rotation = rotation
+    sprite.Rotation = rotation or 0
 end
 
 ---@param spice table
 ---@return Color
 local function GetSpiceHudColor(spice)
-    local color = spice.Color
+    local color = spice.Color --[[@as Color]]
     local tint = spice.ID == "Pepper" and color:GetTint() or color:GetOffset()
 
     return Color(tint.R, tint.G, tint.B)
 end
 
+local vecOffset = Vector(16, 16)
+
 HudHelper.RegisterHUDElement({
     ItemID = SpiceChamberID,
     OnRender = function (player, _, _, position, _, scale, _, slot)
-        local renderPos = position + HUD_OFFSET_BY_SCALE[scale]
+        local renderPos = position + (vecOffset * scale)
         local renderScale = VecOne * scale
         local rotation = GetChamberRotation(player)
 
-        PrepareSprite(SelectedSprite, renderScale, 0)
+        PrepareSprite(SelectedSprite, renderScale)
         PrepareSprite(FilledSprite, renderScale, rotation)
         PrepareSprite(ChamberSprite, renderScale, rotation)
 
@@ -185,8 +182,6 @@ end
 mod:AddCallback(edithCallbacks.BURST_TRIGGER, function(_, player, flingParams)
     local slot = player:GetActiveItemSlot(SpiceChamberID)
     if slot == -1 then return end
-
-    print(flingParams.FlingStaticCharge)
 
     SpawnSpiceCreeps(player, GetSelectedSpice(player, slot), flingParams.FlingStaticCharge)
 end)
