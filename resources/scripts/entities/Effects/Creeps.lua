@@ -20,6 +20,11 @@ local ModCreeps = {
     [subtype.SALT_CREEP] = true,
     [subtype.PEPPER_CREEP] = true,
     [subtype.OREGANO_CREEP] = true,
+    [subtype.CINNAMON_CREEP] = true,
+    [subtype.CUMIN_CREEP] = true,
+    [subtype.TURMERIC_CREEP] = true,
+    [subtype.GARLIC_CREEP] = true,
+    [subtype.GINGER_CREEP] = true,
 }
 
 ---@param effect EntityEffect
