@@ -4,18 +4,23 @@ local players = enums.PlayerType
 local saveManager = mod.SaveManager
 local achievements = enums.Achievements
 local utils = enums.Utils
+
 local game = utils.Game
 local level = utils.Level
 local pgd = utils.PGD
 local room = utils.Room
+
 local EdithStatusEffects = enums.EdithStatusEffects
 local parryTypes = enums.ParryTypes
+
 local modules = mod.Modules
 local Helpers = modules.HELPERS
 local Player = modules.PLAYER
 local StatusEffects = modules.STATUS_EFFECTS
 local TEdithMod = modules.TEDITH
+
 local callbacks = enums.Callbacks
+
 local UnlockTable = {
     Edith = {
         [CompletionType.MOMS_HEART] = {

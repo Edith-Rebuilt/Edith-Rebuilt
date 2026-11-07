@@ -5,12 +5,9 @@ local modules = mod.Modules
 local Helpers = modules.HELPERS
 local ModRNG = modules.RNG
 
----@param entity Entity
 ---@param amount number
----@param flags DamageFlag
 ---@param source EntityRef
----@param countdown integer
-mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function (_, entity, amount, flags, source, countdown)
+mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function (_, _, amount, _, source)
     local ent = source.Entity
 
     if not ent then return end
@@ -18,5 +15,5 @@ mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function (_, entity, amount, fl
 
     local mult = ModRNG.RandomFloat(ent:GetDropRNG(), 1.5, 2)
 
-    return {Damage = amount * mult, DamageFlags = flags, DamageCountdown = countdown}
+    return {Damage = amount * mult}
 end)

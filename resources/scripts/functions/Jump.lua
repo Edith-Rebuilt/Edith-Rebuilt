@@ -54,15 +54,15 @@ local function SpawnJumpDustCloud(player, hasWater, isChap4)
 	local effectConfig = hasWater and {
 		variant = EffectVariant.BIG_SPLASH,
 		subType = 1,
-		speed   = 1.3,
+		speed = 1.3,
 	} or isChap4 and {
 		variant = EffectVariant.POOF02,
 		subType = 66,
-		speed   = 2,
+		speed = 2,
 	} or {
 		variant = EffectVariant.POOF01,
 		subType = 1,
-		speed   = 2,
+		speed = 2,
 	}
 
 	local dustCloud = Isaac.Spawn(

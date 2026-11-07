@@ -80,7 +80,7 @@ local Flags = {
 }
 
 ---@class SpiceEffect
----@field ID EdithStatusEffects 
+---@field ID EdithStatusEffects
 ---@field Duration integer
 ---@field Color Color
 ---@field Cooldown integer
@@ -133,7 +133,7 @@ local Spices = {
         Color = Effects.Cinnamon.Color,
         Cooldown = 150,
     }, --[[@as SpiceEffect]]
-} 
+}
 
 ---@param status EdithStatusEffects
 ---@return SpiceEffect
