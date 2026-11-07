@@ -37,11 +37,11 @@
 	/>
 	<player 
 		name="Edith​​​​"
+		hideachievement="HIDE_MENU_EDITH"
 		birthright="Not implemented" 
 		skin="characterTarnishedEdith.png" 
 		healthtype="1"
 		armor="6"
-		hidden="true"
 		nameimage="EdithName.png"
 		portrait="TrEdithPortrait.png"
 		noshake="true"

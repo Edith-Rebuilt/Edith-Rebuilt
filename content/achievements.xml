@@ -38,4 +38,8 @@
 
     <!-- Community Remix -->
     <achievement name="Salt Hearts" gfx="CRemix/achievement_salthearts.png"/>
+
+
+    <!-- Epiphany -->
+    <achievement name="HIDE_MENU_EDITH" hidden="true" />
 </achievements>
