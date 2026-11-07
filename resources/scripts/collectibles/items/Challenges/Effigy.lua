@@ -312,6 +312,5 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_NEW_LEVEL, function(_, player, _, le
     local slot = Helpers.GetEffigySlot(player)
     if slot == -1 then return end
 
-    local batteryMult = player:HasCollectible(CollectibleType.COLLECTIBLE_BATTERY) and 2 or 1
-    player:SetActiveCharge(EFFIGY.MAX_CHARGE * batteryMult, slot)
+    player:FullCharge(Helpers.GetEffigySlot(player))
 end)
