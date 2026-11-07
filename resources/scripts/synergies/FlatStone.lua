@@ -1,10 +1,14 @@
 local mod = EdithRebuilt
+
 local modules = mod.Modules
 local Land = modules.LAND
 local EdithMod = modules.EDITH
 local TEdithMod = modules.TEDITH
 local TargetArrow = modules.TARGET_ARROW
 local Player = modules.PLAYER
+local ParryHop = modules.PARRY_HOP
+local Stomp = modules.STOMP
+
 local jumpParams = mod.Enums.Tables.JumpParams
 
 ---@param player EntityPlayer
@@ -43,7 +47,7 @@ mod:AddCallback(JumpLib.Callbacks.ENTITY_LAND, function(_, ent, data, pitfall)
     if not Player.IsEdith(player, true) then return end
 
     Land.LandFeedbackManager(player, Land.GetLandSoundTable(true, true), player.Color, data)
-    Land.ParryLandManager(player, TEdithMod.GetHopParryParams(player), true)
+    ParryHop.ParryLandManager(player, TEdithMod.GetHopParryParams(player), true)
     player:MultiplyFriction(0.05)
 end, {tag = "EdithRebuilt_FlatStoneLand_Parry"})
 
@@ -59,7 +63,7 @@ mod:AddCallback(JumpLib.Callbacks.ENTITY_LAND, function(_, ent, data, pitfall)
 
     params.Damage = params.Damage * mult
     Land.LandFeedbackManager(player, Land.GetLandSoundTable(false, false), player.Color, data)
-    Land.EdithStomp(player, params, true)
+    Stomp.EdithStomp(player, params, true)
     Land.TriggerLandenemyJump(player, params.StompedEntities, params.Knockback, 6, 1.5)
     player:MultiplyFriction(0.05)
 end, {tag = "EdithRebuilt_FlatStoneLand"})

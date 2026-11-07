@@ -14,6 +14,7 @@ local Player = modules.PLAYER
 local ModRNG = modules.RNG
 local Jump = modules.JUMP
 local StatusEffects = modules.STATUS_EFFECTS
+local Stomp = modules.STOMP
 
 local room = enums.Utils.Room
 
@@ -272,10 +273,10 @@ local function ExecuteStompSequence(player, jumpParams)
 	EdithMod.StompDamageManager(player, jumpParams)
 	EdithMod.StompRadiusManager(player, jumpParams)
 
-	Land.EdithStomp(player, jumpParams, true)
+	Stomp.EdithStomp(player, jumpParams, true)
 
 	Land.TriggerLandenemyJump(player, jumpParams.StompedEntities, jumpParams.Knockback, 8, 2)
-	Land.BombLandManager(player, jumpParams)
+	Stomp.BombLandManager(player, jumpParams)
 end
 
 ---@param player EntityPlayer
@@ -302,7 +303,7 @@ local function ResetEdithScale(player)
 end
 
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function (_, player)
-	
+
 end)
 
 local function SetNewPitfallPosition(player)
@@ -487,7 +488,7 @@ mod:AddCallback(jumpCallbacks.ENTITY_UPDATE_60, function (_, player, jumpdata)
 	EdithMod.DefensiveStompManager(player, jumpParams)
 	EdithMod.FlightFallBehavior(player, jumpdata, jumpParams)
 	EdithMod.BombFall(player, jumpdata, jumpParams)
-	
+
 	Jump.SetBombJump(player, jumpParams)
 end, JumpParams.EdithJump)
 

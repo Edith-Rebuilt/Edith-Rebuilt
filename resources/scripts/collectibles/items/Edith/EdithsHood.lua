@@ -1,10 +1,13 @@
 local mod = EdithRebuilt
 local enums = mod.Enums
+
 local items = enums.CollectibleType
 local saltTypes = enums.SaltTypes
 local tables = enums.Tables
+
 local jumpTags = tables.JumpTags
 local jumpParams = tables.JumpParams
+
 local modules = mod.Modules
 local Player = modules.PLAYER
 local Math = modules.MATHS
@@ -15,8 +18,11 @@ local Land = modules.LAND
 local BitMask = modules.BIT_MASK
 local Creeps = modules.CREEPS
 local Jump = modules.JUMP
+local Stomp = modules.STOMP
+
 local utils = enums.Utils
 local sfx = utils.SFX
+
 local room = utils.Room
 local data = mod.DataHolder.GetEntityData
 
@@ -35,7 +41,7 @@ mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function(_, tear)
     if not player then return end
     if Player.IsAnyEdith(player) then return end
     if not player:HasCollectible(items.COLLECTIBLE_EDITHS_HOOD) then return end
-    helpers.ForceSaltTear(tear, false)
+    helpers.ForceSaltTear(tear)
 end)
 
 ---@param playerData table
@@ -91,7 +97,7 @@ local function TriggerLandEffects(player, params, jumpData)
     playerData.HoodLand = true
     Land.LandFeedbackManager(player, Land.GetLandSoundTable(false), Color.Default, jumpData)
     playerData.HoodLand = false
-    Land.EdithStomp(player, params, false)
+    Stomp.EdithStomp(player, params, false)
     Land.TriggerLandenemyJump(player, params.StompedEntities, params.Knockback, 10, 1.8)
 end
 

@@ -4,15 +4,20 @@ local enums = mod.Enums
 local card = enums.Card
 local sounds = enums.SoundEffect
 local utils = enums.Utils
+
 local sfx = utils.SFX
 local rng = utils.RNG
+
 local modules = mod.Modules
 local Helpers = modules.HELPERS
 local Creep = modules.CREEPS
 local Land = modules.LAND
 local ModRNG = modules.RNG
 local EdithMod = modules.EDITH
+local Stomp = modules.STOMP
+
 local data = mod.DataHolder.GetEntityData
+
 local SoulOfEdithJumpTag = enums.Tables.JumpTags.SoulOfEdith
 local damageBase = 13.5
 
@@ -31,7 +36,7 @@ local function SpawnSaltTears(player)
         tear.FallingAcceleration = 2.5 * ModRNG.RandomFloat(rng, 0.6, 1.8)
 		tear:AddTearFlags(TearFlags.TEAR_SPECTRAL | TearFlags.TEAR_PIERCING)
 
-		Helpers.ForceSaltTear(tear, false)
+		Helpers.ForceSaltTear(tear)
 		data(tear).IsSoulOfEdithTear = true
     end
 end
@@ -48,8 +53,8 @@ mod:AddCallback(JumpLib.Callbacks.ENTITY_LAND, function (_, player, jumpData)
 	stompParams.Radius = 50 * runicMult
 	stompParams.Knockback = 20 * runicMult
 
-	Land.EdithStomp(player, stompParams, true)
 	Land.LandFeedbackManager(player, Land.GetLandSoundTable(false), Color(1, 1, 1, 0), jumpData)
+	Stomp.EdithStomp(player, stompParams, true)
 
     SpawnSaltTears(player)
 end, { tag = SoulOfEdithJumpTag })

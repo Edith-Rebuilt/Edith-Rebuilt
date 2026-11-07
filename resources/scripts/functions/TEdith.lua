@@ -187,7 +187,7 @@ function TEdith.StopTEdithHops(player, cooldown, useQuitJump, resetCharge, keepF
 
 	if not isMoving then return end
 
-	mod.Modules.LAND.TaintedEdithHop(player, hopParams)
+	mod.Modules.PARRY_HOP.TaintedEdithHop(player, hopParams)
 
 	hopParams.IsHoping = false
 	hopParams.GrudgeDash = false
@@ -312,8 +312,10 @@ end
 ---@param forceParry boolean
 ---@param jumpData JumpData
 local function HandleParryLanding(player, hopParams, forceParry, jumpData)
-	local Land = mod.Modules.LAND
-    local PerfectParry = Land.ParryLandManager(player, hopParams, true)
+	local modules = mod.Modules
+	local Land = modules.LAND
+    local ParryHop = modules.PARRY_HOP
+	local PerfectParry = ParryHop.ParryLandManager(player, hopParams, true)
     local parryResult = forceParry or PerfectParry
     Land.LandFeedbackManager(player, Land.GetLandSoundTable(true, parryResult), misc.BurntSaltColor, jumpData, parryResult)
 end

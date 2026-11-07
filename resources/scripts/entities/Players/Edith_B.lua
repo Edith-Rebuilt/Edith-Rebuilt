@@ -16,7 +16,7 @@ local jumpTags = tables.JumpTags
 local modules = mod.Modules
 local VecDir = modules.VEC_DIR
 local maths = modules.MATHS
-local land = modules.LAND
+local Land = modules.LAND
 local Player = modules.PLAYER
 local TargetArrow = modules.TARGET_ARROW
 local TEdithMod = modules.TEDITH
@@ -24,6 +24,7 @@ local Helpers = modules.HELPERS
 local effects = modules.STATUS_EFFECTS
 local BitMask = modules.BIT_MASK
 local Jump = modules.JUMP
+local ParryHop = modules.PARRY_HOP
 
 local data = mod.DataHolder.GetEntityData
 
@@ -361,8 +362,8 @@ local function OnHopLand(player, jumpData, params)
 	params.HopRadius = math.min((30 + (tearRange - 9)), 35)
 
 	player:SpawnWaterImpactEffects(player.Position, VecOne, 1)
-	land.LandFeedbackManager(player, land.GetLandSoundTable(true), misc.BurntSaltColor, jumpData)
-	land.TaintedEdithHop(player, params)
+	Land.LandFeedbackManager(player, Land.GetLandSoundTable(true), misc.BurntSaltColor, jumpData)
+	ParryHop.TaintedEdithHop(player, params)
 end
 
 ---@param player EntityPlayer
@@ -375,9 +376,9 @@ local function OnParryLand(player, jumpData, params)
 		TEdithMod.ResetHopDashCharge(player, true, true)
 	end
 
-	local perfectParry, _ = land.ParryLandManager(player, params, true)
+	local perfectParry, _ = ParryHop.ParryLandManager(player, params, true)
 
-	land.LandFeedbackManager(player, land.GetLandSoundTable(true, perfectParry), misc.BurntSaltColor, jumpData, perfectParry)
+	Land.LandFeedbackManager(player, Land.GetLandSoundTable(true, perfectParry), misc.BurntSaltColor, jumpData, perfectParry)
 end
 
 ---@param player EntityPlayer

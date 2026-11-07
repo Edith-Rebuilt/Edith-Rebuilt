@@ -1,10 +1,12 @@
 local mod = EdithRebuilt
 local enums = mod.Enums
 local items = enums.CollectibleType
+
 local modules = mod.Modules
 local TEdith = modules.TEDITH
 local Land = modules.LAND
 local Jump = modules.JUMP
+local ParryHop = modules.PARRY_HOP
 
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, function (_, _, _, player)
@@ -16,7 +18,7 @@ end, items.COLLECTIBLE_BURNT_HOOD)
 ---@param jumpData JumpData
 ---@return boolean
 local function TriggerParry(player, jumpData)
-	local PerfectParry = Land.ParryLandManager(player, TEdith.GetHopParryParams(player), false)
+	local PerfectParry = ParryHop.ParryLandManager(player, TEdith.GetHopParryParams(player), false)
 	Land.LandFeedbackManager(player, Land.GetLandSoundTable(true, PerfectParry), Color.Default, jumpData, PerfectParry)
 
 	return PerfectParry

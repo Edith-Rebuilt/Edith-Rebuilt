@@ -2,7 +2,9 @@ local mod = EdithRebuilt
 local enums = mod.Enums
 local items = enums.CollectibleType
 local tables = enums.Tables
+
 local jumpTags = tables.JumpTags
+
 local modules = mod.Modules
 local EdithMod = modules.EDITH
 local Helpers = modules.HELPERS
@@ -12,7 +14,10 @@ local Maths = modules.MATHS
 local TargetArrow = modules.TARGET_ARROW
 local Player = modules.PLAYER
 local Land = modules.LAND
+local Stomp = modules.STOMP
+
 local sfx = enums.Utils.SFX
+
 local data = mod.DataHolder.GetEntityData
 
 local EFFIGY = {
@@ -214,7 +219,7 @@ end
 ---@param jumpData JumpData
 local function EffigyGeneralLand(player, jumpParams, jumpData)
     Land.LandFeedbackManager(player, Land.GetLandSoundTable(false), player.Color, jumpData)
-    Land.EdithStomp(player, jumpParams, true)
+    Stomp.EdithStomp(player, jumpParams, true)
     player:MultiplyFriction(0.1)
     player:SetMinDamageCooldown(20)
     data(player).EffigyHopCooldown = EFFIGY.HOP_COOLDOWN
