@@ -617,29 +617,6 @@ function Helpers.TriggerPerfectParryFlash(player)
 	ItemOverlay.Show(enums.Giantbook.PERFECT_PARRY, 3, player)
 	ItemOverlay.GetSprite().Color = NoColor
 end
-
-mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()	
-	if ItemOverlay.GetOverlayID() ~= enums.Giantbook.PERFECT_PARRY then return end
-
-	local overlaySprite = ItemOverlay.GetSprite()
-	local frame = overlaySprite:GetFrame()
-
-	if frame == 0 then
-		local tEdithConfig = Helpers.GetConfigData(ConfigDataTypes.TEDITH) --[[@as TEdithData]]
-		local color = tEdithConfig.ParryFlashColor
-		local contrast = tEdithConfig.ParryFlashContrast
-		local brightness = tEdithConfig.ParryFlashBrightness
-
-		game:SetColorModifier(ColorModifier(color.r, color.g, color.b, color.a, brightness, contrast), true, 1)
-		Isaac.CreateTimer(function ()
-			room:UpdateColorModifier(true, true, 0.15)
-		end, 1, 1, false)
-	elseif frame == 5 then
-		overlaySprite:Stop(true)
-		overlaySprite:Reset()
-	end
-end)
-
 function Helpers.IsModChallenge()
 	return Helpers.IsVestigeChallenge() or Helpers.IsGrudgeChallenge()
 end

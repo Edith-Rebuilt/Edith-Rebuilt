@@ -580,3 +580,25 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER_CHARACTER_SELECT_PORTRAIT, function(
 
 	cabra:Render(source, destR, KColor(1, 1, 1, 1), Color(1))
 end)
+
+mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
+	if ItemOverlay.GetOverlayID() ~= enums.Giantbook.PERFECT_PARRY then return end
+
+	local overlaySprite = ItemOverlay.GetSprite()
+	local frame = overlaySprite:GetFrame()
+
+	if frame == 0 then
+		local tEdithConfig = Helpers.GetConfigData(enums.ConfigDataTypes.TEDITH) --[[@as TEdithData]]
+		local color = tEdithConfig.ParryFlashColor
+		local contrast = tEdithConfig.ParryFlashContrast
+		local brightness = tEdithConfig.ParryFlashBrightness
+
+		game:SetColorModifier(ColorModifier(color.r, color.g, color.b, color.a, brightness, contrast), true, 1)
+		Isaac.CreateTimer(function ()
+			room:UpdateColorModifier(true, true, 0.15)
+		end, 1, 1, false)
+	elseif frame == 5 then
+		overlaySprite:Stop(true)
+		overlaySprite:Reset()
+	end
+end)
