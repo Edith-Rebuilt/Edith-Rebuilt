@@ -10,7 +10,7 @@ local effects = "statusEffects/"
 local includeFiles = {
 	-- Cosas necesarias
 	libs .. "CustomShockwaveAPI",
-	misc .. "ImGui",
+	misc .. "ImGui/main",
 	misc .. "UnlockManager",
 	misc .. "HappyBirthday",
 
