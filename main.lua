@@ -78,8 +78,8 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function()
 end)
 
 local version = {
-	1,
-	10,
+	2,
+	0,
 	0,
 	""
 }
