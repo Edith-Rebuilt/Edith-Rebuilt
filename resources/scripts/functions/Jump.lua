@@ -90,7 +90,9 @@ end
 ---@param params EdithJumpStompParams|TEdithHopParryParams
 function Jump.SetBombJump(player, params)
 	if not Input.IsActionTriggered(ButtonAction.ACTION_BOMB, player.ControllerIndex) then return end
-	if not mod.Modules.PLAYER.CanTriggerBombStomp(player) then return end
+	local canTriggerBombStomp = Isaac.RunCallback(enums.Callbacks.BOMB_STOMP_TRIGGER, player, params) ~= nil or mod.Modules.PLAYER.CanTriggerBombStomp(player) 
+
+	if not canTriggerBombStomp then return end
 
 	local isStomp = params.BombStomp ~= nil
 	local isParry = params.ParryBomb ~= nil

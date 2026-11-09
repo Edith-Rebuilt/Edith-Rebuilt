@@ -148,9 +148,10 @@ EdithRebuilt.Enums = {
 		---* params `TREdithFlingStrikeParams`
 		BURST_PUSH_ENEMY = "EdithRebuilt_BURST_PUSH_ENEMY",
 
-		--- Called everytime a BombStomp is triggered
+		--- Called everytime a BombStomp is triggered, return a boolean to change the trigger
 		---* player `EntityPlayer`
 		---* params `TREdithFlingStrikeParams`
+		---* return boolean?
 		BOMB_STOMP_TRIGGER = "EdithRebuilt_BOMB_STOMP_TRIGGER",
 		
 		--- Called on every BombStomp land
