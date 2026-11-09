@@ -146,7 +146,17 @@ EdithRebuilt.Enums = {
 		--- Called everytime TR. Edith triggers a Burst
 		---* player `EntityPlayer`
 		---* params `TREdithFlingStrikeParams`
-		BURST_PUSH_ENEMY = "EdithRebuilt_BURST_PUSH_ENEMY"
+		BURST_PUSH_ENEMY = "EdithRebuilt_BURST_PUSH_ENEMY",
+
+		--- Called everytime a BombStomp is triggered
+		---* player `EntityPlayer`
+		---* params `TREdithFlingStrikeParams`
+		BOMB_STOMP_TRIGGER = "EdithRebuilt_BOMB_STOMP_TRIGGER",
+		
+		--- Called on every BombStomp land
+		---* player `EntityPlayer`
+		---* params `TREdithFlingStrikeParams`
+		BOMB_STOMP_LAND = "EdithRebuilt_BOMB_STOMP_LAND",
 	},
 	SubTypes = {
 		SALT_CREEP = Isaac.GetEntitySubTypeByName("Salt Creep"),

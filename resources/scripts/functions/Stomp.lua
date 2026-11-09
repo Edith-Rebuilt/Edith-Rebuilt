@@ -108,6 +108,10 @@ function Stomp.EdithStomp(parent, params, breakGrid)
 
 	if not params.IsDefensiveStomp then
 		Isaac.RunCallback(callbacks.OFFENSIVE_STOMP, parent, params)
+		
+		if params.BombStomp then
+			Isaac.RunCallback(callbacks.BOMB_STOMP_LAND, parent, params)
+		end
 	end
 
 	for _, ent in ipairs(Isaac.FindInCapsule(Capsules.Pickup, EntityPartition.PICKUP)) do
