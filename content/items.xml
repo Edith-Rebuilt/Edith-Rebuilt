@@ -160,7 +160,7 @@
 		gfx="collectibles_Burnt_Hood.png"
 		quality="2"
 		chargetype="timed"
-		maxcharges="180"
+		maxcharges="30"
 		achievement="Burnt Hood"
 	/>	
 	<trinket 
