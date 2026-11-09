@@ -100,6 +100,7 @@ EdithRebuilt.Enums = {
 		PERFECT_PARRY_KILL = "EdithRebuilt_PERFECT_PARRY_KILL",
 		-- Called every time a parry land is triggered (there's no need to hit the parry)
 		---* player `EntityPlayer`
+		---* params TEdithHopParryParams
 		POST_PARRY_LAND = "EdithRebuilt_POST_PARRY_LAND",
 		-- Called everytime Edith does an offensive stomp
 		---* player `EntityPlayer`
