@@ -1,5 +1,8 @@
 local function AddModCompat()
     local Menu = EdithRebuilt.ImGuiModules.ELEMENTS.Menu
+	local ModCompatText = Menu.TabBars.ModCompat
+	if ImGui.ElementExists(ModCompatText) then return end
+
 	ImGui.AddText(Menu.Windows.ModCompat, [[
 * Antibirth Runes:
 	- Geode can spawn Antibirth runes
@@ -40,7 +43,23 @@ local function AddModCompat()
 * Runic Tablet:
 	- Increased Damage and Knockback od Soul of Edith's stomp
 
-]], true)
+* God Mode Achieved
+	- Added Edith and Tainted Edith unlocks for Fallen Light:AddModCompat
+		- Edith: Peppercorns
+			- 2 Charges Active Item
+			- On Use, Isaac will shoot a barrage of 6-8 Peppercorns
+			- Once these peppercorns falls to the ground, hit a wall or an enemy, a pepper cloud will spawn
+			- These pepperclouds apply Pepper Status Effect
+		- Tainted Edith: Pyroclastic Rock
+			- Passive Item
+			- Every 2 seconds, a rock will fall from the ceiling, targetting a random enemy
+			- Once this rock falls, it'll trigger an explosion
+			- Only works on non-cleared rooms
+
+* Fiend Folio
+	- 
+
+]], true, ModCompatText)
 end
 
 return {
