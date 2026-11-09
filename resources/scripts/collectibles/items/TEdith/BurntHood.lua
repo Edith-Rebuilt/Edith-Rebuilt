@@ -29,8 +29,6 @@ local function GetParryUses(player)
 	return varData
 end
 
--- local function Get
-
 ---@param player EntityPlayer
 ---@param quantity integer
 local function AddParryUses(player, quantity)
@@ -115,8 +113,6 @@ local function HoodCooldownManager(player)
 end
 
 local function EmbersManager(player)
-	print(player:HasCollectible(items.COLLECTIBLE_BURNT_HOOD))
-
 	if player:HasCollectible(items.COLLECTIBLE_BURNT_HOOD) then
 		embers = embers or Pallete:CreateParticleEmitter("gfx/effects/TinyBug.png")
 	else
@@ -125,8 +121,6 @@ local function EmbersManager(player)
 			embers = nil
 		end
 	end
-
-	print(embers)
 end
 
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
@@ -160,14 +154,9 @@ HudHelper.RegisterHUDElement({
 			embers:Play()
 		end
 
-		-- print(Game():GetRoom():GetCamera().)
-
 		embers.ParticleRate = 2 * parryUses
 		embers.StartSpeed = { Min = 3, Max = 6 + (2 * (parryUses/6)) }
-		-- embers.Position = Isaac.WorldToScreen(position)
-		embers.Position = Isaac.RenderToWorld(position + Vector(player.Velocity.X, 0)) + (Vector(20, 40))
-		-- embers.
-		-- embers.IsWorldSpace = false
+		embers.Position = Isaac.RenderToWorld(position) + (Vector(20, 40))
 		embers.DirectionSpread = 15
 		embers.StartColor = { Min = KColor(1, 0.3, 0, 1), Max = KColor(1, 0.8, 0, 1) }
 		embers.StartSize = { Min = Vector(0.8, 0.8) * scale, Max = Vector(1, 1) * scale}
