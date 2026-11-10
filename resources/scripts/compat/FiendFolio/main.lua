@@ -36,6 +36,7 @@ local fiendFolioPath = "resources.scripts.compat.FiendFolio."
 
 local function FiendFolioCompat()
 	LoadScripts({
+		fiendFolioPath .. "FuzzyPickle",
 
 		fiendFolioPath .. "Bombs.ParalellBombs",
 		fiendFolioPath .. "Bombs.FabergeBombs",
