@@ -19,18 +19,27 @@ end
 local function LoadScripts(paths)
 	for _, path in ipairs(paths) do
 		local script = include(path)
+		
+		if not script then goto continue end
+
 		local entries = script.callback and { script } or script
 
 		for _, entry in ipairs(entries) do
 			RegisterEntry(entry)
 		end
+
+		::continue::
 	end
 end
 
+local fiendFolioPath = "resources.scripts.compat.FiendFolio."
+
 local function FiendFolioCompat()
 	LoadScripts({
-		"resources.scripts.compat.FiendFolio.Bombs.ParalellBombs",
-		"resources.scripts.compat.FiendFolio.Bombs.FabergeBombs",
+
+		fiendFolioPath .. "Bombs.ParalellBombs",
+		fiendFolioPath .. "Bombs.FabergeBombs",
+		fiendFolioPath .. "Bombs.BridgeBombs",
 	})
 end
 

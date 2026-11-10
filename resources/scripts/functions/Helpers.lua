@@ -63,6 +63,21 @@ function Helpers.IsMirrorWorld()
 	return room:IsMirrorWorld() or FFGRACE and FFGRACE:IsBoilerMirrorWorld()
 end
 
+---@param pos Vector
+---@param radius number
+---@param func fun(grid: GridEntity)
+function Helpers.ForEachGridInRadius(pos, radius, func)
+	for i = 0, room:GetGridSize() do
+		local grid = room:GetGridEntity(i)
+
+		if not grid then goto continue end
+		if (pos - grid.Position):LengthSquared() > radius^2 then goto continue end
+
+		func(grid)
+		::continue::
+	end
+end
+
 ---Helper grid destroyer function
 ---@param entity Entity
 ---@param radius number
@@ -70,17 +85,11 @@ function Helpers.DestroyGrid(entity, radius)
     radius = radius or entity.Size
 	local ref = EntityRef(entity)
 
-	for i = 0, (room:GetGridSize()) do
-		local grid = room:GetGridEntity(i)
-
-		if not grid then goto continue end
-		if (entity.Position - grid.Position):LengthSquared() > radius^2 then goto continue end
-		if grid:GetType() == GridEntityType.GRID_DOOR then goto continue end
-
+	---@param grid GridEntity
+	Helpers.ForEachGridInRadius(entity.Position, radius, function(grid)
+		if grid:GetType() == GridEntityType.GRID_DOOR then return end
 		grid:DestroyWithSource(false, ref)
-
-		::continue::
-    end
+	end)
 end
 
 local baseRange = 6.5
