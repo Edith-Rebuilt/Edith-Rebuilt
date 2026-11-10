@@ -39,6 +39,7 @@ local function FiendFolioCompat()
 		fiendFolioPath .. "FuzzyPickle",
 		fiendFolioPath .. "GirlDinner",
 		fiendFolioPath .. "OldTestament",
+		fiendFolioPath .. "StackableItems",
 
 		fiendFolioPath .. "Bombs.ParalellBombs",
 		fiendFolioPath .. "Bombs.FabergeBombs",
