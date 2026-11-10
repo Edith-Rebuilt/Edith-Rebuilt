@@ -1,9 +1,6 @@
 local mod = EdithRebuilt
 local enums = mod.Enums
 local edithCallbacks = enums.Callbacks
-
-local utils = enums.Utils
-
 local Player = mod.Modules.PLAYER
 
 local fabergeBombs = FiendFolio.ITEM.COLLECTIBLE.FABERGE_BOMBS
@@ -31,8 +28,8 @@ return {
 
 			local rng = player:GetCollectibleRNG(fabergeBombs)
 			local minSpawns = bombData.FFIsScatter and 1 or 10
-			local realDecrementation = player:HasGoldenBomb() and goldenDecrementation or 1 -- Just in case you somehow lose Golden Bombs during the floor
-
+			local realDecrementation = player:HasGoldenBomb() and goldenDecrementation or 1
+			
 			minSpawns = math.max(1, math.ceil(minSpawns * realDecrementation))
 
 			for i = 1, rng:RandomInt(minSpawns, minSpawns * 2) * getFractionalCoinSpawnMultiplier(player) do
