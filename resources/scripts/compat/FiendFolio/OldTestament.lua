@@ -27,9 +27,3 @@ for _, id in ipairs(modActiveItems) do
         existingSet[id] = true
     end
 end
-
-for _, id in ipairs(FiendFolio.creativeAIValidItems) do
-    print(id, Isaac.GetItemConfig():GetCollectible(id).Name)
-    
-    -- existingSet[id] = true
-end
