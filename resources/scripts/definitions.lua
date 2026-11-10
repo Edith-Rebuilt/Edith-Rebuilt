@@ -57,8 +57,9 @@ EdithRebuilt.Enums = {
 
 		--- Tarnished Edith Items		
 
-		COLLECTIBLE_SPICE_CHAMBER = Isaac.GetItemIdByName("Spice Chamber")
+		COLLECTIBLE_SPICE_CHAMBER = Isaac.GetItemIdByName("Spice Chamber"),
 
+		COLLECTIBLE_SODIUM_SULFATE = Isaac.GetItemIdByName("Sodium Sulfate"),
 	},
 	TrinketType = {
 		TRINKET_GEODE = Isaac.GetTrinketIdByName("Geode"),
