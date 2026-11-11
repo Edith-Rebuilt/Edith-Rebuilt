@@ -15,10 +15,6 @@ return {
             if not player then return end
             if not Player.IsAnyEdith(player) then return end
             FiendFolio:GetEntityData(player).randomGirlDecided = true
-
-            -- print("GIRL DINNER")
-            -- return false
-
         end,
         priority = CallbackPriority.IMPORTANT,
         callback = ModCallbacks.MC_PRE_PICKUP_COLLISION,

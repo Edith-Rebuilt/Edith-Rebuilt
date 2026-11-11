@@ -44,6 +44,7 @@ local function FiendFolioCompat()
 		fiendFolioPath .. "Bombs.ParalellBombs",
 		fiendFolioPath .. "Bombs.FabergeBombs",
 		fiendFolioPath .. "Bombs.BridgeBombs",
+		fiendFolioPath .. "Bombs.Musca",
 
 		fiendFolioPath .. "FiendishMark.SodiumSulfate",
 	})
