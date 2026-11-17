@@ -100,35 +100,128 @@ end
 
 ---@param player EntityPlayer
 ---@param heat number
-local function TEdithHeatColor(player, heat)
-	if heat <= 0 then return end
-
-	local color = player.Color
-
-	color.RO = color.RO + (0.5 * heat)
-
-	player:SetColor(color, 1, 10, true, false)
-
-	if player.FrameCount % (10 - (math.ceil(6 * (heat * heat)))) ~= 0 then return end
+---@param pData table
+local function SmokeParticles(player, heat, pData)
+	pData.Clouds = pData.Clouds or Pallete:CreateParticleEmitter("gfx/effects/Cloud.png")
 	
+	local rng = player:GetDropRNG()
+	local clouds = pData.Clouds 
+
+	if clouds:IsDestroyed() then
+		pData.Clouds = Pallete:CreateParticleEmitter("gfx/effects/Cloud.png")
+	end
+
+	if not clouds:IsPlaying() then
+		clouds:Play()
+	end
+
 	local playerScale = player.SpriteScale
 
-	local smoke = Isaac.Spawn(
-		EntityType.ENTITY_EFFECT, 
-		EffectVariant.POOF02, 2, 
-		player.Position - Vector(0, 30 * playerScale.Y), 
-		Vector(0, -1) * (3 * heat), 
-		player):
-	ToEffect() ---@cast smoke EntityEffect
+	local smokeColor = 1 - (0.5 * heat)
+	local smokeSize = 0.5 + (0.1 * heat)
 
-	local rng = smoke:GetDropRNG()
-	local smokeColorize = 1 - (0.5 * heat)
-	local smokeSize = 0.4 + (0.1 * heat)
-	local sprite = smoke:GetSprite()
+	clouds.ParticleRate = 3 + (3 * heat) + rng:RandomInt(2, 4)
+	clouds.StartSpeed = rng:RandomInt(3, 6) + (5 * (heat))
+	clouds.Position = player.Position - Vector(0, 30 * playerScale.Y)
+	clouds.DirectionSpread = 15
+	clouds.StartColor = KColor(smokeColor, smokeColor, smokeColor, 1)
+	clouds.StartSize = Vector(smokeSize * modules.RNG.RandomFloat(rng, 0.7, 1.3), smokeSize * modules.RNG.RandomFloat(rng, 0.9, 1.1)) * playerScale * modules.RNG.RandomFloat(rng, 0.9, 1.1)
+	clouds.Lifetime = 20 + (5 * heat)
+	clouds.StartRotation = modules.RNG.RandomFloat(rng, 0, 360)
+	clouds.IsWorldSpace = true
+	clouds.Orientation = player.Velocity.X * 3
+ 
+	clouds.ColorOverLifetime.Enabled = true
+	clouds.ColorOverLifetime.Gradient = {
+		AlphaKeys = {
+			{ Time = 0, Value = 0 },
+			{ Time = 0.3, Value = 1 },
+			{ Time = 1, Value = 0 },
+		},
+		ColorKeys = {
+			{ Time = 0, Value = KColor(1, 1, 1, 1) },
+			{ Time = 1, Value = KColor(1, 1, 1, 1) }
+		}
+	}
 
-	sprite.Color:SetColorize(smokeColorize, smokeColorize, smokeColorize, 1)
-	sprite.PlaybackSpeed = 1.3 + (0.3 * heat)
-	sprite.Scale = Vector(smokeSize, smokeSize) * playerScale * modules.RNG.RandomFloat(rng, 0.9, 1.1)
+	clouds.SizeOverLifetime.Enabled = true 
+	clouds.SizeOverLifetime.Keys = {
+		{ Time = 0, Value = Vector(1, 1) },
+		{ Time = 1, Value = Vector(1.5, 1.5) }
+	}
+end
+
+---@param player EntityPlayer
+---@param heat number
+---@param pData table
+local function EmberParticles(player, heat, pData)
+	print(heat)
+	
+	pData.Embers = pData.Embers or Pallete:CreateParticleEmitter("gfx/effects/TinyBug.png")
+	
+	local embers = pData.Embers 
+
+	if embers:IsDestroyed() then
+		pData.Embers = Pallete:CreateParticleEmitter("gfx/effects/TinyBug.png")
+	end
+
+	if not embers:IsPlaying() then
+		embers:Play()
+	end
+
+	local playerScale = player.SpriteScale
+
+	embers.ParticleRate = 5 + (5 * heat) 
+	embers.StartSpeed = 3
+	embers.Position = player.Position - Vector(0, 40 * playerScale.Y) + (RandomVector() * 10)
+	embers.DirectionSpread = 10
+	embers.StartColor = KColor(1, 0.9, 0, 1)
+	embers.Lifetime = 10
+	embers.IsWorldSpace = true
+	embers.Orientation = player.Velocity.X * 3
+
+	embers.ColorOverLifetime.Enabled = true
+	embers.ColorOverLifetime.Gradient = {
+		AlphaKeys = {
+			{ Time = 0, Value = 0 },
+			{ Time = 0.03, Value = 1 },
+			{ Time = 1, Value = 0.3 },
+		},
+		ColorKeys = {
+			{ Time = 0, Value = KColor(1, 1, 1, 1) },
+			{ Time = 0.7, Value = KColor(1, 0, 0, 1) },
+			{ Time = 0.8, Value = KColor(0, 0, 0, 1) }
+		}
+	}
+end
+
+---@param player EntityPlayer
+---@param heat number
+local function TEdithColorHeat(player, heat)
+	local color = player.Color
+
+	color:SetOffset(color.RO + 0.5 * heat, color.GO + 0.05 * heat, 0)
+	player:SetColor(color, 1, 10, true, false)
+end
+
+---@param player EntityPlayer
+---@param heat number
+local function TEdithHeatVFX(player, heat)
+	local pData = data(player)
+	if heat <= 0 then
+		if pData.Clouds then
+			pData.Clouds:Stop()
+		end
+		if pData.Embers then
+			pData.Embers:Stop()
+		end
+
+		return
+	end
+
+	TEdithColorHeat(player, heat)
+	EmberParticles(player, heat, pData)
+	SmokeParticles(player, heat, pData)
 end
 
 ---@param player EntityPlayer
@@ -143,7 +236,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
 	
 	TEdithCooling(player, HopParams, heat)
 	SetEdithSprite(player)
-	TEdithHeatColor(player, heat)
+	TEdithHeatVFX(player, heat)
 	ManageHopDashCharge(player, arrow, HopParams)
 	TEdithMod.ParryCooldownManager(player, HopParams)
 end)
