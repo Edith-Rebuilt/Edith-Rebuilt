@@ -3,11 +3,9 @@ local enums = mod.Enums
 
 local tables = enums.Tables
 local utils = enums.Utils
-local challenges = enums.Challenge
 local playerType = enums.PlayerType
 
 local pool = utils.ItemPool
-local room = utils.Room
 
 local modules = mod.Modules
 local Player = modules.PLAYER
@@ -104,6 +102,15 @@ local tearParams = {
     }  --[[@as SaltTearParams]]
 }
 
+local function EdithMarkedInteraction(player, tear)
+    if Player.IsEdith(player, true) then return end
+    local target = TargetArrow.GetEdithTarget(player)
+    if not target then return end
+    if not player:HasCollectible(CollectibleType.COLLECTIBLE_MARKED) then return end
+
+    tear.Velocity = -((tear.Position - target.Position):Normalized()):Resized(player.ShotSpeed * 10)
+end
+
 ---@param tear EntityTear
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function(_, tear)
     local player = Helpers.GetPlayerFromTear(tear)
@@ -111,16 +118,8 @@ mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function(_, tear)
 	if not player then return end
     if not Player.IsAnyEdith(player) then return end
 
-    local isTainted = Player.IsEdith(player, true)
-    local target = TargetArrow.GetEdithTarget(player)
-
     Helpers.ForceSaltTear(tear, tearParams[player:GetPlayerType()])
-
-    if isTainted then return end
-	if not player:HasCollectible(CollectibleType.COLLECTIBLE_MARKED) then return end	
-	if not target then return end
-
-    tear.Velocity = -((tear.Position - target.Position):Normalized()):Resized(player.ShotSpeed * 10)
+    EdithMarkedInteraction(player, tear)
 end)
 
 local ReloadCostumeItem = {
@@ -140,7 +139,7 @@ end)
 local InitParams = {
     [enums.PlayerType.PLAYER_EDITH] = {
         ANM2 = "gfx/EdithAnim.anm2",
-        Costume = costumes.EDITH,
+        Costume = costumes.EDITH,b
     },
     [enums.PlayerType.PLAYER_EDITH_B] = {
         ANM2 = "gfx/EdithTaintedAnim.anm2",
@@ -182,9 +181,8 @@ local GrudgePath = "gfx/ui/stage/TEdithPortraitGrudge.png"
 ---@param sprite Sprite
 ---@param layer integer
 local function replacePortrait(sprite, layer)
-    local challenge = Isaac.GetChallenge()
-    local isVestige = challenge == challenges.CHALLENGE_VESTIGE
-    local isGrudge = challenge == challenges.CHALLENGE_GRUDGE
+    local isVestige = Helpers.IsVestigeChallenge()
+    local isGrudge = Helpers.IsGrudgeChallenge()
     local path = isVestige and VestigePath or isGrudge and GrudgePath
 
     if not path then return end
@@ -200,17 +198,6 @@ mod:AddCallback(ModCallbacks.MC_POST_NIGHTMARE_SCENE_SHOW, function()
     replacePortrait(NightmareScene.GetBackgroundSprite(), 6)
 end)
 
-mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
-    if room:GetType() ~= RoomType.ROOM_DUNGEON then return end
-
-    for _, player in ipairs(PlayerManager.GetPlayers()) do
-        if not Player.IsAnyEdith(player) then goto continue end
-        player:UseActiveItem(CollectibleType.COLLECTIBLE_BIBLE, UseFlag.USE_NOANIM)
-        ::continue::
-    end
-end)
-
----@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_RENDER, function(_, player)
     if not IsStatue(player) then return end
 
