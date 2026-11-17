@@ -10,6 +10,7 @@ local saveManager = mod.SaveManager
 
 local game = utils.Game
 local room = utils.Room
+local level = utils.Level
 
 local data = mod.DataHolder.GetEntityData
 local Hsx = mod.Hsx
