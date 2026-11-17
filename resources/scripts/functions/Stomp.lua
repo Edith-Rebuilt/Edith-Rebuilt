@@ -97,11 +97,14 @@ function Stomp.EdithStomp(parent, params, breakGrid)
 	local saltedTime = maths.Round(maths.Clamp(120 * (Player.GetplayerTears(parent) / 2.73), 60, 360))
 	local numTears = Player.GetNumTears(parent)
 
+	local playerSize = parent.Size
+	local pickupGrabRadius = 40 + (Player.GetPlayerRange(parent) / 9)
+
 	local Capsules = {
-		ShopItem = Capsule(playerPos, VecOne, 0, parent.Size),
-		Pickup = Capsule(playerPos, VecOne, 0, 30),
+		ShopItem = Capsule(playerPos, VecOne, 0, playerSize),
+		Pickup = Capsule(playerPos, VecOne, 0, pickupGrabRadius),
 		Stomp = Capsule(playerPos, VecOne, 0, params.Radius),
-		Slot = Capsule(playerPos, VecOne, 0, parent.Size),
+		Slot = Capsule(playerPos, VecOne, 0, playerSize),
 	}
 
 	params.StompedEntities = Isaac.FindInCapsule(Capsules.Stomp)
