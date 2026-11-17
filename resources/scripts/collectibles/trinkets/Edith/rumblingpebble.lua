@@ -64,7 +64,7 @@ end)
 ---@param tear EntityTear
 ---@param grid GridEntity
 function RumblingPebble:ShootTear(tear, _, grid)
-	if not grid:ToRock() then return end
+	if not (grid and grid:ToRock()) then return end
 	if not data(tear).IsPebbleTear then return end
 
 	grid:DestroyWithSource(false, EntityRef(Helpers.GetPlayerFromTear(tear)))
