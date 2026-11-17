@@ -18,6 +18,15 @@ function Player.ForEachPlayerType(fn, type)
 	end
 end
 
+---@param fn fun(player: EntityPlayer)
+function Player.ForEachPlayer(fn)
+	for _, player in ipairs(PlayerManager.GetPlayers()) do
+		fn(player)
+		::continue::
+	end
+end
+
+
 ---@param player EntityPlayer
 ---@return {up: number, down: number, left: number, right: number}
 function Player.GetMovementInput(player)
@@ -130,7 +139,7 @@ function Player.SetNewANM2(player, FilePath)
 
 	if not (playerSprite:GetFilename() ~= FilePath and not player:IsCoopGhost()) then return end
 	playerSprite:Load(FilePath, true)
-	-- playerSprite:Update()
+	playerSprite:Update()
 end
 
 ---@param player EntityPlayer
@@ -138,6 +147,7 @@ end
 function Player.IsInTrapdoor(player)
 	local grid = room:GetGridEntityFromPos(player.Position)
 	if not grid then return false end
+	if grid:GetType() == GridEntityType.GRID_STAIRS then return true end
 	if not grid:ToTrapDoor() then return false end
 	if grid:GetSprite():GetAnimation() ~= "Opened" then return false end
 
