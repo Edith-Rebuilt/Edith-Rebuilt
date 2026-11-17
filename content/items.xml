@@ -80,7 +80,7 @@
 		gfx="collectibles_Fate_of_the_Unfaithful.png"
 		quality="3"
 		maxcharges="3"
-		cache="damage"
+		effectdamagemult="1.75"
 		tags="offensive"
 		achievement="Ediths Hood"
 	/>	

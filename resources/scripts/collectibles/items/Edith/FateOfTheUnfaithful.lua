@@ -54,12 +54,3 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM, function(_, _, rng, player, flag)
 
     return true
 end, items.COLLECTIBLE_FATE_OF_THE_UNFAITHFUL)
-
----@param player EntityPlayer
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, function (_, player)
-    if not player:GetEffects():GetCollectibleEffect(items.COLLECTIBLE_FATE_OF_THE_UNFAITHFUL) then return end
-
-    local Hascarbattery = player:HasCollectible(CollectibleType.COLLECTIBLE_CAR_BATTERY)
-
-    player.Damage = player.Damage * (Hascarbattery and 2 or 1.75)
-end, CacheFlag.CACHE_DAMAGE)
