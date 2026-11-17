@@ -286,8 +286,8 @@ function targetArrow.TargetDoorManager(effect, player, triggerDistance)
     FallFromGraceManager(effect, mirrorRoom, triggerDistance)
     CrawlspacesManager(effect)
 
-    for slot, _ in pairs(level:GetRoomByIdx(level:GetCurrentRoomIndex()).Doors) do
-        local door = room:GetDoor(slot)
+    for i = 0, DoorSlot.NUM_DOOR_SLOTS do
+        local door = room:GetDoor(i)
 
         if not door then goto continue end
         if not IsTargetNearDoor(effectPos, door.Position, triggerDistance) then goto continue end
