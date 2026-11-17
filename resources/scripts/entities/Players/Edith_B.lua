@@ -51,7 +51,6 @@ end)
 ---@param player EntityPlayer
 ---@param forceStopHops boolean
 local function ResetTEdithPlayer(player, forceStopHops)
-	Helpers.ChangeColor(player, nil, nil, nil, 1)
 	data(player).PressCount = 0
 	if forceStopHops then
 		TEdithMod.StopTEdithHops(player, 0, true, true, true)
