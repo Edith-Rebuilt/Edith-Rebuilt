@@ -421,12 +421,6 @@ local function CollectibleMult(player, collectible, mult)
     return player:HasCollectible(collectible) and mult or 1
 end
 
----@return number
-local function GetCurrentChapter()
-    local chapterDiv = game:IsGreedMode() and 1 or 2
-    return math.ceil(level:GetStage() / chapterDiv)
-end
-
 ---@param chapter number
 ---@return number
 local function GetDamageBase(chapter)
@@ -470,7 +464,7 @@ end
 ---@return number
 local function ComputeRawDamage(player, params)
     local mults = GetStompMultipliers(player, params)
-    local chapter = GetCurrentChapter()
+    local chapter = mod.Modules.HELPERS.GetCurrentChapter()
     local base = GetDamageBase(chapter) + GetDamageStat(player)
 
     return (
