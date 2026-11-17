@@ -71,6 +71,8 @@ local function HandleStompedEnemy(parent, ent, params, saltedTime, numTears, mat
 		sfx:Play(SoundEffect.SOUND_MEATY_DEATHS, volume)
 	end
 
+	-- parent:ForceCollide(player, false)
+
 	for _ = 1, numTears do
 		DamageManager(parent, ent, params.Damage, params.Knockback)
 	end
@@ -130,8 +132,15 @@ function Stomp.EdithStomp(parent, params, breakGrid)
 	end
 
 	for _, ent in ipairs(params.StompedEntities) do
+		
 		if GetPtrHash(parent) == GetPtrHash(ent) then goto continue end
+		-- print(ent.Type)
 		HandleStompedEnemy(parent, ent, params, saltedTime, numTears, maths)
+
+		if ent.Type == EntityType.ENTITY_FROZEN_ENEMY then
+			print(parent:ForceCollide(ent, false))
+			-- mod.Modules.HELPERS.TriggerPush(ent, parent, 20)
+		end
 		::continue::
 	end
 
