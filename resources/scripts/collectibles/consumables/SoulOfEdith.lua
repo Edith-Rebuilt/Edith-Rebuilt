@@ -23,13 +23,12 @@ local damageBase = 13.5
 
 mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, function (_, _, player)
 	modules.JUMP.InitEdithJump(player, SoulOfEdithJumpTag, false)
-    sfx:Play(sounds.SOUND_SOUL_OF_EDITH)
 end, card.CARD_SOUL_EDITH)
 
+---@param player EntityPlayer
 local function SpawnSaltTears(player)
 	for _ = 1, rng:RandomInt(18, 36) do 
-        local tear = Isaac.Spawn(EntityType.ENTITY_TEAR, TearVariant.ROCK, 0, Isaac.GetRandomPosition(), Vector.Zero, player):ToTear() ---@cast tear EntityTear
-
+		local tear = player:FireTear(Isaac.GetRandomPosition(), Vector.Zero)
 		tear.CollisionDamage = tear.CollisionDamage * 1.2
         tear.Height = -600 * ModRNG.RandomFloat(rng, 0.9, 1.1)
 		tear.FallingSpeed = 4 * ModRNG.RandomFloat(rng, 0.6, 1.8)

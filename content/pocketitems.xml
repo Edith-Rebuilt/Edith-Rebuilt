@@ -25,6 +25,7 @@
         hud="SoulOfEdith" 
         mimiccharge="4"
         achievement="Soul of Edith"
+        announcer="SoulOfEdith"
     />
 </pocketitems>
 
