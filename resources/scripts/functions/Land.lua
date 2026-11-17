@@ -111,8 +111,10 @@ end
 
 ---@param pickup EntityPickup
 local function MegaChestManager(player, pickup)
-	if not CanUseKey(player) then return end
-	if pickup.SubType == 0 then return end
+	if not CanUseKey(player) then return false end
+	local subType = pickup.SubType
+
+	if subType == 0 then return false end
 	local sprite = pickup:GetSprite()
 	sprite:Play("Idle")
 
@@ -121,6 +123,8 @@ local function MegaChestManager(player, pickup)
 	end
 
 	player:TryUseKey()
+
+	return pickup == 1
 end
 
 ---@param player EntityPlayer
@@ -152,7 +156,7 @@ local function TryOpenKeyChest(pickup, player)
 	local hasClip = player:HasTrinket(TrinketType.TRINKET_PAPER_CLIP)
 	local hasPayToPlay = player:HasCollectible(CollectibleType.COLLECTIBLE_PAY_TO_PLAY)
 
-	if not (hasClip or CanUseKey(player) or hasPayToPlay) then return end
+	if not (hasClip or CanUseKey(player) or hasPayToPlay) then return false end
 
 	if not hasClip then
 		if hasPayToPlay then
@@ -162,40 +166,31 @@ local function TryOpenKeyChest(pickup, player)
 		end
 	end
 
-	pickup:TryOpenChest(player)
+	return pickup:TryOpenChest(player)
 end
 
 ---@param pickup EntityPickup
 ---@param player EntityPlayer
 local function ChestManager(pickup, player)
-	if not IsChest(pickup) then return end
-	if pickup:GetSprite():GetAnimation() == "Open" then return end
+	if not IsChest(pickup) then return false end
+	if pickup:GetSprite():GetAnimation() == "Open" then return false end
 
 	local var = pickup.Variant
 
-	if room:GetType() == RoomType.ROOM_CHALLENGE then
-		StopStompAnim(player)
-		return
-	end
-
 	if var == PickupVariant.PICKUP_MEGACHEST then
-		MegaChestManager(player, pickup)
-		return
+		return MegaChestManager(player, pickup)
 	end
 
 	if var == PickupVariant.PICKUP_BOMBCHEST then
-		if mod.Modules.PLAYER.IsEdith(player, false) then
-			pickup:TryOpenChest(player)
-		end
-		return
+		if not mod.Modules.PLAYER.IsEdith(player, false) then return false end
+		return pickup:TryOpenChest(player)
 	end
 
 	if IsKeyRequiredChest(pickup) then
-		TryOpenKeyChest(pickup, player)
-		return
+		return TryOpenKeyChest(pickup, player)
 	end
 
-	pickup:TryOpenChest()
+	return pickup:TryOpenChest()
 end
 
 ---@param player EntityPlayer
@@ -240,7 +235,11 @@ function Land.PickupManager(player, ent, isShopItem)
 		TriggerPickupCollide(player, pickup)
 	end
 
-	ChestManager(pickup, player)
+	local isOpenChest = ChestManager(pickup, player)
+
+	if isOpenChest and room:GetType() == RoomType.ROOM_CHALLENGE then
+		Ambush:StartChallenge()
+	end
 end
 ---@param parent EntityPlayer
 ---@param ent Entity
@@ -550,7 +549,6 @@ function Land.TriggerLandAnimation(player)
 	local Player = mod.Modules.PLAYER
 
 	if not Player.IsAnyEdith(player) then return end
-	if Player.IsInTrapdoor(player) then return end
 
 	player:PlayExtraAnimation("BigJumpFinish")
 	player:GetSprite().PlaybackSpeed = math.max(GetLandAnimationSpeed(player), 1)
