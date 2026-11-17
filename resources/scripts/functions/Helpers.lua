@@ -708,4 +708,9 @@ function Helpers.IDToMarkup(ID)
     return "{{Collectible" .. tostring(ID) .. "}} "
 end
 
+function Helpers.GetCurrentChapter()
+    local chapterDiv = game:IsGreedMode() and 1 or 2
+    return math.ceil(level:GetStage() / chapterDiv)
+end
+
 return Helpers
