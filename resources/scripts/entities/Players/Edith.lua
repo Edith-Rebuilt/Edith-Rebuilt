@@ -196,6 +196,8 @@ local function HandleTargetManagers(player, target, state)
 	EdithMod.HeadDirectionManager(player, state.isJumping, state.isShooting, state.isKeyStompPressed)
 end
 
+-- mod:AddCallback(ModCallbacks.EFFECT
+
 ---@param player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 	if not Player.IsEdith(player, false) then return end
@@ -494,7 +496,6 @@ end, JumpParams.EdithJump)
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function ()
 	Player.ForEachPlayerType(function(player)
-		helpers.ChangeColor(player, nil, nil, nil, 1)
 		TargetArrow.RemoveEdithTarget(player)
 		params(player).CanJump = false
 	end, enums.PlayerType.PLAYER_EDITH)
@@ -584,6 +585,7 @@ mod:AddCallback(enums.Callbacks.OFFENSIVE_STOMP_HIT, function(_, player, ent)
 
 	local rng = player:GetTrinketRNG(BirthcakeRebaked.Birthcake.ID)
 
+
 	if not ModRNG.RandomBoolean(rng, BIRTHCAKE_SALT_CHANCE) then return end
 	StatusEffects.SetStatusEffect(enums.EdithStatusEffects.SALTED, ent, SALTED_DURATION, player)
 end)
@@ -611,3 +613,21 @@ mod:AddCallback(jumpCallbacks.PRE_PITFALL, function(_, player)
 	data(player).CustomPitfall = true
 	return true
 end, JumpParams.EdithJump)
+
+mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_GRAVITY_UPDATE, function(_, gravity)
+	local playersInPlateRadius = Isaac.FindInRadius(gravity.Position, 20, EntityPartition.PLAYER)
+
+	local cancelUpdate = false
+
+	for _, ent in ipairs(playersInPlateRadius) do
+		local player = ent:ToPlayer() ---@cast player EntityPlayer
+
+		if not Player.IsEdith(player, false) then goto continue end
+		if not Jump.IsJumping(player) then goto continue end
+
+		cancelUpdate = true
+		::continue::
+	end
+
+	if cancelUpdate then return false end
+end)
