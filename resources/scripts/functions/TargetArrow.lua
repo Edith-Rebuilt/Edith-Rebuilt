@@ -2,9 +2,14 @@
 local mod = EdithRebuilt
 local enums = mod.Enums
 local variants = enums.EffectVariant
+
 local utils = enums.Utils
+local game = utils.Game
 local level = utils.Level
 local room = utils.Room
+
+local saveManager = mod.SaveManager
+
 local targetArrow = {}
 
 ---@param player EntityPlayer
@@ -29,12 +34,15 @@ end
 ---@param player EntityPlayer
 ---@return boolean
 function targetArrow.IsEdithTargetMoving(player)
-	local k_up = Input.IsActionPressed(ButtonAction.ACTION_UP, player.ControllerIndex)
-    local k_down = Input.IsActionPressed(ButtonAction.ACTION_DOWN, player.ControllerIndex)
-    local k_left = Input.IsActionPressed(ButtonAction.ACTION_LEFT, player.ControllerIndex)
-    local k_right = Input.IsActionPressed(ButtonAction.ACTION_RIGHT, player.ControllerIndex)
+    local idx = player.ControllerIndex
+    local inputs = {
+        up = Input.IsActionPressed(ButtonAction.ACTION_UP, idx),
+        down = Input.IsActionPressed(ButtonAction.ACTION_DOWN, idx),
+        left = Input.IsActionPressed(ButtonAction.ACTION_LEFT, idx),
+        right = Input.IsActionPressed(ButtonAction.ACTION_RIGHT, idx),
+    }
 
-    return (k_down or k_right or k_left or k_up) or false
+    return inputs.up or inputs.down or inputs.left or inputs.right
 end
 
 ---Returns distance between Edith and her target
@@ -78,8 +86,7 @@ function targetArrow.SpawnEdithTarget(player, tainted)
 	if tainted then
 		Data.TaintedEdithTarget = target
 	else
-		target.GridCollisionClass = GridCollisionClass.COLLISION_SOLID
-		target.EntityCollisionClass = EntityCollisionClass.ENTCOLL_PLAYERONLY
+        target.GridCollisionClass = EntityGridCollisionClass.GRIDCOLL_WALLS
 		Data.EdithTarget = target
 	end
 end
@@ -112,11 +119,6 @@ function targetArrow.GetEdithTargetDirection(player, tainted)
 	return (target.Position - player.Position):Normalized()
 end
 
-local function RestorePlayerAlpha(player)
-    if player.Color.A >= 1 then return end
-    mod.Modules.HELPERS.ChangeColor(player, nil, nil, nil, 1)
-end
-
 ---@param origin Vector
 ---@param target Vector?
 ---@param maxDistanceSquared number
@@ -125,61 +127,47 @@ local function IsTargetNearDoor(origin, target, maxDistanceSquared)
     return target ~= nil and origin:DistanceSquared(target) <= maxDistanceSquared*maxDistanceSquared
 end
 
----@return {Sprite: Sprite, Mausoleum: boolean, Strange: boolean, Mirror: boolean,StrangeOpened: boolean}?
+---@class DoorFlags 
+---@field Ascent boolean
+---@field Mausoleum boolean
+---@field Mirror boolean
+---@field Mineshaft boolean
+
+local RepentanceStages = {
+    [StageType.STAGETYPE_REPENTANCE] = true,
+    [StageType.STAGETYPE_REPENTANCE_B] = true
+}
+
+---@param door GridEntityDoor
+---@return DoorFlags
 local function GetDoorFlags(door)
-    local sprite = door:GetSprite()
-    local layer = sprite:GetLayer(0)
+    local targetIndex = door.TargetRoomIndex
+    local isSecretExit = targetIndex == GridRooms.ROOM_SECRET_EXIT_IDX
+    local chapter = mod.Modules.HELPERS.GetCurrentChapter()
 
-    if not layer then return nil end
+    local isRepStage = RepentanceStages[level:GetStageType()]
 
-    local path = layer:GetSpritesheetPath()
-    local mausoleum = path:find("mausoleum", 1, true) ~= nil or path:find("gehenna", 1, true) ~= nil
-    local strange = path:find("mausoleum_alt", 1, true) ~= nil
-    local mirror = path:find("mirror", 1, true) ~= nil
+    local stage = level:GetStage()
+    local isAltChapter2 = chapter == 2 and isRepStage
+    local isNonAltStageFive = level:GetStage() == LevelStage.STAGE3_1 and not isRepStage
 
     return {
-        Sprite = sprite,
-        Mausoleum = mausoleum,
-        Strange = strange,
-        Mirror = mirror,
-        StrangeOpened = strange and sprite:WasEventTriggered("FX")
+        Ascent = isSecretExit and (stage == LevelStage.STAGE3_2 and not isRepStage),
+        Mausoleum = isSecretExit and (isAltChapter2 or isNonAltStageFive),
+        Mirror = targetIndex == GridRooms.ROOM_MIRROR_IDX,
+        Mineshaft = targetIndex == GridRooms.ROOM_MINESHAFT_IDX,
     }
 end
 
-local function OpenMausoleumDoor(door, sprite, player)
-    if not sprite:IsPlaying("KeyOpen") then
-        sprite:Play("KeyOpen")
-    end
-
-    if sprite:IsFinished("KeyOpen") then
-        door:TryUnlock(player, true)
-    end
-end
-
-local function OpenStrangeDoor(door, player)
-    if not (player:HasCollectible(CollectibleType.COLLECTIBLE_POLAROID) or player:HasCollectible(CollectibleType.COLLECTIBLE_NEGATIVE)) then return end
-    door:TryUnlock(player)
-end
-
+---@param door GridEntityDoor
+---@param flags DoorFlags
+---@param player EntityPlayer
+---@param roomClear boolean
 local function TryOpenDoor(door, flags, player, roomClear)
     if not roomClear then return end
+    if door:IsOpen() then return end
 
-    if flags.Strange then
-        OpenStrangeDoor(door, player)
-        return
-    end
-
-    if flags.Mausoleum then
-        OpenMausoleumDoor(door, flags.Sprite, player)
-        return
-    end
-
-    door:TryUnlock(player)
-end
-
-local function MovePlayerThroughDoor(player, doorPos, isTainted)
-    player.Position = doorPos
-    targetArrow.RemoveEdithTarget(player, isTainted)
+    door:TryUnlock(player, flags.Mausoleum)
 end
 
 ---@param effect EntityEffect
@@ -202,43 +190,117 @@ local function FallFromGraceManager(effect, mirrorRoom, triggerDistance)
     FFGRACE:MirrorDoorEnter(player)
 end
 
+local function GetLastNormalRoomIndex()
+    local LastRoomDesc = level:GetLastRoomDesc()
+    local LastRoomIndex = LastRoomDesc.GridIndex
+    local runSave = saveManager.GetRunSave()
+
+    if LastRoomIndex > 0 and LastRoomDesc:GetDimension() == Dimension.NORMAL then
+        runSave.lastNormalRoom = LastRoomIndex
+    end
+
+    return runSave.lastNormalRoom
+end
+
+---@param player EntityPlayer
+---@param door GridEntityDoor
+---@param flags DoorFlags
+---@param lostCurse boolean
+local function DoorTransitionManager(player, door, flags, lostCurse)
+    local roomTarget = door.TargetRoomIndex
+    local targetDimension = level:GetRoomByIdx(roomTarget):GetDimension()
+    local transition = RoomTransitionAnim.WALK
+
+    if flags.Mirror and lostCurse then
+        roomTarget = level:GetCurrentRoomIndex()
+        transition = RoomTransitionAnim.FADE_MIRROR
+    end
+
+    local lastNormalRoomIndex = GetLastNormalRoomIndex()
+
+    if flags.Mineshaft then
+        roomTarget = (
+            targetDimension == Dimension.MINESHAFT and 162 or lastNormalRoomIndex
+        )
+    end
+
+    level.LeaveDoor = door.Slot
+
+    game:StartRoomTransition(roomTarget, door.Direction, transition, player, targetDimension)
+end
+
+local CrawlspaceTransitions = {
+    [119] = { room = -15, direction = Direction.RIGHT, anim = RoomTransitionAnim.WALK },
+    [74] = { room = -6, direction = Direction.RIGHT, anim = RoomTransitionAnim.WALK },
+    [2] = { direction = Direction.NO_DIRECTION, anim = RoomTransitionAnim.PIXELATION },
+}
+
+local invalidTransitionGrids = {
+    [GridEntityType.GRID_WALL] = true,
+    [GridEntityType.GRID_GRAVITY] = true,
+    [GridEntityType.GRID_DOOR] = true,
+}
+
+---@param effect EntityEffect
+local function CrawlspacesManager(effect)
+    if room:GetType() ~= RoomType.ROOM_DUNGEON then return end
+
+    local targetGrid = room:GetGridEntityFromPos(effect.Position)
+    if not targetGrid then return end
+
+    local gridIndex = targetGrid:GetGridIndex()
+    local transition = CrawlspaceTransitions[gridIndex]
+
+    if not transition then return end
+    if invalidTransitionGrids[targetGrid:GetType()] then return end
+    if targetGrid:ToRock() then return end
+
+    local roomTarget = transition.room or GetLastNormalRoomIndex()
+
+    game:StartRoomTransition(roomTarget, transition.direction, transition.anim, player, level:GetDimension())
+end
+
+---@param door GridEntityDoor
+---@param flags DoorFlags
+---@return true
+local function CanTriggerRoomTransition(door, flags)
+    local openingAnim = door.OpenLockedAnimation
+    local isOpening = (
+        (flags.Mausoleum or flags.Ascent) and
+        openingAnim ~= nil and 
+        not door:GetSprite():IsFinished(openingAnim)
+    )
+
+    return (door:IsOpen() and not isOpening) or flags.Mirror
+end
+
 ---@param effect EntityEffect
 ---@param player EntityPlayer
 ---@param triggerDistance number
 function targetArrow.TargetDoorManager(effect, player, triggerDistance)
-    local roomClear = room:IsClear()
     local roomName = level:GetCurrentRoomDesc().Data.Name
-    local isTainted = mod.Modules.PLAYER.IsEdith(player, true)
-    local mirrorRoom = roomName == "Mirror Room" and player:HasInstantDeathCurse()
+    local lostCurse = player:HasInstantDeathCurse()
+    local mirrorRoom = roomName == "Mirror Room" and lostCurse
     local effectPos = effect.Position
-    local playerNearDoor = false
 
     FallFromGraceManager(effect, mirrorRoom, triggerDistance)
+    CrawlspacesManager(effect)
 
-    for slot = 0, DoorSlot.DOWN1 do
+    for slot, _ in pairs(level:GetRoomByIdx(level:GetCurrentRoomIndex()).Doors) do
         local door = room:GetDoor(slot)
 
         if not door then goto continue end
+        if not IsTargetNearDoor(effectPos, door.Position, triggerDistance) then goto continue end
 
         local flags = GetDoorFlags(door)
-        if not flags then goto continue end
 
-        local doorPos = room:GetDoorSlotPosition(slot)
-
-        if not IsTargetNearDoor(effectPos, doorPos, triggerDistance) then goto continue end
-
-        playerNearDoor = true
-
-        if door:IsOpen() or flags.Mirror or flags.StrangeOpened  then
-            MovePlayerThroughDoor(player, doorPos, isTainted)
+        if CanTriggerRoomTransition(door, flags) then
+            DoorTransitionManager(player, door, flags, lostCurse)
         else
-            TryOpenDoor(door, flags, player, roomClear)
+            TryOpenDoor(door, flags, player, room:IsClear())
         end
         ::continue::
     end
-
-    if not playerNearDoor then
-        RestorePlayerAlpha(player)
-    end
 end
+
 return targetArrow

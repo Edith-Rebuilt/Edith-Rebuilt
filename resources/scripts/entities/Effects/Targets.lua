@@ -21,12 +21,6 @@ local data = mod.DataHolder.GetEntityData
 
 local RGBColors = { Target = Color(1, 0, 0), Arrow = Color(1, 0, 0) }
 
-local teleportPoints = {
-	Vector(110, 135),
-	Vector(595, 385),
-	Vector(595, 272),
-}
-
 local targetArrows = {
 	[Vars.EFFECT_EDITH_TARGET] = true,
 	[Vars.EFFECT_EDITH_B_TARGET] = true,
@@ -115,23 +109,6 @@ local function HandleVestigeDrag(effect, player)
 	effect.Velocity = effect.Velocity * 1
 end
 
----@param effect EntityEffect
----@param player EntityPlayer
----@param isBeastRoom boolean
----@param RoomName string
-local function HandleDungeonTeleport(effect, player, isBeastRoom, RoomName)
-	if room:GetType() ~= RoomType.ROOM_DUNGEON then return end
-
-	local effectPos = effect.Position
-	for _, v in pairs(teleportPoints) do
-		if (effectPos - v):LengthSquared() > 400 then goto continue end
-		if isBeastRoom then goto continue end
-		if RoomName == "Rotgut Maggot" and (v.X ~= 595 and v.Y ~= 385) then goto continue end
-		player.Position = effectPos + effect.Velocity:Resized(25)
-		::continue::
-	end
-end
-
 ---@param option string
 ---@return {LineColor: {R: number, G: number, B: number}}?
 local function GetTargetVisualParams(option)
@@ -169,7 +146,6 @@ local function EdithTargetManagement(effect, player)
 	end
 
 	UpdateCameraFocus(player.Position, effect.Position, isBeastRoom)
-	HandleDungeonTeleport(effect, player, isBeastRoom, RoomName)
 	SyncMarkedTarget(effect, player)
 end
 
@@ -312,7 +288,7 @@ end
 local doorRadius = {
 	[Vars.EFFECT_EDITH_TARGET] = 28,
 	[Vars.EFFECT_EDITH_B_TARGET] = 20,
-	[Vars.EFFECT_EDITH_C_TARGET] = 28,
+	[Vars.EFFECT_EDITH_C_TARGET] = 25,
 }
 
 ---@param effect EntityEffect
@@ -322,6 +298,7 @@ mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, function(_, effect)
 	local radius = doorRadius[effect.Variant]
 
     if not player then return end
+
 	targetArrow.TargetDoorManager(effect, player, radius)
     EdithTargetManagement(effect, player)
 	ArrowUpdate(effect, player)
