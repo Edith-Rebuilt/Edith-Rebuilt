@@ -105,7 +105,7 @@ local function SmokeParticles(player, heat, pData)
 	pData.Clouds = pData.Clouds or Pallete:CreateParticleEmitter("gfx/effects/Cloud.png")
 	
 	local rng = player:GetDropRNG()
-	local clouds = pData.Clouds 
+	local clouds = pData.Clouds
 
 	if clouds:IsDestroyed() then
 		pData.Clouds = Pallete:CreateParticleEmitter("gfx/effects/Cloud.png")
@@ -120,7 +120,7 @@ local function SmokeParticles(player, heat, pData)
 	local smokeColor = 1 - (0.5 * heat)
 	local smokeSize = 0.5 + (0.1 * heat)
 
-	clouds.ParticleRate = 3 + (3 * heat) + rng:RandomInt(2, 4)
+	clouds.ParticleRate = 1 + (5 * heat) + (math.ceil(rng:RandomInt(2, 4) * heat))
 	clouds.StartSpeed = rng:RandomInt(3, 6) + (5 * (heat))
 	clouds.Position = player.Position - Vector(0, 30 * playerScale.Y)
 	clouds.DirectionSpread = 15
@@ -154,11 +154,10 @@ end
 ---@param player EntityPlayer
 ---@param heat number
 ---@param pData table
-local function EmberParticles(player, heat, pData)
-	print(heat)
-	
+local function EmberParticles(player, heat, pData)	
 	pData.Embers = pData.Embers or Pallete:CreateParticleEmitter("gfx/effects/TinyBug.png")
-	
+
+	local rng = player:GetDropRNG()
 	local embers = pData.Embers 
 
 	if embers:IsDestroyed() then
@@ -171,12 +170,12 @@ local function EmberParticles(player, heat, pData)
 
 	local playerScale = player.SpriteScale
 
-	embers.ParticleRate = 5 + (5 * heat) 
+	embers.ParticleRate = 2 + (8 * heat) + (math.ceil(rng:RandomInt(2, 4) * heat))
 	embers.StartSpeed = 3
 	embers.Position = player.Position - Vector(0, 40 * playerScale.Y) + (RandomVector() * 10)
 	embers.DirectionSpread = 10
 	embers.StartColor = KColor(1, 0.9, 0, 1)
-	embers.Lifetime = 10
+	embers.Lifetime = 10 + (10 * heat)
 	embers.IsWorldSpace = true
 	embers.Orientation = player.Velocity.X * 3
 
@@ -233,7 +232,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
 	local heat = TEdithMod.GetParryHeat(player)
 
 	Player.ManageLeoEffect(player)
-	
+
 	TEdithCooling(player, HopParams, heat)
 	SetEdithSprite(player)
 	TEdithHeatVFX(player, heat)
