@@ -10,6 +10,8 @@ local sfx = utils.SFX
 local playerType = enums.PlayerType
 local edithCallbacks = enums.Callbacks
 
+local Pallete = mod.Pallete
+
 local modules = mod.Modules
 local TREdithMod = modules.TR_EDITH
 local TRTarget = modules.TARGET
@@ -226,6 +228,55 @@ local function ManageFlingBurstReady(player, flingParams)
     player:SetColor(readyColor, 5, 1000, true, true)
 end
 
+---@param player EntityPlayer
+---@param flingCharge number
+---@param pData table
+local function EmberParticles(player, flingCharge, pData)	
+	pData.TREmbers = pData.TREmbers or Pallete:CreateParticleEmitter("gfx/effects/TinyBug.png")
+
+	local embers = pData.TREmbers 
+
+	if embers:IsDestroyed() then
+		pData.TREmbers = Pallete:CreateParticleEmitter("gfx/effects/TinyBug.png")
+	end
+
+	if not embers:IsPlaying() then
+		embers:Play()
+	end
+
+    local rng = player:GetDropRNG()
+    local IsFlinging = params(player).IsFlinging
+
+	embers.ParticleRate = IsFlinging and 80 or 10
+	embers.StartSpeed = IsFlinging and (3 + rng:RandomInt(1, 2)) or 1
+	embers.Position = player.Position - Vector(0, 10) + (RandomVector() * 12)
+	embers.DirectionSpread = 30
+	embers.StartColor = KColor(1, 0.9, 0, 1)
+	embers.Lifetime = 14
+	embers.IsWorldSpace = true
+	embers.Orientation = math.abs(player.Velocity.X)
+
+	embers.ColorOverLifetime.Enabled = true
+	embers.ColorOverLifetime.Gradient = {
+		AlphaKeys = {
+			{ Time = 0, Value = 0 },
+			{ Time = 0.5, Value = 1 },
+			{ Time = 1, Value = 1 },
+		},
+		ColorKeys = {
+			{ Time = 0, Value = KColor(1, 1, 1, 1) },
+			{ Time = 0.7, Value = KColor(1, 0, 0, 1) },
+			{ Time = 0.8, Value = KColor(0, 0, 0, 1) }
+		}
+	}
+end
+
+local function ManageTrEdithEmbers(player)
+    local pData = data(player)
+
+    EmberParticles(player, TREdithMod.GetFlingBurstCharge(player, false), pData)	
+end
+
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
     if not TREdithMod.IsTREdith(player) then return end
 
@@ -233,6 +284,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, function(_, player)
     local speed = player.MoveSpeed - 1
 
     Player.ManageLeoEffect(player)
+    ManageTrEdithEmbers(player)
     ManageCounters(flingParams)
     ManageFlingBurstReady(player, flingParams)
     ChargeFling(player, CHARGE_RATE_BASE + (CHARGE_RATE_SPEED_FACTOR * (speed * speed)))
