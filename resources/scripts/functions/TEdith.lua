@@ -176,7 +176,9 @@ end
 ---@param resetCharge boolean
 ---@param keepFriction? boolean
 function TEdith.StopTEdithHops(player, cooldown, useQuitJump, resetCharge, keepFriction)
-	if not mod.Modules.PLAYER.IsEdith(player, true) then return end
+	local modules = mod.Modules
+	
+	if not modules.PLAYER.IsEdith(player, true) then return end
 
 	cooldown = cooldown or 0
 	useQuitJump = useQuitJump or false
@@ -187,7 +189,7 @@ function TEdith.StopTEdithHops(player, cooldown, useQuitJump, resetCharge, keepF
 
 	if not isMoving then return end
 
-	mod.Modules.PARRY_HOP.TaintedEdithHop(player, hopParams)
+	modules.PARRY_HOP.TaintedEdithHop(player, hopParams)
 
 	hopParams.IsHoping = false
 	hopParams.GrudgeDash = false
