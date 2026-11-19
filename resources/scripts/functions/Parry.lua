@@ -41,7 +41,7 @@ function Parry.TaintedEdithHop(player, HopParams)
     end
 
     for _, entity in ipairs(Isaac.FindInCapsule(capsules.pickup, EntityPartition.PICKUP)) do
-        Land.PickupManager(player, entity)
+        Land.PickupManager(player, entity, nil, true)
     end
 
     for _, entity in ipairs(Isaac.FindInCapsule(capsules.slot)) do

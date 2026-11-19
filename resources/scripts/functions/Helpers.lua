@@ -565,23 +565,33 @@ local function SetSaltTearColor(tear, player, params)
 	local brightness = math.max(0, math.min(params.brightness or 1, 1))
 	local isBloodTear = Helpers.When(tear.Variant, tables.BloodytearVariants, false)
 
-	local tearColor = tear.Color
-	local tearOffset = tearColor:GetOffset()
-	local tearColorize = tearColor:GetColorize()
-
-	local playerColor = player.Color
-	local playerColorize = playerColor:GetColorize()
-	local playerOffset = playerColor:GetOffset()
-
 	local r, g, b = GetBaseTint(tear, params.tint)
 
 	if isBloodTear then
 		r, g, b = r * BLOODY_RED_FACTOR, 0, 0
 	end
 
-	local baseOffset = params.offset or { tearOffset.R, tearOffset.G, tearOffset.B }
+	local tearColor = tear.Color
 
 	tearColor:SetTint(r * brightness, g * brightness, b * brightness, 1)
+
+	local tearTint = tearColor:GetTint()
+	local tearOffset = tearColor:GetOffset()
+	local tearColorize = tearColor:GetColorize()
+
+	local baseOffset = params.offset or { tearOffset.R, tearOffset.G, tearOffset.B }
+
+	local playerColor = player.Color
+	local playerTint = playerColor:GetTint()
+	local playerColorize = playerColor:GetColorize()
+	local playerOffset = playerColor:GetOffset()
+
+	tearColor:SetTint(
+		(playerTint.R - 1) + tearTint.R,
+		(playerTint.G - 1) + tearTint.G,
+		(playerTint.B - 1) + tearTint.B,
+		1
+	)
 	tearColor:SetColorize(
 		playerColorize.R + tearColorize.R,
 		playerColorize.G + tearColorize.G,
@@ -589,9 +599,9 @@ local function SetSaltTearColor(tear, player, params)
 		playerColorize.A
 	)
 	tearColor:SetOffset(
-		playerOffset.R + baseOffset[1],
-		playerOffset.G + baseOffset[2],
-		playerOffset.B + baseOffset[3]
+		playerOffset.R + tearOffset.R + baseOffset[1],
+		playerOffset.G + tearOffset.G + baseOffset[2],
+		playerOffset.B + tearOffset.B + baseOffset[3]
 	)
 
 	tear.Color = tearColor
@@ -712,6 +722,19 @@ end
 function Helpers.GetCurrentChapter()
     local chapterDiv = game:IsGreedMode() and 1 or 2
     return math.ceil(level:GetStage() / chapterDiv)
+end
+
+local BlockedPickupVariants = {
+    [PickupVariant.PICKUP_COLLECTIBLE] = true,
+    [PickupVariant.PICKUP_SHOPITEM] = true,
+    [PickupVariant.PICKUP_TRINKET] = true,
+    [PickupVariant.PICKUP_TAROTCARD] = true,
+    [PickupVariant.PICKUP_PILL] = true,
+}
+
+---@param pickup EntityPickup
+function Helpers.IsNotMovementPickup(pickup)
+	return (Helpers.When(pickup.Variant, BlockedPickupVariants) or pickup:IsShopItem())
 end
 
 return Helpers

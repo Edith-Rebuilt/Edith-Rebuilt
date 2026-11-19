@@ -645,7 +645,9 @@ local height = cabra:GetHeight()
 local width = cabra:GetWidth()
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER_CHARACTER_SELECT_PORTRAIT, function(_, playerType, sprite, position)
-	if Roll ~= 1 then return end
+	print(playerType == enums.PlayerType.PLAYER_EDITH_C)
+
+	-- if Roll ~= 1 then return end
 	if playerType ~= enums.PlayerType.PLAYER_EDITH_B then return end
 
 	local scale = sprite.Scale
@@ -692,4 +694,17 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
 		overlaySprite:Stop(true)
 		overlaySprite:Reset()
 	end
+end)
+
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function(_, player, collider, low)
+	local pickup = collider:ToPickup()
+
+	if not pickup then return end
+	if not Player.IsEdith(player, true) then return end
+	if not (TEdithMod.GetHopParryParams(player).IsHoping or data(player).IsRedirectioningMove) then return end
+	if not Helpers.IsNotMovementPickup(pickup) then return end
+
+	pickup.Wait = 1
+
+	return true
 end)
