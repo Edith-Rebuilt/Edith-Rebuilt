@@ -266,7 +266,7 @@ end
 local function CanTriggerRoomTransition(door, flags)
     local openingAnim = door.OpenLockedAnimation
     local isOpening = (
-        (flags.Mausoleum or flags.Ascent) and
+        flags.Ascent and
         openingAnim ~= nil and 
         not door:GetSprite():IsFinished(openingAnim)
     )
