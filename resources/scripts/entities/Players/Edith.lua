@@ -585,7 +585,6 @@ mod:AddCallback(enums.Callbacks.OFFENSIVE_STOMP_HIT, function(_, player, ent)
 
 	local rng = player:GetTrinketRNG(BirthcakeRebaked.Birthcake.ID)
 
-
 	if not ModRNG.RandomBoolean(rng, BIRTHCAKE_SALT_CHANCE) then return end
 	StatusEffects.SetStatusEffect(enums.EdithStatusEffects.SALTED, ent, SALTED_DURATION, player)
 end)
