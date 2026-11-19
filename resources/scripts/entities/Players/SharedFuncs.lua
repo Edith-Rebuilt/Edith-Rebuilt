@@ -139,7 +139,7 @@ end)
 local InitParams = {
     [enums.PlayerType.PLAYER_EDITH] = {
         ANM2 = "gfx/EdithAnim.anm2",
-        Costume = costumes.EDITH,b
+        Costume = costumes.EDITH,
     },
     [enums.PlayerType.PLAYER_EDITH_B] = {
         ANM2 = "gfx/EdithTaintedAnim.anm2",
@@ -202,4 +202,52 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_RENDER, function(_, player)
     if not IsStatue(player) then return end
 
     player:ClearEntityFlags(EntityFlag.FLAG_SLIPPERY_PHYSICS)
+end)
+
+local CabraRNG = RNG(math.max(Random(), 1), 35)
+local Roll = CabraRNG:RandomInt(1, 100000)
+
+local Cabras = {
+    [playerType.PLAYER_EDITH] = Renderer.LoadImage("gfx/characters/secrets/C.png"),
+    [playerType.PLAYER_EDITH_B] = Renderer.LoadImage("gfx/characters/secrets/cabra.png"),
+    [playerType.PLAYER_EDITH_C] = Renderer.LoadImage("gfx/characters/secrets/kotroid.png"),
+}
+
+mod:AddCallback(ModCallbacks.MC_POST_RENDER_CHARACTER_SELECT_PORTRAIT, function(_, PlayerType, sprite, position)
+    local cabra = Cabras[PlayerType]
+    
+    if not cabra then return end
+
+    local height = cabra:GetHeight()
+    local width = cabra:GetWidth()
+	if Roll ~= 1 then return end
+
+	local scale = sprite.Scale
+
+	local destR = DestinationQuad(
+		Vector.Zero,
+        Vector.Zero,
+        Vector.Zero,
+        Vector(40, 40)
+	)
+
+	local cabraScale = Vector.One * scale
+
+    local vec = Vector(20, 30)
+
+    if PlayerType == playerType.PLAYER_EDITH_C then
+        vec = Vector(25, 19)
+    end
+
+    destR:Scale(cabraScale, cabraScale)
+    destR:Translate(position - (vec * scale))
+
+	local source = SourceQuad(
+		Vector.Zero,
+		Vector(width, 0),
+		Vector(0, height),
+		Vector(width, height)
+	)
+
+	cabra:Render(source, destR, KColor(1, 1, 1, 1), Color(1))
 end)
