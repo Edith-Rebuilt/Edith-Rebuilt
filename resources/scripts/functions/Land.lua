@@ -195,7 +195,8 @@ end
 
 ---@param player EntityPlayer
 ---@param pickup EntityPickup
-local function TriggerPickupCollide(player, pickup)
+---@param ignoreCollectible? boolean
+local function TriggerPickupCollide(player, pickup, ignoreCollectible)
 	local var = pickup.Variant
 	local IsStopAnimPickup = mod.Modules.HELPERS.When(var, NonTriggerAnimPickupVar, false)
 	local IsEternalHeart = (var == PickupVariant.PICKUP_HEART and pickup.SubType == HeartSubType.HEART_ETERNAL)
@@ -203,6 +204,7 @@ local function TriggerPickupCollide(player, pickup)
 	if pickup:IsDead() then return end
 	if pickup:IsShopItem() then return end
 	if pickup.SubType == 0 then return end
+	if pickup.Variant == PickupVariant.PICKUP_COLLECTIBLE and ignoreCollectible then return end
 
 	if IsStopAnimPickup or IsEternalHeart then
 		StopStompAnim(player)
@@ -224,7 +226,8 @@ end
 ---@param player EntityPlayer
 ---@param ent Entity
 ---@param isShopItem? boolean
-function Land.PickupManager(player, ent, isShopItem)
+---@param ignoreCollectible? boolean
+function Land.PickupManager(player, ent, isShopItem, ignoreCollectible)
 	local pickup = ent:ToPickup()
 
 	if not pickup then return end
@@ -232,7 +235,7 @@ function Land.PickupManager(player, ent, isShopItem)
 	if isShopItem then
 		ShopItemManager(player, pickup)
 	else
-		TriggerPickupCollide(player, pickup)
+		TriggerPickupCollide(player, pickup, ignoreCollectible)
 	end
 
 	local isOpenChest = ChestManager(pickup, player)
@@ -413,12 +416,6 @@ local function GetTEdithLandParams(IsParryLand)
         GibSpeed = 2,
     }
 end
-
--- local MortisColors = {
--- 	[MortisBackdrop.MORGUE] = Color(0, 0, 0, 1, 0.45, 0.5, 0.575),
--- 	[MortisBackdrop.MOIST] = Color(0, 0.8, 0.76, 1, 0, 0, 0),
--- 	[MortisBackdrop.FLESH] = Color(0, 0, 0, 1, 0.55, 0.5, 0.55),
--- }
 
 ---@param Variant EffectVariant
 ---@param BackDrop BackdropType

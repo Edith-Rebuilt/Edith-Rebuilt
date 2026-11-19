@@ -389,18 +389,17 @@ local BlockedPickupVariants = {
     [PickupVariant.PICKUP_PILL] = true,
 }
 
----@param pickup EntityPickup
-local function IsBlockedPickup(pickup)
-	return (Helpers.When(pickup.Variant, BlockedPickupVariants) or pickup:IsShopItem())
-end
+
+
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, function (_, player, collider)
     local pickup = collider:ToPickup()
 
+    if not TREdithMod.IsTREdith(player) then return end
 	if not params(player).IsFlinging then return end
     if collider:ToBomb() then return true end
     if not pickup then return end
     if not HasHighFlingCharge(player) then return end
-    if not IsBlockedPickup(pickup) then return end
+    if not Helpers.IsNotMovementPickup(pickup) then return end
 
     pickup.Wait = 1
 
