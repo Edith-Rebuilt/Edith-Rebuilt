@@ -15,8 +15,10 @@ local function AddModCompat()
 * Birthcake: Rebaked: 
 	- Salty Stomps (Edith effect):
 		- Offensive Stomps have a 25% chance of apply Salted status effect
-	- (T. Edith's effect)
-		- Pending rework
+	- Heat Suppression (T. Edith's effect)
+		- Multiplied heat addition from parry by 0.75
+		- Multiplied heat decrease by 1.5
+		
 * The Future:
 	- Added Steven's dialogue for both Ediths
 
