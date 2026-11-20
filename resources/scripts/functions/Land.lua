@@ -124,7 +124,7 @@ local function MegaChestManager(player, pickup)
 
 	player:TryUseKey()
 
-	return pickup == 1
+	return subType == 1
 end
 
 ---@param player EntityPlayer
