@@ -169,11 +169,17 @@ local function TryOpenKeyChest(pickup, player)
 	return pickup:TryOpenChest(player)
 end
 
+local openAnims = {
+	["Open"] = true,
+	["Opened"] = true,
+	["Destroyed"] = true,
+}
+
 ---@param pickup EntityPickup
 ---@param player EntityPlayer
 local function ChestManager(pickup, player)
 	if not IsChest(pickup) then return false end
-	if pickup:GetSprite():GetAnimation() == "Open" then return false end
+	if openAnims[pickup:GetSprite():GetAnimation()] then return false end
 
 	local var = pickup.Variant
 
