@@ -84,11 +84,34 @@ function Land.AddExtraGore(ent, player)
 	sfx:Play(SoundEffect.SOUND_DEATH_BURST_LARGE)
 end
 
+---@param player EntityPlayer
+local function StopStompAnim(player)
+	local sprite = player:GetSprite()
+
+	if not sprite:IsPlaying("BigJumpFinish") then return end
+	sprite:Stop()
+	player:StopExtraAnimation()	
+end
+
 local KeyRequiredChests = {
 	[PickupVariant.PICKUP_LOCKEDCHEST] = true,
 	[PickupVariant.PICKUP_ETERNALCHEST] = true,
 	[PickupVariant.PICKUP_OLDCHEST] = true,
 	[PickupVariant.PICKUP_MEGACHEST] = true,
+}
+
+local NonTriggerAnimPickupVar = {
+	[PickupVariant.PICKUP_COLLECTIBLE] = true,
+	[PickupVariant.PICKUP_TRINKET] = true,
+	[PickupVariant.PICKUP_BROKEN_SHOVEL] = true,
+	[PickupVariant.PICKUP_SHOPITEM] = true,
+	[PickupVariant.PICKUP_PILL] = true,
+	[PickupVariant.PICKUP_TAROTCARD] = true,
+	[PickupVariant.PICKUP_LIL_BATTERY] = true,
+	[PickupVariant.PICKUP_THROWABLEBOMB] = true,
+	[PickupVariant.PICKUP_BED] = true,
+	[PickupVariant.PICKUP_MOMSCHEST] = true,
+	[PickupVariant.PICKUP_TROPHY] = true,
 }
 
 ---@param pickup EntityPickup
@@ -106,65 +129,54 @@ end
 ---@param player EntityPlayer
 ---@return boolean
 local function CanUseKey(player)
+	if player:HasCollectible(CollectibleType.COLLECTIBLE_PAY_TO_PLAY) then
+		return player:GetNumCoins() >= 1
+	end
+
 	return (player:GetNumKeys() > 0 or player:HasGoldenKey())
 end
 
+---@param player EntityPlayer
 ---@param pickup EntityPickup
-local function MegaChestManager(player, pickup)
-	if not CanUseKey(player) then return false end
+local function TryUseKeyOnChest(player, pickup)
+	local hasPaperClip = player:HasTrinket(TrinketType.TRINKET_PAPER_CLIP)
+
+	if not CanUseKey(player) and not hasPaperClip then return false end
+
+	if player:HasCollectible(CollectibleType.COLLECTIBLE_PAY_TO_PLAY) then
+		player:AddCoins(-1)
+	else 
+		if not hasPaperClip or pickup.Variant == PickupVariant.PICKUP_MEGACHEST then
+			player:TryUseKey()
+		end
+	end
+
+	return true
+end
+
+---@param player EntityPlayer
+---@param pickup EntityPickup
+local function TryOpenMegaChest(player, pickup)
 	local subType = pickup.SubType
 
 	if subType == 0 then return false end
 	local sprite = pickup:GetSprite()
 	sprite:Play("Idle")
 
-	if not sprite:IsPlaying("UseKey") or sprite:IsFinished("UseKey") then
-		sprite:Play("UseKey")
-	end
+	local targetAnim = player:HasCollectible(CollectibleType.COLLECTIBLE_PAY_TO_PLAY) and "UseCoin" or "UseKey"
 
-	player:TryUseKey()
+	if not sprite:IsPlaying(targetAnim) or sprite:IsFinished(targetAnim) then
+		sprite:Play(targetAnim)
+	end
 
 	return subType == 1
 end
 
----@param player EntityPlayer
-local function StopStompAnim(player)
-	local sprite = player:GetSprite()
-
-	if not sprite:IsPlaying("BigJumpFinish") then return end
-	sprite:Stop()
-	player:StopExtraAnimation()	
-end
-
-local NonTriggerAnimPickupVar = {
-	[PickupVariant.PICKUP_COLLECTIBLE] = true,
-	[PickupVariant.PICKUP_TRINKET] = true,
-	[PickupVariant.PICKUP_BROKEN_SHOVEL] = true,
-	[PickupVariant.PICKUP_SHOPITEM] = true,
-	[PickupVariant.PICKUP_PILL] = true,
-	[PickupVariant.PICKUP_TAROTCARD] = true,
-	[PickupVariant.PICKUP_LIL_BATTERY] = true,
-	[PickupVariant.PICKUP_THROWABLEBOMB] = true,
-	[PickupVariant.PICKUP_BED] = true,
-	[PickupVariant.PICKUP_MOMSCHEST] = true,
-	[PickupVariant.PICKUP_TROPHY] = true,
-}
-
 ---@param pickup EntityPickup
 ---@param player EntityPlayer
 local function TryOpenKeyChest(pickup, player)
-	local hasClip = player:HasTrinket(TrinketType.TRINKET_PAPER_CLIP)
-	local hasPayToPlay = player:HasCollectible(CollectibleType.COLLECTIBLE_PAY_TO_PLAY)
-
-	if not (hasClip or CanUseKey(player) or hasPayToPlay) then return false end
-
-	if not hasClip then
-		if hasPayToPlay then
-			player:AddCoins(-1)
-		else
-			player:TryUseKey()
-		end
-	end
+	if not TryUseKeyOnChest(player, pickup) then return false end
+	if pickup.Variant == PickupVariant.PICKUP_MEGACHEST then return TryOpenMegaChest(player, pickup) end
 
 	return pickup:TryOpenChest(player)
 end
@@ -182,10 +194,6 @@ local function ChestManager(pickup, player)
 	if openAnims[pickup:GetSprite():GetAnimation()] then return false end
 
 	local var = pickup.Variant
-
-	if var == PickupVariant.PICKUP_MEGACHEST then
-		return MegaChestManager(player, pickup)
-	end
 
 	if var == PickupVariant.PICKUP_BOMBCHEST then
 		if not mod.Modules.PLAYER.IsEdith(player, false) then return false end
@@ -240,6 +248,7 @@ function Land.PickupManager(player, ent, isShopItem, ignoreCollectible)
 
 	if isShopItem then
 		ShopItemManager(player, pickup)
+		return 
 	else
 		TriggerPickupCollide(player, pickup, ignoreCollectible)
 	end
