@@ -66,7 +66,7 @@ for _, Data in pairs(Effects) do
     SEL.RegisterStatusEffect(Data.ID, Data.Sprite, Data.Color)
 end
 
-local Flags = {
+StatusEffects.Flags = {
     Salt = SEL.StatusFlag[Effects.Salt.ID],
     Pepper = SEL.StatusFlag[Effects.Pepper.ID],
     Garlic = SEL.StatusFlag[Effects.Garlic.ID],
@@ -78,6 +78,8 @@ local Flags = {
     Cinder = SEL.StatusFlag[Effects.Cinder.ID],
     HydrargyrumCurse = SEL.StatusFlag[Effects.HydrargyrumCurse.ID],
 }
+
+local Flags = StatusEffects.Flags
 
 ---@class SpiceEffect
 ---@field ID EdithStatusEffects
