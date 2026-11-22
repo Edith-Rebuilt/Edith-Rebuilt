@@ -589,33 +589,20 @@ mod:AddCallback(enums.Callbacks.OFFENSIVE_STOMP_HIT, function(_, player, ent)
 	StatusEffects.SetStatusEffect(enums.EdithStatusEffects.SALTED, ent, SALTED_DURATION, player)
 end)
 
-mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_PRESSUREPLATE_UPDATE, function(_, pressurePlate)
-	local playersInPlateRadius = Isaac.FindInRadius(pressurePlate.Position, 20, EntityPartition.PLAYER)
-
-	local cancelUpdate = false
-
-	for _, ent in ipairs(playersInPlateRadius) do
-		local player = ent:ToPlayer() ---@cast player EntityPlayer
-
-		if not Player.IsEdith(player, false) then goto continue end
-		if not Jump.IsJumping(player) then goto continue end
-
-		cancelUpdate = true
-		::continue::
-	end
-
-	if cancelUpdate then return false end
-end)
-
 ---@param player EntityPlayer
 mod:AddCallback(jumpCallbacks.PRE_PITFALL, function(_, player)
 	data(player).CustomPitfall = true
 	return true
 end, JumpParams.EdithJump)
 
-mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_GRAVITY_UPDATE, function(_, gravity)
-	local playersInPlateRadius = Isaac.FindInRadius(gravity.Position, 20, EntityPartition.PLAYER)
+local CancelGridUpdateCallbacks = {
+	ModCallbacks.MC_PRE_GRID_ENTITY_GRAVITY_UPDATE,
+	ModCallbacks.MC_PRE_GRID_ENTITY_PRESSUREPLATE_UPDATE,
+}
 
+---@param GridEnt GridEntityPressurePlate | GridEntityGravity
+local function CancelGridUpdate(_, GridEnt)
+	local playersInPlateRadius = Isaac.FindInRadius(GridEnt.Position, 20, EntityPartition.PLAYER)
 	local cancelUpdate = false
 
 	for _, ent in ipairs(playersInPlateRadius) do
@@ -629,4 +616,8 @@ mod:AddCallback(ModCallbacks.MC_PRE_GRID_ENTITY_GRAVITY_UPDATE, function(_, grav
 	end
 
 	if cancelUpdate then return false end
-end)
+end
+
+for _, callback in ipairs(CancelGridUpdateCallbacks) do
+	mod:AddPriorityCallback(callback, CallbackPriority.IMPORTANT, CancelGridUpdate)
+end
