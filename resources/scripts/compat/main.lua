@@ -13,7 +13,7 @@ loader.AppliedPatches = false
 -- Registers a mod patch
 ---@param modName string Name of mod global
 ---@param patchFunc function Takes 0 arguments and applies the patch
----@param failsafeFunc function?
+---@param failsafeFunc function? Takes 0 arguments, called if the mod global is `nil`
 function loader.RegisterPatch(modName, patchFunc, failsafeFunc)
 	table.insert(loader.Patches, { Mod = modName, PatchFunc = patchFunc, FailsafeFunc = failsafeFunc, Loaded = false })
 end
@@ -45,6 +45,38 @@ function loader.ApplyPatches()
 	loader.AppliedPatches = true
 end
 
+---@class CompatCallbackEntry
+---@field callback ModCallbacks|string
+---@field func function
+---@field param any?
+---@field priority integer?
+
+---@param entry CompatCallbackEntry
+function loader.RegisterCallbackEntry(entry)
+	if entry.priority then
+		mod:AddPriorityCallback(entry.callback, entry.priority, entry.func, entry.param)
+	else
+		mod:AddCallback(entry.callback, entry.func, entry.param)
+	end
+end
+
+---@param paths string[]
+function loader.LoadScripts(paths)
+	for _, path in ipairs(paths) do
+		local script = include(path)
+
+		if not script then goto continue end
+
+		local entries = script.callback and { script } or script
+
+		for _, entry in ipairs(entries) do
+			loader.RegisterCallbackEntry(entry)
+		end
+
+		::continue::
+	end
+end
+
 EdithRebuilt.PatchesLoader = loader
 
 local patches = {
@@ -52,7 +84,7 @@ local patches = {
 	"Birthcake",
 	"RunicTablet",
 	"The Future",
-	"contentModules.CommunityRemix.main",
+	"CommunityRemix.main",
 	"Birthwrong.main",
 	"FiendFolio.main",
 }
@@ -63,7 +95,7 @@ end
 
 mod:AddPriorityCallback(ModCallbacks.MC_POST_MODS_LOADED, CallbackPriority.LATE, loader.ApplyPatches)
 
-mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function()
+mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
 	if not loader.AppliedPatches then
 		loader:ApplyPatches()
 	end

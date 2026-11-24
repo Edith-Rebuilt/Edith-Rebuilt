@@ -24,12 +24,19 @@ local function ReplaceFractionSaltHeart(pickup)
     pickup:Morph(5, PickupVariant.PICKUP_HEART, HeartSubType.HEART_HALF_SOUL, true, true)
 end
 
-mainMod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, function(_, pickup)
-    local roomFrameCount = room:GetFrameCount()
-    local visitedCount = level:GetLastRoomDesc().VisitedCount
+return {
+    {
+        ---@param pickup EntityPickup
+        func = function(_, pickup)
+            local roomFrameCount = room:GetFrameCount()
+            local visitedCount = level:GetLastRoomDesc().VisitedCount
 
-    if not (roomFrameCount > 0 or visitedCount == 0) then return end
+            if not (roomFrameCount > 0 or visitedCount == 0) then return end
 
-    ReplaceFullSaltHeart(pickup)
-    ReplaceFractionSaltHeart(pickup)
-end, PickupVariant.PICKUP_HEART)
+            ReplaceFullSaltHeart(pickup)
+            ReplaceFractionSaltHeart(pickup)
+        end,
+        callback = ModCallbacks.MC_POST_PICKUP_INIT,
+        param = PickupVariant.PICKUP_HEART
+    }
+} --[=[@as CompatCallbackEntry[]]=] 

@@ -1,0 +1,21 @@
+- Unlocks for Fiendish Mark
+- Make Edith able to trigger Levers with stomps
+- Make Edith not bounce against those mushrooms from dross while jumping
+- Make Edith invulnerable to Radiation while jumping 
+- Make Blood Splashes from custom Corpse floors change their color
+- Make Homing Stinger Projectile not follow Isaac when performing a Perfect Parry on it
+- Make Salt Hearts usable as Friend health ammo
+- Bombstomp with mod bombs support:
+    - Paralell Bombs: Mirrored explosion, half damage [✓]
+    - Bridge Bombs: Fill pits with the explosion [✓]
+    - Green bombs: Destroy nearby enemy projectiles
+    - Faberge Bombs: Allow to use bombs with coins, spending 3 coins on use [✓]
+    - Musca: Spawn 3 random locusts [✓]
+    - Nugget Bombs: Spawn a blue turret fly
+- Propaganda portrait
+- Fuzzy Pickle (Salt Shaker) [✓]
+- Girl Dinner support [✓]
+- Shampoo Bottle dialogues
+- Old Testament (and by extension Creative A.I.) [✓]
+- Item stackability [✓]
+- Electrum (where it fits)

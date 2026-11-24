@@ -23,19 +23,24 @@ local function ReplaceHalfSoulHeart(pickup)
     if not ModRNG.RandomBoolean(RNG, 0.25) then return end
 
     local SubTypeSalt = ModRNG.RandomBoolean(RNG, 1/3) and SubTypes.SALT_HEART_2_THIRDS or SubTypes.SALT_HEART_1_THIRD
-    
+
     pickup:Morph(5, PickupVariant.PICKUP_HEART, SubTypeSalt, true, true)
 end
 
-mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, function(_, pickup)
-    if not utils.PGD:Unlocked(enums.Achievement.SALT_HEART) then return end
-    if pickup.Variant ~= PickupVariant.PICKUP_HEART then return end
+return {
+    {
+        func = function (_, pickup)
+            if not utils.PGD:Unlocked(enums.Achievement.SALT_HEART) then return end
+            if pickup.Variant ~= PickupVariant.PICKUP_HEART then return end
 
-    local roomFrameCount = room:GetFrameCount()
-    local visitedCount = level:GetLastRoomDesc().VisitedCount
+            local roomFrameCount = room:GetFrameCount()
+            local visitedCount = level:GetLastRoomDesc().VisitedCount
 
-    if not (roomFrameCount > 0 or visitedCount == 0) then return end
+            if not (roomFrameCount > 0 or visitedCount == 0) then return end
 
-    ReplaceFullSoulHeart(pickup)
-    ReplaceHalfSoulHeart(pickup)
-end)
+            ReplaceFullSoulHeart(pickup)
+            ReplaceHalfSoulHeart(pickup)
+        end,
+        callback = ModCallbacks.MC_POST_PICKUP_INIT
+    }
+} --[=[@as CompatCallbackEntry[]]=] 
