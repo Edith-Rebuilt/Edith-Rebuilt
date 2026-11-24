@@ -96,10 +96,10 @@ local tearParams = {
     [playerType.PLAYER_EDITH_B] = {
         brightness = 0.3,
     }, --[[@as SaltTearParams]]
-    [playerType.PLAYER_EDITH_C] = {
-        tint = { 1, 207 / 255, 66 / 255 },
-        offset = { 0.7, 87 / 255, 17 / 255 },
-    }  --[[@as SaltTearParams]]
+    -- [playerType.PLAYER_EDITH_C] = {
+    --     tint = { 1, 207 / 255, 66 / 255 },
+    --     offset = { 0.7, 87 / 255, 17 / 255 },
+    -- }  --[[@as SaltTearParams]]
 }
 
 local function EdithMarkedInteraction(player, tear)
@@ -210,7 +210,7 @@ local Roll = CabraRNG:RandomInt(1, 100000)
 local Cabras = {
     [playerType.PLAYER_EDITH] = Renderer.LoadImage("gfx/characters/secrets/C.png"),
     [playerType.PLAYER_EDITH_B] = Renderer.LoadImage("gfx/characters/secrets/cabra.png"),
-    [playerType.PLAYER_EDITH_C] = Renderer.LoadImage("gfx/characters/secrets/kotroid.png"),
+    -- [playerType.PLAYER_EDITH_C] = Renderer.LoadImage("gfx/characters/secrets/kotroid.png"),
 }
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER_CHARACTER_SELECT_PORTRAIT, function(_, PlayerType, sprite, position)
@@ -236,9 +236,9 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER_CHARACTER_SELECT_PORTRAIT, function(
 
     local vec = Vector(20, 30)
 
-    if PlayerType == playerType.PLAYER_EDITH_C then
-        vec = Vector(25, 19)
-    end
+    -- if PlayerType == playerType.PLAYER_EDITH_C then
+    --     vec = Vector(25, 19)
+    -- end
 
     destR:Scale(cabraScale, cabraScale)
     destR:Translate(position - (vec * scale))
