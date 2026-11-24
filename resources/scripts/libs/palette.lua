@@ -20,15 +20,27 @@
 ---@field Rotation number
 ---@field Color KColor
 ---@field StartColor KColor
+---@field Gravity number
 ---@field LerpFactor number
 ---@field SpawnPosition Vector
+---@field NoiseValue Vector
+---@field SpriteFrame integer
+---@field SpriteRow integer
+---@field AlignAngle number
+---@field Stretch number
+---@field Speed number
 
 ---@alias InterpolationMode "Blend"|"Fixed"
 ---@alias CurveMode "Single"|"TwoCurves"
----@alias PaletteShapeType "Point"|"Circle"|"Rectangle"|"Triangle"|"Line"
+---@alias PaletteShapeType "Point"|"Circle"|"Rectangle"|"Triangle"|"Line"|"Polygon"|"Capsule"|"Bezier"|"Polyline"|"Star"
 ---@alias DirectionMode "Radial"|"Default"
 ---@alias EmitFrom "Area"|"Edge"
----@alias PaletteRenderMode "AboveEntities"|"Floor"
+---@alias PaletteRenderMode "AboveEntities"|"Floor"|"AbovePause"|"AboveHUD"|"MainMenu"|"BehindEntities"
+---@alias RenderSpace "Local"|"World"
+---@alias InheritVelocityMode "Current"|"Initial"
+---@alias AnimationType "WholeSheet"|"SingleRow"
+---@alias RowMode "Custom"|"Random"
+---@alias SubEmitterTrigger "Spawn"|"Death"
 
 ---@class PaletteGradient
 ---@field ColorKeys Keyframe<KColor>[]
@@ -36,7 +48,7 @@
 
 ---@class PaletteVelocityOverLifetime
 ---@field Enabled boolean
----@field Space "Local"|"World"
+---@field Space RenderSpace
 ---@field LinearVelocity Vector
 ---@field OrbitalVelocity number Rotation around the orbital center, in degrees per frame. Default: 0
 ---@field OrbitalOffset Vector
@@ -77,7 +89,15 @@
 ---@field DirectionMode DirectionMode Default: "Default"
 ---@field EmitFrom EmitFrom Default: "Area"
 ---@field Vertices Vector[] Default: {Vector(-50, 30), Vector(50, 30), Vector(0, -60)}
----@field Length number
+---@field Length number Default: 120
+---@field Sides integer Default: 3
+---@field Scale Vector Default: Vector(1, 1)
+---@field CurveResolution number Default: 67
+---@field Points Vector[]
+---@field Closed boolean Default: false
+---@field InnerRadiusRatio number Default: 0.5
+---@field _BezierCache BezierCache
+---@field _PolylineCache PolylineCache
 
 ---@class PaletteColorOverLifetime
 ---@field Enabled boolean
@@ -86,6 +106,102 @@
 ---@field Gradient PaletteGradient
 ---@field GradientMin PaletteGradient
 ---@field GradientMax PaletteGradient
+
+---@class BezierCache
+---@field OriginalPoints Vector[]
+---@field ScaledPoints Vector[]
+---@field Resolution number
+---@field Scale Vector
+---@field Lookup number[]
+---@field TotalLength number
+
+---@class PolylineCache
+---@field OriginalPoints Vector[]
+---@field ScaledPoints Vector[]
+---@field Scale Vector
+---@field Closed boolean
+---@field Lookup number[]
+---@field TotalLength number
+
+---@class ForceOverLifetime : PaletteOverLifetime<Vector>
+---@field Space RenderSpace Default: "Local"
+
+---@class LimitVelocityOverLifetime
+---@field Enabled boolean Default: False
+---@field Drag number Default: 0
+---@field MaxSpeed number Default: math.huge
+---@field Dampen number Default: 0.5
+
+---@class PaletteBurst
+---@field Time number
+---@field Count PaletteMinMaxInteger | integer
+---@field Cycles integer? Default: 1 Set to 0 to have it burst on every interval.
+---@field Interval integer? Default: 1
+---@field Probability number? Default: 1
+
+---@class InheritVelocity
+---@field Enabled boolean Default: false
+---@field Mode InheritVelocityMode Default: "Initial"
+---@field Multiplier number Default: 1
+
+---@class Noise
+---@field Enabled boolean Default: false
+---@field Strength number Default: 1
+---@field Frequency number Default: 0.02
+---@field ScrollSpeed number Default: 0
+---@field Damping boolean Default: false
+---@field PositionAmount number Default: 1
+---@field RotationAmount number Default: 0
+---@field ScaleAmount number Default: 0
+
+---@class SpriteSheet
+---@field Enabled boolean Default: false
+---@field Columns integer Default: 1
+---@field Rows integer Default: 1
+---@field AnimationType AnimationType Default: "WholeSheet"
+---@field RowMode RowMode Default: "Random"
+---@field Row integer Default: 0
+---@field StartFrame integer Default: 0
+---@field Cycles integer Default: 1
+---@field FrameOverTime PaletteOverLifetime<number>
+
+---@class AlignToVelocity
+---@field Enabled boolean Default: false
+---@field Offset number Default: 0
+---@field LengthScale number Default: 1
+---@field SpeedScale number Default: 0
+
+---@class ScaleBySpeed
+---@field Enabled boolean Default: false
+---@field SpeedRange PaletteMinMaxFloat Default: { Min = 0, Max = 10 }
+---@field Scale PaletteOverLifetime<Vector>
+
+---@class RotationBySpeed
+---@field Enabled boolean Default: false
+---@field SpeedRange PaletteMinMaxFloat Default: { Min = 0, Max = 10 }
+---@field Rotation PaletteOverLifetime<number>
+
+---@class ColorBySpeed
+---@field Enabled boolean Default: false
+---@field Mode InterpolationMode Default: "Blend"
+---@field SpeedRange PaletteMinMaxFloat Default: { Min = 0, Max = 10 }
+---@field Gradient PaletteGradient
+
+---@class SubEmitterOptions
+---@field Count PaletteMinMaxInteger | integer? Default: 1
+---@field Probability number? Default: 1
+---@field InheritColor boolean? Default: false
+---@field InheritScale boolean? Default: false
+---@field InheritRotation boolean? Default: false
+---@class SubEmitter
+---@field Emitter ParticleEmitter
+---@field Trigger SubEmitterTrigger
+---@field Count PaletteMinMaxInteger | integer
+---@field Probability number
+---@field InheritColor boolean
+---@field InheritScale boolean
+---@field InheritRotation boolean
+
 
 local include
 
@@ -96,6 +212,15 @@ local modules = {
 local PaletteUtils = {}
 
 local utilsRNG = RNG(Random(), 35)
+
+---100% the same as PaletteUtils.Lerp, though this function must exist so Lua's linter doesn't
+---flip out.
+---@param a Vector
+---@param b Vector
+---@param t number
+function PaletteUtils.LerpVector(a, b, t)
+    return a + (b - a) * t
+end
 
 ---@param a number
 ---@param b number
@@ -147,7 +272,7 @@ function PaletteUtils.MultiplyKColor(left, right)
 end
 
 --- Returns a random number between 0 (inclusive) and 1 (exclusive).
---- 
+---
 --- You can pass a seed to generate a random number using it. Alternatively, you can pass a `RNG`
 --- object to generate the number (which advances its seed). If you pass nothing, a random number
 --- is generated using Palette's internal RNG object.
@@ -165,7 +290,7 @@ function PaletteUtils.GetRandom(rngOrSeed)
 end
 
 --- Returns a random number between `min` (inclusive) and `max` (exclusive).
---- 
+---
 --- You can pass a seed to generate a random number using it. Alternatively, you can pass a `RNG`
 --- object to generate the number (which advances its seed). If you pass nothing, a random number
 --- is generated using Palette's internal RNG object.
@@ -184,7 +309,7 @@ function PaletteUtils.GetRandomFloat(min, max, rngOrSeed)
 end
 
 --- Returns a random integer between `min` (inclusive) and `max` (inclusive).
---- 
+---
 --- You can pass a seed to generate a random integer using it. Alternatively, you can pass a `RNG`
 --- object to generate the integer (which advances its seed). If you pass nothing, a random integer
 --- is generated using Palette's internal RNG object.
@@ -193,7 +318,8 @@ end
 ---@param rngOrSeed RNG | integer | nil
 ---@return number
 function PaletteUtils.GetRandomInt(min, max, rngOrSeed)
-    assert(min % 1 == 0 and max % 1 == 0, "GetRandomInt requires integer bounds")
+    min = math.floor(min)
+    max = math.floor(max)
 
     if min > max then
         local old_min = min
@@ -254,7 +380,43 @@ function PaletteUtils.SampleKColor(rangeOrFixed, rngOrSeed)
     end
 end
 
+---@param x number
+---@param a number
+---@param b number
+function PaletteUtils.Clamp(x, a, b)
+    return math.max(a, math.min(x, b))
+end
+
+---@param array table[]
+---@param target number
+function PaletteUtils.BinarySearch(array, target)
+    local low = 1
+    local high = #array + 1
+
+    while low < high do
+        local mid = math.floor((low + high) / 2)
+
+        if mid <= #array and array[mid] < target then
+            low = mid + 1
+        else
+            high = mid
+        end
+    end
+
+    return low
+end
+
+---Shuffles an array using the Fisher-Yates algorithm.
+---@param t table
+function PaletteUtils.ShuffleTableInPlace(t)
+    for i = #t, 2, -1 do
+        local j = PaletteUtils.GetRandomInt(1, i)
+        t[i], t[j] = t[j], t[i]
+    end
+end
+
 return PaletteUtils
+
 
     end,
 
@@ -314,7 +476,6 @@ end
 function PaletteGradient:New()
     ---@type PaletteGradient
     local newGradient = {
-        Mode = "Blend",
         ColorKeys = {
             { Time = 0, Value = KColor.White },
             { Time = 1, Value = KColor.White },
@@ -339,6 +500,7 @@ local GAME_FRAMES_PER_SECOND = 30
 local PaletteUtils = include("palette_scripts.palette_utils")
 local PaletteGradient = include("palette_scripts.palette_gradient")
 local PaletteShape = include("palette_scripts.palette_shape")
+local PaletteNoise = include("palette_scripts.palette_noise")
 
 ---@class ParticleEmitter This class defines a `ParticleEmitter`, which is responsible for creating particles and managing them.
 ---@field IsWorldSpace boolean Whether the emitted particles are rendered on the world space or directly onto your screen. Default: True
@@ -353,15 +515,35 @@ local PaletteShape = include("palette_scripts.palette_shape")
 ---@field StartDirection Vector The default direction of the particle. Default: (0, -1)
 ---@field StartRotation number | PaletteMinMaxFloat The initial rotation for each particle. Default: 0
 ---@field Orientation number The emitter's rotation, in degrees. This is solely used to handle how particles move out from the emitter as opposed to changing the rotation of the particle's sprite. To change the sprite's actual rotation, use `StartRotation`. Default: 0
----@field StartSize Vector | PaletteMinMaxVector The initial scale of spawned particles. Default: (1, 1)
----@field PersistAcrossRooms boolean Whether the particle emitter is destroyed when leaving the current room or exiting the game. Default: false
+---@field StartScale Vector | PaletteMinMaxVector The initial scale of spawned particles. Default: (1, 1)
+---@field PersistAcrossRooms boolean If true, the particle emitter is not destroyed when entering a new room or exiting the urn. Default: false
 ---@field DirectionSpread number How spread out the spawned particles are relative to `StartDirection`. Default: 0
----@field SizeOverLifetime PaletteOverLifetime Attributes relating to how particles change size over their lifespan.
+---@field ScaleOverLifetime PaletteOverLifetime Attributes relating to how particles change size over their lifespan.
 ---@field RotationOverLifetime PaletteOverLifetime Attributes relating to how particles change rotation over their lifespan.
 ---@field Shape PaletteShapeConfig A module that configures its own shape, affecting the particle's spawn positions and velocity.
 ---@field RenderMode PaletteRenderMode  Determines how particles are rendered onto the screen. Default: "AboveEntities"
+---@field Shader Shader? Optional. The shader used for the particles spawned. Default: nil.
+---@field ShaderParams table<string, number|number[]> The parameters to pass to the Shader defined in `ParticleEmitter.Shader`.
+---@field GravityModifier number | PaletteMinMaxFloat The particle's gravity velocity. It is added to the particle's `Velocity.Y` every update. Default: 0
+---@field ForceOverLifetime ForceOverLifetime The acceleration curve added to `Velocity` every frame.
+---@field LimitVelocityOverLifetime LimitVelocityOverLifetime Defines how the particle's velocity behaves as it reaches its speed cap.
+---@field Duration number How long one emmission cycle lasts, in frames. When it's reached, the emitter restarts if `Looping` is true. Otherwise, the particle emitter stops continuously emitting particles. Burst times defined in `ParticleEmitter.Bursts` are measured within this cycle. Default: 150
+---@field Looping boolean Whether the particle emitter starts a new cycle after it continuously emits for `Duration` frames. If false, `ParticleEmitter:Play()` or `ParticleEmitter:Stop()` must be called so the particle emitter restarts its continuous emission. Default: true
+---@field Bursts PaletteBurst[] An array that defines the bursts of particles spawned at set time intervals within `ParticleEmitter.Duration`. Default: {}
+---@field StartDelay integer The number of frames the emitter waits before it starts emitting.
+---@field DestroyOnFinish boolean If true, the Particle Emitter is destroyed once it reached the end of its duration and all particles has despawned if `ParticleEmitter.Looping` is set to false. Default: false
+---@field InheritVelocity InheritVelocity Determines how the particle's velocity is affected by the emitter's own velocity.
+---@field RateOverDistance number How many particles are spawned per-pixel when the emitter moves. Default: 0
+---@field Noise Noise If enabled, allows particle movement to have organic turbulence and swirling for their velocity, rotation, and size.
+---@field SpriteSheet SpriteSheet If enabled, the emitter's texture is split into a grid of frames and the particle plays over them throughout its lifetime.
+---@field AlignToVelocity AlignToVelocity If enabled, each particle rotates to face the direction it travels in and to stretch based on its speed.
+---@field ScaleBySpeed ScaleBySpeed If enabled, determines how a particle's scale changes based on its speed.
+---@field RotationBySpeed RotationBySpeed If enabled, determines how a particle's angular velocity changes based on its speed.
+---@field ColorBySpeed ColorBySpeed If enabled, determines how a particle's color changes based on its speed.
+---@field private _PendingDestroy boolean
 ---@field private _IsEmitting boolean Determines whether particles are being continuously emitted. Note that `ParticleEmitter:Emit` will still work even with this set to false.
 ---@field private _RenderImage Image
+---@field private _UpdateAccumilator number Because some render callbacks might need to handle particle logic, we use this to stay at a consistent 30 updates per second.
 ---@field private _Particles Particle[]
 ---@field private _ParticlePool Particle[]
 ---@field private _EmitterSourceQuad SourceQuad
@@ -369,14 +551,45 @@ local PaletteShape = include("palette_scripts.palette_shape")
 ---@field private _IsDestroyed boolean
 ---@field private _DestroyFun fun(self: ParticleEmitter)
 ---@field private _FollowingEntity Entity?
+---@field private _EntityFollowOffset Vector
+---@field private _IsPaused boolean
+---@field private _EmitterTime integer
+---@field private _IsFinished boolean
+---@field private _DelayElapsed integer
+---@field private _BurstCycles integer[]
+---@field private _LastPosition Vector | nil
+---@field private _Velocity Vector
+---@field private _DistanceAccumulator number
+---@field private _NoiseTime integer
+---@field private _SheetQuads SourceQuad[]
+---@field private _SheetColumns integer
+---@field private _SheetRows integer
+---@field private _SubEmitters SubEmitter[]
+---@field private _ParentEmitter ParticleEmitter?
 local ParticleEmitter = {}
 ParticleEmitter.__index = ParticleEmitter
+
+--- Resumes the particle emitter if it was paused.
+function ParticleEmitter:Resume()
+    self._IsPaused = false
+
+    -- Set to nil because the particle emitter may have been following an entity/moved around while
+    -- paused. We don't want a huge velocity gap out of the blue.
+    self._LastPosition = nil
+end
+
+--- Pauses the particle emitter.
+function ParticleEmitter:Pause()
+    self._IsPaused = true
+end
 
 --- Causes the particle emitter to follow an entity while it's alive. Pass `nil` to have the
 --- Particle Emitter stop following it.
 --- @param entity Entity?
-function ParticleEmitter:FollowEntity(entity)
+--- @param followOffset Vector? Optional. Default: (0, 0)
+function ParticleEmitter:FollowEntity(entity, followOffset)
     self._FollowingEntity = entity
+    self._EntityFollowOffset = followOffset or Vector.Zero
 end
 
 --- Returns whether the particle emitter is following an entity.
@@ -389,52 +602,54 @@ function ParticleEmitter:GetFollowingEntity()
     return self._FollowingEntity
 end
 
+--- Returns whether the particle emitter is paused.
+function ParticleEmitter:IsPaused()
+    return self._IsPaused
+end
+
 --- Updates the ParticleEmitter's logic including its current particles. By default, this is called
 --- every frame using `MC_POST_UPDATE`. While there's typically no need to call this method as
 --- it's done automatically, it may be useful for forcing updates.
 function ParticleEmitter:Update()
+    if self:IsDestroyed() or self:IsPaused() then
+        return
+    end
+
+    self:_UpdateFollowPosition()
+    self:_Tick()
+end
+
+--- Returns the number of alive particles belonging to the emitter.
+function ParticleEmitter:GetParticleCount()
+    return #self._Particles
+end
+
+-- Restarts particle emission from the very beginning, clearing every particle, resetting its duration, and reenabling continuous emission. This does not unpause the particle emitter if it's paused.
+function ParticleEmitter:Restart()
     if self:IsDestroyed() then
         return
     end
 
-    if self._FollowingEntity then
-        if not self._FollowingEntity:Exists() then
-            self._FollowingEntity = nil
-        else
-            self.Position = self._FollowingEntity.Position
-        end
-    end
-
-    self:_UpdateParticles()
-    self:_UpdateContinuousEmission()
+    self:Clear()
+    self._IsFinished = false
+    self._PendingDestroy = false
+    self._EmitterTime = 0
+    self._DelayElapsed = 0
+    self._BurstCycles = {}
+    self._EmissionAccumulator = 0
+    self._IsEmitting = true
+    self._LastPosition = nil
+    self._DistanceAccumulator = 0
+    self._NoiseTime = 0
 end
 
 --- Spawns multiple particles in a single batches. If the number of particles exceeds or is equal to
 --- `ParticlEmitter.MaxParticles`, extraneous particles are not spawned.
 ---@param count integer
-function ParticleEmitter:Emit(count)
+---@param positionOffset Vector? Optional. Default: (0, 0)
+function ParticleEmitter:Emit(count, positionOffset)
     assert(not self:IsDestroyed(), "Attempted to Emit particles on a destroyed ParticleEmitter")
-
-    for i = 1, count do
-        if #self._Particles >= self.MaxParticles then
-            break
-        end
-
-        -- Our Object Pool logic here will reduce the amount of times we need to allocate an entire
-        -- table to save performance.
-        local newParticle
-
-        if #self._ParticlePool > 0 then
-            newParticle = table.remove(self._ParticlePool)
-        else
-            newParticle = {}
-        end
-        
-        self:_InitializeParticle(newParticle)
-
-        ---@cast newParticle Particle
-        table.insert(self._Particles, newParticle)
-    end
+    self:_Emit(count, positionOffset)
 end
 
 --- Returns whether continuous particle emission is enabled.
@@ -448,13 +663,17 @@ function ParticleEmitter:IsPlaying()
     return self._IsEmitting or #self._Particles > 0
 end
 
---- Enables continuous particle emission.
+--- Resumes continuous particle emission. If the particle emitter already
 function ParticleEmitter:Play()
     if self:IsDestroyed() then
         return
     end
-    
-    self._IsEmitting = true
+
+    if self._IsFinished then
+        self:Restart()
+    else
+        self._IsEmitting = true
+    end
 end
 
 --- Disables continuous particle emission. This does not clear particles that have already spawned.
@@ -466,7 +685,6 @@ function ParticleEmitter:Stop()
 
     self._IsEmitting = false
 end
-
 
 --- Returns whether the ParticleEmitter was destroyed.
 function ParticleEmitter:IsDestroyed()
@@ -494,6 +712,24 @@ function ParticleEmitter:Destroy()
     end
 
     self:Clear()
+
+    for _, entry in ipairs(self._SubEmitters) do
+        local subEmitter = entry.Emitter
+        subEmitter._ParentEmitter = nil
+
+        if not subEmitter:IsDestroyed() then
+            subEmitter:Stop()
+            subEmitter.DestroyOnFinish = true
+            subEmitter._IsFinished = true
+        end
+    end
+
+    self._SubEmitters = {}
+
+    if self._ParentEmitter then
+        self._ParentEmitter:RemoveSubEmitter(self)
+    end
+
     self:_DestroyFun()
 
     self._FollowingEntity = nil
@@ -506,12 +742,70 @@ function ParticleEmitter:Destroy()
     self._DestroyFun = nil
 end
 
-function ParticleEmitter:_OnPostRoomEntitiesRender()
-    if self:IsDestroyed() or self.RenderMode ~= "AboveEntities" then
+function ParticleEmitter:_OnPostPauseScreenRender()
+    if self.RenderMode ~= "AbovePause" then
+        return
+    end
+
+    if self._UpdateAccumilator == 0 then
+        self._UpdateAccumilator = 1
+        self:Update()
+    else
+        self._UpdateAccumilator = self._UpdateAccumilator - 1
+    end
+
+    self:_Render()
+end
+
+function ParticleEmitter:_OnPostRender()
+    if self.RenderMode ~= "AboveHUD" then
+        return
+    end
+
+    if self._UpdateAccumilator == 0 then
+        self._UpdateAccumilator = 1
+        self:Update()
+    else
+        self._UpdateAccumilator = self._UpdateAccumilator - 1
+    end
+
+    self:_Render()
+end
+
+function ParticleEmitter:_OnMainMenuRender()
+    if self.RenderMode ~= "MainMenu" then
+        return
+    end
+
+    if self._UpdateAccumilator == 0 then
+        self._UpdateAccumilator = 1
+        self:Update()
+    else
+        self._UpdateAccumilator = self._UpdateAccumilator - 1
+    end
+
+    self:_Render()
+end
+
+function ParticleEmitter:_OnPreRoomEntitiesRender()
+    if self:IsDestroyed() or self.RenderMode ~= "BehindEntities" then
         return
     end
 
     self:_Render()
+end
+
+---@param renderDefault boolean
+function ParticleEmitter:_OnPostRoomEntitiesRender(renderDefault)
+    if self:IsDestroyed() then
+        return
+    end
+
+    local renderMode = self.RenderMode
+
+    if renderMode == "AboveEntities" or (renderDefault and renderMode == "BehindEntities") then
+        self:_Render()
+    end
 end
 
 function ParticleEmitter:_OnPreBackdropRenderWalls()
@@ -524,6 +818,15 @@ end
 
 function ParticleEmitter:_Render()
     local imageWidth, imageHeight = self._RenderImage:GetWidth(), self._RenderImage:GetHeight()
+    local cellWidth, cellHeight = imageWidth, imageHeight
+    local spriteSheet = self.SpriteSheet
+    local columns, rows = self:_GetSheetSize()
+    local alignToVelocity = self.AlignToVelocity
+
+    if spriteSheet.Enabled then
+        cellWidth = imageWidth / columns
+        cellHeight = imageHeight / rows
+    end
 
     for _, particle in ipairs(self._Particles) do
         ---@type Vector
@@ -534,25 +837,48 @@ function ParticleEmitter:_Render()
             renderPos = particle.Position
         end
 
-        local scaledWidth, scaledHeight = 
-            imageWidth * particle.Scale.X, imageHeight * particle.Scale.Y
+        local stretch = 1
+        local rotation = particle.Rotation
 
+        if alignToVelocity.Enabled then
+            stretch = particle.Stretch
+            rotation = particle.AlignAngle + alignToVelocity.Offset
+        end
+
+        local scaledWidth, scaledHeight =
+            cellWidth * particle.Scale.X * stretch, cellHeight * particle.Scale.Y
         local destinationQuad = DestinationQuad.NewFromRectangle(
             renderPos - Vector(scaledWidth / 2, scaledHeight / 2),
             scaledWidth,
             scaledHeight
         )
-        destinationQuad:Rotate(particle.Rotation, renderPos)
-        self._RenderImage:Render(self._EmitterSourceQuad, destinationQuad, particle.Color)
+
+        destinationQuad:Rotate(rotation, renderPos)
+
+        local sourceQuad = self._EmitterSourceQuad
+
+        if spriteSheet.Enabled then
+            local column = (particle.SpriteFrame or 0) % columns
+            local sheetRow = PaletteUtils.Clamp(particle.SpriteRow or 0, 0, rows - 1)
+            sourceQuad = self:_GetSheetQuad(column, sheetRow)
+        end
+
+        if self.Shader then
+            self._RenderImage:RenderWithShader(
+                sourceQuad,
+                destinationQuad,
+                particle.Color,
+                self.Shader,
+                self.ShaderParams
+            )
+        else
+            self._RenderImage:Render(sourceQuad, destinationQuad, particle.Color)
+        end
     end
 end
 
 function ParticleEmitter:_UpdateContinuousEmission()
-    if not self._IsEmitting then
-        return
-    end
-
-    self._EmissionAccumulator = self._EmissionAccumulator + self.ParticleRate / GAME_FRAMES_PER_SECOND
+    self._EmissionAccumulator = self._EmissionAccumulator + math.max(0, self.ParticleRate) / GAME_FRAMES_PER_SECOND
 
     local particlesToEmit = math.floor(self._EmissionAccumulator)
 
@@ -574,47 +900,109 @@ function ParticleEmitter:_UpdateParticles()
         particle.FrameCount = particle.FrameCount + 1
 
         if particle.FrameCount >= particle.Lifetime then
+            self:_TriggerSubEmitters("Death", particle)
             local removedParticle = table.remove(self._Particles, i)
             table.insert(self._ParticlePool, removedParticle)
         else
-            local velocity = self:_GetParticleVelocity(particle)
-            particle.Position = particle.Position + velocity
+            particle.NoiseValue = self:_GetParticleNoise(particle)
+            self:_ApplyParticleForce(particle)
+            self:_UpdateSpriteSheet(particle)
 
-            local t = particle.FrameCount / particle.Lifetime
-    
+            local inheritedVelocity = self:_GetInheritedVelocity()
+            local initialVelocity = self:_GetParticleVelocity(particle)
+            local previousPosition = particle.Position
+            local finalVelocity = initialVelocity + inheritedVelocity +
+                particle.NoiseValue * self.Noise.PositionAmount
+
+            particle.Position = particle.Position + finalVelocity
+            particle.Speed = finalVelocity:Length()
             particle.Scale = self:_GetParticleScale(particle)
             particle.Rotation = self:_GetParticleRotation(particle)
 
+            self:_UpdateAlignment(particle, particle.Position - previousPosition)
             self:_UpdateParticleColor(particle)
         end
     end
 end
 
+--- Returns whether the particle emitter has finished is waiting to be destroyed.
+---
+--- **Note:** Palette already calls this and handles destroying particle emitters automatically. You usually do not need to call this.
+function ParticleEmitter:IsPendingDestroy()
+    return self._PendingDestroy
+end
 
 ---@param particle Particle
 function ParticleEmitter:_UpdateParticleColor(particle)
-    if not self.ColorOverLifetime.Enabled or particle.Lifetime <= 0 then
-        particle.Color = particle.StartColor
-        return
-    end
-    
+    local color = particle.StartColor
+    local colorBySpeed = self.ColorBySpeed
+    local colorOverLifetime = self.ColorOverLifetime
     local t = particle.FrameCount / particle.Lifetime
 
-    if self.ColorOverLifetime.CurveMode == "Single" then
-        local gradientColor = PaletteGradient:Evaluate(self.ColorOverLifetime.Gradient, t, self.ColorOverLifetime.Mode)
-        particle.Color = PaletteUtils.MultiplyKColor(particle.StartColor, gradientColor)
-    elseif self.ColorOverLifetime.CurveMode == "TwoCurves" then
-        local gradientColorMin = PaletteGradient:Evaluate(self.ColorOverLifetime.GradientMin, t, self.ColorOverLifetime.Mode)
-        local gradientColorMax = PaletteGradient:Evaluate(self.ColorOverLifetime.GradientMax, t, self.ColorOverLifetime.Mode)
-        local gradientColor = PaletteUtils.LerpKColor(gradientColorMin, gradientColorMax, particle.LerpFactor)
-        particle.Color = PaletteUtils.MultiplyKColor(particle.StartColor, gradientColor)
+    if colorOverLifetime.Enabled and particle.Lifetime > 0 then
+        if self.ColorOverLifetime.CurveMode == "Single" then
+            local gradientColor = PaletteGradient:Evaluate(colorOverLifetime.Gradient, t,
+                colorOverLifetime.Mode)
+            color = PaletteUtils.MultiplyKColor(particle.StartColor, gradientColor)
+        elseif colorOverLifetime.CurveMode == "TwoCurves" then
+            local gradientColorMin = PaletteGradient:Evaluate(colorOverLifetime.GradientMin, t,
+                colorOverLifetime.Mode)
+            local gradientColorMax = PaletteGradient:Evaluate(colorOverLifetime.GradientMax, t,
+                colorOverLifetime.Mode)
+            local gradientColor = PaletteUtils.LerpKColor(gradientColorMin, gradientColorMax, particle.LerpFactor)
+            color = PaletteUtils.MultiplyKColor(particle.StartColor, gradientColor)
+        end
+    end
+
+    if colorBySpeed.Enabled then
+        local speedT = self:_GetNormalizedSpeed(colorBySpeed.SpeedRange, particle.Speed)
+        local gradientColor = PaletteGradient:Evaluate(colorBySpeed.Gradient, speedT, colorBySpeed.Mode)
+        color = PaletteUtils.MultiplyKColor(gradientColor, color)
+    end
+
+    particle.Color = color
+end
+
+---@param particle Particle
+function ParticleEmitter:_ApplyParticleForce(particle)
+    local forceOverLifetime = self.ForceOverLifetime
+    local limitVelocityOverLifetime = self.LimitVelocityOverLifetime
+    local t = particle.FrameCount / particle.Lifetime
+    local gravityModifier = particle.Gravity
+    particle.Velocity = particle.Velocity + Vector(0, gravityModifier)
+
+    if forceOverLifetime.Enabled then
+        ---@type Vector
+        local force = self.ForceOverLifetime:Evaluate(t, particle.LerpFactor)
+
+        if forceOverLifetime.Space == "Local" then
+            force = force:Rotated(self.Orientation)
+        end
+
+        particle.Velocity = particle.Velocity + force
+    end
+
+    if limitVelocityOverLifetime.Enabled then
+        local speed = particle.Velocity:Length()
+        local speedLimit = math.max(0, limitVelocityOverLifetime.MaxSpeed)
+
+        if speed > speedLimit then
+            local newSpeed = PaletteUtils.Lerp(speed, speedLimit,
+                PaletteUtils.Clamp(limitVelocityOverLifetime.Dampen, 0, 1))
+            particle.Velocity = particle.Velocity * (newSpeed / speed)
+        end
+
+        particle.Velocity = particle.Velocity * (1 - PaletteUtils.Clamp(limitVelocityOverLifetime.Drag, 0, 1))
     end
 end
 
 ---@param particle Particle
-function ParticleEmitter:_InitializeParticle(particle)
-    local startSize = PaletteUtils.SampleVector(self.StartSize)
-    local emitterPosition = Vector(self.Position.X, self.Position.Y)
+---@param positionOffset Vector
+---@param parentParticle Particle?
+---@param subEmitterEntry SubEmitter?
+function ParticleEmitter:_InitializeParticle(particle, positionOffset, parentParticle, subEmitterEntry)
+    local startSize = PaletteUtils.SampleVector(self.StartScale)
+    local emitterPosition = Vector(self.Position.X, self.Position.Y) + positionOffset
     local spawnPosition = PaletteShape.GetSpawnPosition(
         self.Shape,
         emitterPosition,
@@ -640,16 +1028,52 @@ function ParticleEmitter:_InitializeParticle(particle)
     particle.Position = Vector(spawnPosition.X, spawnPosition.Y)
     particle.Velocity = finalDirection * PaletteUtils.SampleFloat(self.StartSpeed)
     particle.FrameCount = 0
+    particle.NoiseValue = self:_GetParticleNoise(particle)
     particle.Scale = startSize
     particle.StartColor = PaletteUtils.SampleKColor(self.StartColor)
     particle.Color = particle.StartColor
     particle.StartScale = startSize
-    particle.Lifetime = PaletteUtils.SampleInteger(self.Lifetime)
+    particle.Lifetime = math.max(1, PaletteUtils.SampleInteger(self.Lifetime))
+    particle.Gravity = PaletteUtils.SampleFloat(self.GravityModifier)
     particle.Rotation = PaletteUtils.SampleFloat(self.StartRotation)
     particle.LerpFactor = PaletteUtils.GetRandom()
+    particle.AlignAngle = self.StartDirection:GetAngleDegrees() + self.Orientation
+    particle.Stretch = 1
+
+    local inheritVelocity = self.InheritVelocity
+
+    if inheritVelocity.Enabled and inheritVelocity.Mode == "Initial" then
+        particle.Velocity = particle.Velocity + self._Velocity * inheritVelocity.Multiplier
+    end
+
+    if parentParticle and subEmitterEntry then
+        if subEmitterEntry.InheritColor then
+            particle.StartColor = PaletteUtils.MultiplyKColor(particle.StartColor, parentParticle.Color)
+            particle.Color = particle.StartColor
+        end
+
+        if subEmitterEntry.InheritScale then
+            particle.StartScale = particle.StartScale * parentParticle.Scale
+        end
+
+        if subEmitterEntry.InheritRotation then
+            particle.Rotation = particle.Rotation + parentParticle.Rotation
+        end
+    end
+
+    particle.Speed = particle.Velocity:Length()
+
+    local sheet = self.SpriteSheet
+
+    if sheet.Enabled and sheet.AnimationType == "SingleRow" and sheet.RowMode == "Random" then
+        local _, rows = self:_GetSheetSize()
+        particle.SpriteRow = PaletteUtils.GetRandomInt(0, rows - 1)
+    end
 
     -- To prevent brief visual artifacts like new particles flickering.
+    self:_UpdateAlignment(particle, particle.Velocity)
     self:_UpdateParticleColor(particle)
+    self:_UpdateSpriteSheet(particle)
     particle.Scale = self:_GetParticleScale(particle)
 end
 
@@ -697,7 +1121,8 @@ function ParticleEmitter:_GetParticleVelocity(particle)
     local length = radialDirection:Length()
 
     if length > 0 then
-        local radialVelocity = radialDirection * (velocityOverLifetime.Radial * velocityOverLifetime.SpeedModifier / length)
+        local radialVelocity = radialDirection *
+            (velocityOverLifetime.Radial * velocityOverLifetime.SpeedModifier / length)
         newVelocity = newVelocity + radialVelocity
     end
 
@@ -706,27 +1131,399 @@ end
 
 ---@param particle Particle
 function ParticleEmitter:_GetParticleScale(particle)
+    local noise = self.Noise
     local scale = particle.StartScale
+    local t = particle.FrameCount / particle.Lifetime
+    local scaleBySpeed = self.ScaleBySpeed
 
-    if not self.SizeOverLifetime.Enabled then
-        return scale
+    if self.ScaleOverLifetime.Enabled then
+        scale = scale * self.ScaleOverLifetime:Evaluate(t, particle.LerpFactor)
     end
 
-    local t = particle.FrameCount / particle.Lifetime
-    
-    return scale * self.SizeOverLifetime:Evaluate(t, particle.LerpFactor)
+    if scaleBySpeed.Enabled then
+        local speedT = self:_GetNormalizedSpeed(scaleBySpeed.SpeedRange, particle.Speed)
+        scale = scale * scaleBySpeed.Scale:Evaluate(speedT, particle.LerpFactor)
+    end
+
+    if noise.Enabled and noise.ScaleAmount ~= 0 then
+        scale = scale * math.max(0, 1 + particle.NoiseValue.Y * noise.ScaleAmount)
+    end
+
+    return scale
 end
 
 ---@param particle Particle
 function ParticleEmitter:_GetParticleRotation(particle)
     local rotation = particle.Rotation
+    local noise = self.Noise
+    local t = particle.FrameCount / particle.Lifetime
+    local rotationBySpeed = self.RotationBySpeed
 
-    if not self.RotationOverLifetime.Enabled then
-        return rotation
+    if self.RotationOverLifetime.Enabled then
+        rotation = rotation + self.RotationOverLifetime:Evaluate(t, particle.LerpFactor)
     end
 
+    if rotationBySpeed.Enabled then
+        local speedT = self:_GetNormalizedSpeed(rotationBySpeed.SpeedRange, particle.Speed)
+        rotation = rotation + rotationBySpeed.Rotation:Evaluate(speedT, particle.LerpFactor)
+    end
+
+    if noise.Enabled then
+        rotation = rotation + particle.NoiseValue.X * self.Noise.RotationAmount / GAME_FRAMES_PER_SECOND
+    end
+
+    return rotation
+end
+
+function ParticleEmitter:_UpdateBursts()
+    local duration = math.max(1, self.Duration)
+
+    for i, burst in ipairs(self.Bursts) do
+        local numCyclesFired = self._BurstCycles[i] or 0
+        local cycles = burst.Cycles or 1
+        local interval = math.max(1, burst.Interval or 1)
+        local probability = burst.Probability or 1
+
+        -- Spawn N burss for the cycle.
+        while cycles == 0 or numCyclesFired < cycles do
+            local fireTime = burst.Time + numCyclesFired * interval
+
+            -- Prevent particle spawning if the burst at the end or past the cycle or the burst
+            -- isn't scheuduled.
+            if not (fireTime < duration and fireTime < self._EmitterTime + 1) then
+                break
+            end
+
+            if PaletteUtils.GetRandom() < probability then
+                local count = PaletteUtils.SampleInteger(burst.Count or 1)
+                self:Emit(count)
+            end
+
+            numCyclesFired = numCyclesFired + 1
+        end
+
+        self._BurstCycles[i] = numCyclesFired
+    end
+end
+
+function ParticleEmitter:_UpdateFollowPosition()
+    if self._FollowingEntity then
+        if not self._FollowingEntity:Exists() then
+            self._FollowingEntity = nil
+        else
+            self.Position = self._FollowingEntity.Position + self._EntityFollowOffset
+        end
+    end
+end
+
+function ParticleEmitter:_UpdateEmitterMotion()
+    if not self._LastPosition then
+        self._LastPosition = Vector(self.Position.X, self.Position.Y)
+    end
+
+    self._Velocity = self.Position - self._LastPosition
+end
+
+function ParticleEmitter:_Tick()
+    self._NoiseTime = self._NoiseTime + 1
+    self:_UpdateEmitterMotion()
+    self:_UpdateParticles()
+
+    -- Flag instead of destroying directly. Because Palette calls `Update()` in a loop, calling
+    -- `Destroy()` would make Palette skip the next emitter this frame. The sweep in palette.lua
+    -- destroys it afterwards.
+    if self._IsFinished and self.DestroyOnFinish and #self._Particles == 0 then
+        self._PendingDestroy = true
+    end
+
+    if self:IsEmitting() then
+        if self._DelayElapsed < self.StartDelay then
+            self._DelayElapsed = self._DelayElapsed + 1
+        else
+            self:_UpdateBursts()
+            self:_UpdateContinuousEmission()
+            self:_UpdateDistanceEmission()
+            self._EmitterTime = self._EmitterTime + 1
+
+            if self._EmitterTime >= math.max(1, self.Duration) then
+                if self.Looping then
+                    self._EmitterTime = 0
+                    self._BurstCycles = {}
+                else
+                    self._IsFinished = true
+                    self:Stop()
+                end
+            end
+        end
+    end
+
+    self._LastPosition = Vector(self.Position.X, self.Position.Y)
+end
+
+--- Forces the particle emitter to simulate a set amount of updates before any particles are spawned.
+--- This is useful if you want to "fast-forward" the particle emitter.
+---@param frames number
+function ParticleEmitter:Prewarm(frames)
+    if self:IsDestroyed() then
+        return
+    end
+
+    if not frames then
+        local lifetime = self.Lifetime
+
+        if type(lifetime) == "table" then
+            lifetime = lifetime.Max
+        end
+
+        ---@diagnostic disable-next-line: cast-local-type
+        frames = lifetime
+    end
+
+    self:_UpdateFollowPosition()
+    self._DelayElapsed = math.max(self._DelayElapsed, self.StartDelay)
+
+    for i = 1, frames do
+        self:_Tick()
+    end
+end
+
+---@param particle Particle
+function ParticleEmitter:_GetParticleNoise(particle)
+    local noise = self.Noise
+
+    if not noise.Enabled then
+        return Vector.Zero
+    end
+
+    local x = particle.Position.X * noise.Frequency + self._NoiseTime * noise.ScrollSpeed
+    local y = particle.Position.Y * noise.Frequency
+    local cx, cy = PaletteNoise.Curl2D(x, y)
+    local strength = noise.Strength
+
+    if noise.Damping then
+        -- Higher frequencies reduce the strength proportionally, as in Unity.
+        strength = strength / math.max(noise.Frequency, 0.0001)
+    end
+
+    return Vector(cx, cy) * strength
+end
+
+function ParticleEmitter:_GetInheritedVelocity()
+    local inheritVelocity = self.InheritVelocity
+
+    if inheritVelocity.Enabled and inheritVelocity.Mode == "Current" then
+        return self._Velocity * inheritVelocity.Multiplier
+    else
+        return Vector.Zero
+    end
+end
+
+function ParticleEmitter:_UpdateDistanceEmission()
+    local rate = math.max(0, self.RateOverDistance)
+
+    if rate <= 0 then
+        return
+    end
+
+    local distance = self._Velocity:Length()
+
+    if distance <= 0 then
+        return
+    end
+
+    local before = self._DistanceAccumulator
+    local total = before + distance * rate
+    local count = math.floor(total)
+
+    self._DistanceAccumulator = total - count
+
+    for i = 1, count do
+        local t = (i - before) / (distance * rate)
+        self:Emit(1, self._Velocity * -(1 - PaletteUtils.Clamp(t, 0, 1)))
+    end
+end
+
+---@param particle Particle
+function ParticleEmitter:_UpdateSpriteSheet(particle)
+    local sheet = self.SpriteSheet
+    local columns, rows = self:_GetSheetSize()
     local t = particle.FrameCount / particle.Lifetime
-    return rotation + self.RotationOverLifetime:Evaluate(t, particle.LerpFactor)
+    local progress = sheet.FrameOverTime:Evaluate(t, particle.LerpFactor)
+    local totalFrames
+
+    if sheet.AnimationType == "WholeSheet" then
+        totalFrames = rows * columns
+    else
+        totalFrames = columns
+    end
+
+    local frame = math.floor(progress * sheet.Cycles * totalFrames + sheet.StartFrame) % totalFrames
+    particle.SpriteFrame = frame
+
+    if sheet.AnimationType == "WholeSheet" then
+        particle.SpriteRow = math.floor(frame / columns)
+    elseif sheet.AnimationType == "SingleRow" and sheet.RowMode == "Custom" then
+        particle.SpriteRow = PaletteUtils.Clamp(math.floor(sheet.Row), 0, rows - 1)
+    end
+end
+
+---@return integer columns
+---@return integer rows
+function ParticleEmitter:_GetSheetSize()
+    local sheet = self.SpriteSheet
+    return math.max(1, math.floor(sheet.Columns)), math.max(1, math.floor(sheet.Rows))
+end
+
+---@param column integer
+---@param row integer
+function ParticleEmitter:_GetSheetQuad(column, row)
+    local columns, rows = self:_GetSheetSize()
+
+    if columns ~= self._SheetColumns or rows ~= self._SheetRows then
+        self._SheetQuads = {}
+        self._SheetColumns = columns
+        self._SheetRows = rows
+    end
+
+    local index = row * columns + column + 1
+
+    if not self._SheetQuads[index] then
+        local width = self._RenderImage:GetWidth() / columns
+        local height = self._RenderImage:GetHeight() / rows
+        local quad = SourceQuad.NewFromRectangle(Vector(column * width, row * height), width, height)
+        self._SheetQuads[index] = quad
+    end
+
+    return self._SheetQuads[index]
+end
+
+---@param particle Particle
+---@param movement Vector
+function ParticleEmitter:_UpdateAlignment(particle, movement)
+    local alignToVelocity = self.AlignToVelocity
+
+    if not alignToVelocity.Enabled then
+        return
+    end
+
+    local speed = movement:Length()
+
+    if speed > 0.0001 then
+        particle.AlignAngle = movement:GetAngleDegrees()
+    end
+
+    particle.Stretch = math.max(0, alignToVelocity.LengthScale + speed * alignToVelocity.SpeedScale)
+end
+
+---@param range PaletteMinMaxFloat
+---@param speed number
+function ParticleEmitter:_GetNormalizedSpeed(range, speed)
+    local min = range.Min
+    local max = range.Max
+
+    if max <= min then
+        if speed < max then
+            return 0
+        else
+            return 1
+        end
+    else
+        return PaletteUtils.Clamp((speed - min) / (max - min), 0, 1)
+    end
+end
+
+--- Adds a sub-emitter to the particle emitter, which plays when an individual particle from the main emitter does a certain action, such as spawning or being destroyed. when calling this function, `subEmitter` is stopped and only emits when needed. Subemitters can only have one parent.
+---@param subEmitter ParticleEmitter
+---@param trigger SubEmitterTrigger
+---@param options SubEmitterOptions?
+function ParticleEmitter:AddSubEmitter(subEmitter, trigger, options)
+    assert(not self:IsDestroyed(), "Attempted to add a Sub-Emitter on a destroyed ParticleEmitter")
+    assert(not subEmitter:IsDestroyed(), "Attempted to add a destroyed Sub-Emitter")
+    assert(subEmitter ~= self, "Attempted to make self into a Sub-Emitter")
+    assert(subEmitter._ParentEmitter == nil, "The Sub-Emitter can only have one parent")
+    assert(trigger == "Spawn" or trigger == "Death", 'Sub-Emitter trigger must be "Spawn" or "Death"')
+
+    -- If the subemitter is also any of its ancestors, it can cause undefined behavior.
+    local ancestor = self
+    while ancestor do
+        assert(ancestor ~= subEmitter, "Adding this Sub-Emitter would create a loop")
+        ancestor = ancestor._ParentEmitter
+    end
+
+    local options = options or {}
+    local count = options.Count or 1
+    local probability = options.Probability or 1
+    local inheritRotation = options.InheritRotation or false
+    local inheritScale = options.InheritScale or false
+    local inheritColor = options.InheritColor or false
+
+    subEmitter._ParentEmitter = self
+    subEmitter:Stop()
+    table.insert(self._SubEmitters, {
+        Emitter = subEmitter,
+        Trigger = trigger,
+        Count = count,
+        Probability = probability,
+        InheritColor = inheritColor,
+        InheritScale = inheritScale,
+        InheritRotation = inheritRotation,
+    })
+end
+
+---@param subEmitter ParticleEmitter
+function ParticleEmitter:RemoveSubEmitter(subEmitter)
+    for i, entry in ipairs(self._SubEmitters) do
+        if entry.Emitter == subEmitter then
+            table.remove(self._SubEmitters, i)
+            subEmitter._ParentEmitter = nil
+            return
+        end
+    end
+end
+
+---@param trigger SubEmitterTrigger
+---@param particle Particle
+function ParticleEmitter:_TriggerSubEmitters(trigger, particle)
+    for _, entry in ipairs(self._SubEmitters) do
+        local subEmitter = entry.Emitter
+
+        if entry.Trigger == trigger and not subEmitter:IsDestroyed() and PaletteUtils.GetRandom() < entry.Probability then
+            local count = PaletteUtils.SampleInteger(entry.Count)
+            -- Offset instead of moving the sub-emitter, so other moduels don't see a huge jump in
+            -- position.
+            subEmitter:_Emit(count, particle.Position - subEmitter.Position, particle, entry)
+        end
+    end
+end
+
+---@param count integer
+---@param positionOffset Vector?
+---@param parentParticle Particle?
+---@param subEmitterEntry SubEmitter?
+function ParticleEmitter:_Emit(count, positionOffset, parentParticle, subEmitterEntry)
+    positionOffset = positionOffset or Vector.Zero
+
+    for i = 1, count do
+        if #self._Particles >= self.MaxParticles then
+            break
+        end
+
+        -- Our Object Pool logic here will reduce the amount of times we need to allocate an entire
+        -- table to save performance.
+        local newParticle
+
+        if #self._ParticlePool > 0 then
+            newParticle = table.remove(self._ParticlePool)
+        else
+            newParticle = {}
+        end
+
+        self:_InitializeParticle(newParticle, positionOffset, parentParticle, subEmitterEntry)
+
+        ---@cast newParticle Particle
+        table.insert(self._Particles, newParticle)
+        self:_TriggerSubEmitters("Spawn", newParticle)
+    end
 end
 
 return ParticleEmitter
@@ -879,6 +1676,276 @@ local PaletteShape = {}
 
 local PaletteUtils = include("palette_scripts.palette_utils")
 
+local MAX_CURVE_RESOLUTION = 1000
+local MAX_SIDES = 128
+
+---@param shape PaletteShapeConfig
+local function getCurveResolution(shape)
+    return PaletteUtils.Clamp(math.floor(shape.CurveResolution), 1, MAX_CURVE_RESOLUTION)
+end
+
+---@param shape PaletteShapeConfig
+local function getSideCount(shape)
+    return PaletteUtils.Clamp(math.floor(shape.Sides), 3, MAX_SIDES)
+end
+
+-- Returns how much of an elipse's outline is covered from the angle.
+---@param angle number
+---@param a number
+---@param b number
+function PaletteShape.GetElipseArcLengthRate(angle, a, b)
+    return math.sqrt(
+        (a * math.sin(angle)) ^ 2 +
+        (b * math.cos(angle)) ^ 2
+    )
+end
+
+---@param points Vector[]
+---@param closed boolean
+---@return number[], number
+function PaletteShape.BuildPathLookup(points, closed)
+    local totalLength = 0
+    local segments = PaletteShape.GetNumPolylineSegments(points, closed)
+    local lookup = { 0 }
+
+    for i = 1, segments do
+        local nextIdx
+
+        if closed then
+            nextIdx = i % #points + 1
+        else
+            nextIdx = i + 1
+        end
+
+        local length = (points[nextIdx] - points[i]):Length()
+        totalLength = totalLength + length
+        table.insert(lookup, totalLength)
+    end
+
+    return lookup, totalLength
+end
+
+---@param points Vector[]
+---@param closed boolean
+function PaletteShape.GetNumPolylineSegments(points, closed)
+    local n = #points
+    if closed then
+        return n
+    else
+        return n - 1
+    end
+end
+
+---@param points Vector[]
+---@param lookup number[]
+---@param totalLength number
+---@param closed boolean
+function PaletteShape.SamplePath(points, lookup, totalLength, closed)
+    if totalLength <= 0 then
+        return Vector.Zero
+    end
+
+    local targetDistance = PaletteUtils.GetRandomFloat(0, totalLength)
+    local lookupIdx = PaletteUtils.BinarySearch(lookup, targetDistance)
+    lookupIdx = PaletteUtils.Clamp(lookupIdx, 2, #lookup)
+    local left = lookup[lookupIdx - 1]
+    local right = lookup[lookupIdx]
+    local segmentLength = right - left
+    local t
+
+    if segmentLength <= 0 then
+        t = 0
+    else
+        t = (targetDistance - lookup[lookupIdx - 1]) / segmentLength
+    end
+
+    local segmentStart = lookupIdx - 1
+    local segmentEnd
+
+    if closed then
+        segmentEnd = segmentStart % #points + 1
+    else
+        segmentEnd = segmentStart + 1
+    end
+
+    local a = points[segmentStart]
+    local b = points[segmentEnd]
+
+    return PaletteUtils.LerpVector(a, b, t)
+end
+
+---@param shape PaletteShapeConfig
+function PaletteShape.IsPolylineCacheValid(shape)
+    local cache = shape._PolylineCache
+
+    if
+        #shape.Points ~= #cache.OriginalPoints
+        or shape.Closed ~= cache.Closed
+        or shape.Scale.X ~= cache.Scale.X
+        or shape.Scale.Y ~= cache.Scale.Y
+        or PaletteShape.GetNumPolylineSegments(shape.Points, shape.Closed) ~= #cache.Lookup - 1
+    then
+        return false
+    end
+
+    for i = 1, #shape.Points do
+        local a = shape.Points[i]
+        local b = cache.OriginalPoints[i]
+        if a.X ~= b.X or a.Y ~= b.Y then
+            return false
+        end
+    end
+
+    return true
+end
+
+---@param index number
+---@param sideCount number
+---@param radius number
+---@param scale Vector
+function PaletteShape.GetPolygonVertex(index, sideCount, radius, scale)
+    local angle = 2 * math.pi * index / sideCount
+    return Vector(radius * math.cos(angle), radius * math.sin(angle)) * scale
+end
+
+---@param index integer
+---@param sideCount integer
+---@param radius number
+---@param innerRatio number
+---@param scale Vector
+function PaletteShape.GetStarVertex(index, sideCount, radius, innerRatio, scale)
+    local vertexCount = sideCount * 2
+    local angle = -math.pi / 2 + 2 * math.pi * (index - 1) / vertexCount
+    local finalRadius
+
+    if index % 2 ~= 0 then
+        finalRadius = radius
+    else
+        finalRadius = innerRatio * radius
+    end
+
+    return Vector(finalRadius * math.cos(angle), finalRadius * math.sin(angle)) * scale
+end
+
+---@param shape PaletteShapeConfig
+function PaletteShape.RebuildPolylineCache(shape)
+    local cache = shape._PolylineCache
+    cache.OriginalPoints = {}
+    cache.ScaledPoints = {}
+
+    for _, point in ipairs(shape.Points) do
+        local pointCopy = Vector(point.X, point.Y)
+        table.insert(cache.OriginalPoints, pointCopy)
+        table.insert(cache.ScaledPoints, pointCopy * shape.Scale)
+    end
+
+    local lookup, totalLength = PaletteShape.BuildPathLookup(cache.ScaledPoints, shape.Closed)
+
+    cache.Lookup = lookup
+    cache.TotalLength = totalLength
+    cache.Scale = Vector(shape.Scale.X, shape.Scale.Y)
+    cache.Closed = shape.Closed
+end
+
+---@param points Vector[]
+---@param t number
+function PaletteShape.EvaluateBezier(points, t)
+    local a = PaletteUtils.LerpVector(points[1], points[2], t)
+    local b = PaletteUtils.LerpVector(points[2], points[3], t)
+
+    if #points == 3 then
+        return PaletteUtils.LerpVector(a, b, t)
+    end
+
+    local c = PaletteUtils.LerpVector(points[3], points[4], t)
+    local d = PaletteUtils.LerpVector(a, b, t)
+    local e = PaletteUtils.LerpVector(b, c, t)
+
+    return PaletteUtils.LerpVector(d, e, t)
+end
+
+---@param a Vector
+---@param b Vector
+---@param c Vector
+function PaletteShape.GetPointInTriangle(a, b, c)
+    local u, v = PaletteUtils.GetRandom(), PaletteUtils.GetRandom()
+
+    -- Uniform triangle sampling (baycentric coordinates)
+    if u + v > 1 then
+        u = 1 - u
+        v = 1 - v
+    end
+
+    return a + u * (b - a) + v * (c - a)
+end
+
+---@param isRight boolean
+function PaletteShape.GetCapAngle(isRight)
+    if isRight then
+        return PaletteUtils.GetRandomFloat(-math.pi / 2, math.pi / 2)
+    else
+        return PaletteUtils.GetRandomFloat(math.pi / 2, 3 * math.pi / 2)
+    end
+end
+
+---@param shape PaletteShapeConfig
+function PaletteShape.IsBezierCacheValid(shape)
+    local cache = shape._BezierCache
+    local resolution = getCurveResolution(shape)
+
+    if
+        resolution ~= cache.Resolution
+        or #shape.Points ~= #cache.OriginalPoints
+        or shape.Scale.X ~= cache.Scale.X
+        or shape.Scale.Y ~= cache.Scale.Y
+        or #cache.Lookup ~= resolution + 1
+    then
+        return false
+    end
+
+    for i = 1, #shape.Points do
+        local a = shape.Points[i]
+        local b = cache.OriginalPoints[i]
+        if a.X ~= b.X or a.Y ~= b.Y then
+            return false
+        end
+    end
+
+    return true
+end
+
+---@param shape PaletteShapeConfig
+function PaletteShape.RebuildBezierCache(shape)
+    local cache = shape._BezierCache
+    local resolution = getCurveResolution(shape)
+
+    cache.OriginalPoints = {}
+    cache.ScaledPoints = {}
+
+    for _, point in ipairs(shape.Points) do
+        local pointCopy = Vector(point.X, point.Y)
+        table.insert(cache.OriginalPoints, pointCopy)
+        table.insert(cache.ScaledPoints, pointCopy * shape.Scale)
+    end
+
+    local lookup = { 0 }
+    local totalLength = 0
+    local previousPoint = PaletteShape.EvaluateBezier(cache.ScaledPoints, 0)
+
+    -- Approximate the curve with small line segments. lookup[i] is the length up to t = (i - 1) / resolution.
+    for i = 1, resolution do
+        local currentPoint = PaletteShape.EvaluateBezier(cache.ScaledPoints, i / resolution)
+        totalLength = totalLength + (currentPoint - previousPoint):Length()
+        table.insert(lookup, totalLength)
+        previousPoint = currentPoint
+    end
+
+    cache.Resolution = resolution
+    cache.Lookup = lookup
+    cache.TotalLength = totalLength
+    cache.Scale = Vector(shape.Scale.X, shape.Scale.Y)
+end
+
 ---@param shape PaletteShapeConfig
 ---@param emitterPosition Vector
 ---@param orientation number
@@ -891,29 +1958,53 @@ function PaletteShape.GetSpawnPosition(shape, emitterPosition, orientation)
     if shape.Type == "Point" then
         return emitterPosition
     elseif shape.Type == "Circle" then
-        -- Inverse Transform Sampling so we can generate a position uniformly distributed inside
-        -- the circle's thickness.
-        local u = PaletteUtils.GetRandom()
-        local minRadius = shape.Radius * (1 - shape.RadiusThickness)
-        local chosenRadius = math.sqrt(minRadius^2 + u * (shape.Radius^2 - minRadius^2))
-        local angle = math.rad(PaletteUtils.GetRandomFloat(0, shape.Arc) + orientation)
+        if shape.EmitFrom == "Area" then
+            -- Inverse Transform Sampling so we can generate a position uniformly distributed inside
+            -- the circle's thickness.
+            local angle = math.rad(PaletteUtils.GetRandomFloat(0, shape.Arc))
+            local u = PaletteUtils.GetRandom()
+            local minRadius = shape.Radius * (1 - PaletteUtils.Clamp(shape.RadiusThickness, 0, 1))
+            local chosenRadius = math.sqrt(minRadius ^ 2 + u * (shape.Radius ^ 2 - minRadius ^ 2))
 
-        return emitterPosition + Vector(
-            chosenRadius * math.cos(angle),
-            chosenRadius * math.sin(angle)
-        )
+            local offset = Vector(
+                chosenRadius * math.cos(angle) * shape.Scale.X,
+                chosenRadius * math.sin(angle) * shape.Scale.Y
+            ):Rotated(orientation)
+
+            return emitterPosition + offset
+        else
+            -- Weighted angle sampling. With elipses, we can't simply divide the shape using the
+            -- same angle and just pick one since the distances would be unequal due to how the
+            -- shape looks. We use weighted selection to help promote even distribution.
+            local a = shape.Radius * shape.Scale.X
+            local b = shape.Radius * shape.Scale.Y
+            local maxWeight = math.max(math.abs(a), math.abs(b))
+            local angle
+
+            repeat
+                angle = math.rad(PaletteUtils.GetRandomFloat(0, shape.Arc))
+            until PaletteUtils.GetRandom() * maxWeight <= PaletteShape.GetElipseArcLengthRate(angle, a, b)
+
+            local offset = Vector(a * math.cos(angle), b * math.sin(angle)):Rotated(orientation)
+            return emitterPosition + offset
+        end
     elseif shape.Type == "Rectangle" then
-        local randX = PaletteUtils.GetRandomFloat(-shape.Size.X / 2, shape.Size.X / 2)
-        local randY = PaletteUtils.GetRandomFloat(-shape.Size.Y / 2, shape.Size.Y / 2)
+        local width = shape.Size.X * shape.Scale.X
+        local height = shape.Size.Y * shape.Scale.Y
+        local randX = PaletteUtils.GetRandomFloat(-width / 2, width / 2)
+        local randY = PaletteUtils.GetRandomFloat(-height / 2, height / 2)
 
         if shape.EmitFrom == "Edge" then
-            -- Weight each pair of edges by its length for uniform perimeter sampling.
-            local choice = PaletteUtils.GetRandomFloat(0, shape.Size.X + shape.Size.Y)
+            -- Because rectangles are uneven shapes, we need to ensure particles are evenly
+            -- distrubted.
 
-            if choice < shape.Size.X then
-                randY = PaletteUtils.GetRandom() < 0.5 and -shape.Size.Y / 2 or shape.Size.Y / 2
+            -- Weight each pair of edges by its length for uniform perimeter sampling.
+            local choice = PaletteUtils.GetRandomFloat(0, width + height)
+
+            if choice < width then
+                randY = PaletteUtils.GetRandom() < 0.5 and -height / 2 or height / 2
             else
-                randX = PaletteUtils.GetRandom() < 0.5 and -shape.Size.X / 2 or shape.Size.X / 2
+                randX = PaletteUtils.GetRandom() < 0.5 and -width / 2 or width / 2
             end
         end
 
@@ -924,57 +2015,250 @@ function PaletteShape.GetSpawnPosition(shape, emitterPosition, orientation)
         if #shape.Vertices < 3 then
             error("A particle emitter must have at least 3 vertices!")
         end
-        
-        local a, b, c = shape.Vertices[1], shape.Vertices[2], shape.Vertices[3]
+
+        local a = shape.Vertices[1] * shape.Scale
+        local b = shape.Vertices[2] * shape.Scale
+        local c = shape.Vertices[3] * shape.Scale
 
         if shape.EmitFrom == "Edge" then
-            local lengthAB = (a - b):Length()
-            local lengthBC = (b - c):Length()
-            local lengthCA = (c - a):Length()
-            local perimeter = lengthAB + lengthBC + lengthCA
-            local u = PaletteUtils.GetRandom()
+            local scaledPoints = { a, b, c }
+            local lookup, totalLength = PaletteShape.BuildPathLookup(scaledPoints, true)
+            local point = PaletteShape.SamplePath(scaledPoints, lookup, totalLength, true)
+            point = point:Rotated(orientation)
+            return emitterPosition + point
+        else
+            local offset = PaletteShape.GetPointInTriangle(a, b, c):Rotated(orientation)
+            return emitterPosition + offset
+        end
+    elseif shape.Type == "Line" then
+        local length = shape.Length * shape.Scale.X
+        local randLength = PaletteUtils.GetRandomFloat(-length / 2, length / 2)
+        local point = Vector(randLength, 0):Rotated(orientation)
+        return emitterPosition + point
+    elseif shape.Type == "Polygon" then
+        local sideCount = getSideCount(shape)
 
-            local choice = PaletteUtils.GetRandomFloat(0, perimeter)
-            local startVertex, endVertex
+        if shape.EmitFrom == "Edge" then
+            ---@type Vector[]
+            local vertices = {}
 
-            if choice < lengthAB then
-                startVertex = a
-                endVertex = b
-            elseif choice < lengthAB + lengthBC then
-                startVertex = b
-                endVertex = c
-            else
-                startVertex = c
-                endVertex = a
+            for i = 1, sideCount do
+                local vertex = PaletteShape.GetPolygonVertex(i, sideCount, shape.Radius, shape.Scale)
+                table.insert(vertices, vertex)
             end
 
-            local point = startVertex + u * (endVertex - startVertex)
+            local lookup, totalLength = PaletteShape.BuildPathLookup(vertices, true)
+            local point = PaletteShape.SamplePath(vertices, lookup, totalLength, true)
             point = point:Rotated(orientation)
 
             return emitterPosition + point
         else
-            local u, v = PaletteUtils.GetRandom(), PaletteUtils.GetRandom()
+            -- All center-based triangles have equal areas,
+            -- even after nonuniform scaling.
+            local index = PaletteUtils.GetRandomInt(1, sideCount)
+            local nextIndex = index % sideCount + 1
 
-            -- Uniform triangle sampling (baycentric coordinates)
-            if u + v > 1 then
-                u = 1 - u
-                v = 1 - v
+            local a = PaletteShape.GetPolygonVertex(index, sideCount, shape.Radius, shape.Scale)
+            local b = PaletteShape.GetPolygonVertex(nextIndex, sideCount, shape.Radius, shape.Scale)
+
+            local point = PaletteShape.GetPointInTriangle(
+                a, b, Vector.Zero
+            ):Rotated(orientation)
+
+            return emitterPosition + point
+        end
+    elseif shape.Type == "Capsule" then
+        local halfStraight = math.max(0, shape.Length / 2 - shape.Radius)
+
+        if shape.EmitFrom == "Area" then
+            local rectangularArea = 4 * halfStraight * shape.Radius
+            local capsuleArea = math.pi * shape.Radius ^ 2
+            local totalArea = rectangularArea + capsuleArea
+
+            if totalArea <= 0 then
+                return emitterPosition
             end
 
-            local point =  a + u * (b - a) + v * (c - a)
-            local offset = point:Rotated(orientation)
-            return emitterPosition + offset
+            local rectangleChance = rectangularArea / totalArea
+            local chance = PaletteUtils.GetRandom()
+
+            -- Obviously a capsule has a rectangular region followed by a semi-circle region at its
+            -- ends. Pick one randomly.
+            if chance <= rectangleChance then
+                local x = PaletteUtils.GetRandomFloat(-halfStraight, halfStraight)
+                local y = PaletteUtils.GetRandomFloat(-shape.Radius, shape.Radius)
+                local offset = (Vector(x, y) * shape.Scale):Rotated(orientation)
+                return emitterPosition + offset
+            else
+                local isRight = PaletteUtils.GetRandom() < 0.5
+                local angle = PaletteShape.GetCapAngle(isRight)
+
+                -- Offset the point.
+                local r = shape.Radius * math.sqrt(PaletteUtils.GetRandom())
+                local x = r * math.cos(angle)
+                local y = r * math.sin(angle)
+
+                if isRight then
+                    x = x + halfStraight
+                else
+                    x = x - halfStraight
+                end
+
+                local offset = (Vector(x, y) * shape.Scale):Rotated(orientation)
+                return emitterPosition + offset
+            end
+        else
+            local straightLength = 4 * halfStraight
+            local curveLength = 2 * math.pi * shape.Radius
+            local perimeter = straightLength + curveLength
+
+            if perimeter <= 0 then
+                return emitterPosition
+            end
+
+            local straightChance = straightLength / perimeter
+            local offset
+            local weight
+
+            local maxWeight = math.max(math.abs(shape.Scale.X), math.abs(shape.Scale.Y))
+
+            -- Weighted distribution since capsules are uneven shapes.
+            repeat
+                if PaletteUtils.GetRandom() < straightChance then
+                    local x = PaletteUtils.GetRandomFloat(-halfStraight, halfStraight)
+                    local y = PaletteUtils.GetRandom() < 0.5 and -shape.Radius or shape.Radius
+
+                    -- We need to math.abs the scale so the weight doesn't become negative.
+                    weight = math.abs(shape.Scale.X)
+                    offset = Vector(x, y)
+                else
+                    local isRight = PaletteUtils.GetRandom() < 0.5
+                    local angle = PaletteShape.GetCapAngle(isRight)
+                    local x = shape.Radius * math.cos(angle)
+
+                    if isRight then
+                        x = x + halfStraight
+                    else
+                        x = x - halfStraight
+                    end
+
+                    local y = math.sin(angle) * shape.Radius
+
+                    offset = Vector(x, y)
+
+                    weight = PaletteShape.GetElipseArcLengthRate(angle, shape.Scale.X, shape.Scale.Y)
+                end
+            until PaletteUtils.GetRandom() * maxWeight <= weight
+
+            return emitterPosition + (offset * shape.Scale):Rotated(orientation)
         end
-    elseif shape.Type == "Line" then
-        local u = PaletteUtils.GetRandom()
-        local randLength = PaletteUtils.GetRandomFloat(-shape.Length / 2, shape.Length / 2)
-        local point = Vector(randLength * u, 0):Rotated(orientation)
+    elseif shape.Type == "Bezier" then
+        if #shape.Points < 3 then
+            return emitterPosition
+        end
+
+        if not PaletteShape.IsBezierCacheValid(shape) then
+            PaletteShape.RebuildBezierCache(shape)
+        end
+
+        local cache = shape._BezierCache
+        if cache.TotalLength <= 0 then
+            return emitterPosition
+        end
+
+        -- t isn't evenly spaced along the curve, so we pick a distance and convert it back to t.
+        local targetDistance = PaletteUtils.GetRandomFloat(0, cache.TotalLength)
+        local lookupIdx = PaletteUtils.BinarySearch(cache.Lookup, targetDistance)
+        lookupIdx = PaletteUtils.Clamp(lookupIdx, 2, #cache.Lookup)
+
+        local left = cache.Lookup[lookupIdx - 1]
+        local right = cache.Lookup[lookupIdx]
+        local segmentLength = right - left
+        local alpha = 0
+
+        if segmentLength > 0 then
+            alpha = (targetDistance - left) / segmentLength
+        end
+
+        local t = (lookupIdx - 2 + alpha) / cache.Resolution
+        local point = PaletteShape.EvaluateBezier(cache.ScaledPoints, t):Rotated(orientation)
+
         return emitterPosition + point
+    elseif shape.Type == "Polyline" then
+        if #shape.Points < 2 then
+            return emitterPosition
+        end
+
+        if not PaletteShape.IsPolylineCacheValid(shape) then
+            PaletteShape.RebuildPolylineCache(shape)
+        end
+
+        local cache = shape._PolylineCache
+        if cache.TotalLength <= 0 then
+            return emitterPosition
+        end
+
+        local targetDistance = PaletteUtils.GetRandomFloat(0, cache.TotalLength)
+        local lookupIdx = PaletteUtils.BinarySearch(cache.Lookup, targetDistance)
+        lookupIdx = PaletteUtils.Clamp(lookupIdx, 2, #cache.Lookup)
+        local segmentLength = cache.Lookup[lookupIdx] - cache.Lookup[lookupIdx - 1]
+        local t
+
+        if segmentLength <= 0 then
+            t = 0
+        else
+            t = (targetDistance - cache.Lookup[lookupIdx - 1]) / segmentLength
+        end
+
+        local segmentStart = lookupIdx - 1
+        local segmentEnd
+
+        if cache.Closed then
+            segmentEnd = segmentStart % #cache.ScaledPoints + 1
+        else
+            segmentEnd = segmentStart + 1
+        end
+
+        local a = cache.ScaledPoints[segmentStart]
+        local b = cache.ScaledPoints[segmentEnd]
+        local point = PaletteUtils.LerpVector(a, b, t):Rotated(orientation)
+        return emitterPosition + point
+    elseif shape.Type == "Star" then
+        local sides = getSideCount(shape)
+        local innerRatio = math.max(0, shape.InnerRadiusRatio)
+
+        if shape.EmitFrom == "Edge" then
+            local vertices = {}
+
+            for i = 1, sides * 2 do
+                local vertex = PaletteShape.GetStarVertex(
+                    i,
+                    sides,
+                    shape.Radius,
+                    innerRatio,
+                    shape.Scale
+                )
+                table.insert(vertices, vertex)
+            end
+
+            local lookup, totalLength = PaletteShape.BuildPathLookup(vertices, true)
+            local point = PaletteShape.SamplePath(vertices, lookup, totalLength, true)
+            point = point:Rotated(orientation)
+            return emitterPosition + point
+        else
+            local vertexCount = sides * 2
+            local index = PaletteUtils.GetRandomInt(1, vertexCount)
+            local nextIndex = index % vertexCount + 1
+            local a = PaletteShape.GetStarVertex(index, sides, shape.Radius, innerRatio, shape.Scale)
+            local b = PaletteShape.GetStarVertex(nextIndex, sides, shape.Radius, innerRatio, shape.Scale)
+            local point = PaletteShape.GetPointInTriangle(a, b, Vector.Zero)
+            point = point:Rotated(orientation)
+            return emitterPosition + point
+        end
     else
         error("Unsupported particle shape: " .. shape.Type)
     end
 end
-
 
 ---@param shape PaletteShapeConfig
 ---@param emitterPosition Vector
@@ -1002,6 +2286,85 @@ return PaletteShape
 
     end,
 
+    ["palette_scripts.palette_noise"] = function()
+
+local PaletteNoise = {}
+local PaletteUtils = include("palette_scripts.palette_utils")
+
+local CURL_EPSILON = 0.01
+local GRADIENTS = {
+    { 1,       0 },
+    { -1,      0 },
+    { 0,       1 },
+    { 0,       -1 },
+    { 0.7071,  0.7071 },
+    { -0.7071, 0.7071 },
+    { 0.7071,  -0.7071 },
+    { -0.7071, -0.7071 }
+}
+
+local perm = {}
+
+---@param x number
+---@param y number
+function PaletteNoise.Curl2D(x, y)
+    local dpdx = (PaletteNoise.Perlin2D(x + CURL_EPSILON, y) -
+        PaletteNoise.Perlin2D(x - CURL_EPSILON, y)) / (2 * CURL_EPSILON)
+    local dpdy = (PaletteNoise.Perlin2D(x, y + CURL_EPSILON) - PaletteNoise.Perlin2D(x, y - CURL_EPSILON)) /
+        (2 * CURL_EPSILON)
+    return dpdy, -dpdx
+end
+
+---@param t number
+function PaletteNoise.PerlinSmoothstep(t)
+    return 6 * t ^ 5 - 15 * t ^ 4 + 10 * t ^ 3
+end
+
+---@param xi number
+---@param yi number
+function PaletteNoise.Hash(xi, yi)
+    return perm[perm[(xi % 256) + 1] + (yi % 256) + 1]
+end
+
+---@param x number
+---@param y number
+function PaletteNoise.Perlin2D(x, y)
+    local xi = math.floor(x)
+    local yi = math.floor(y)
+    local xf = x - xi
+    local yf = y - yi
+    local g00 = GRADIENTS[PaletteNoise.Hash(xi, yi) % 8 + 1]
+    local g10 = GRADIENTS[PaletteNoise.Hash(xi + 1, yi) % 8 + 1]
+    local g01 = GRADIENTS[PaletteNoise.Hash(xi, yi + 1) % 8 + 1]
+    local g11 = GRADIENTS[PaletteNoise.Hash(xi + 1, yi + 1) % 8 + 1]
+    local n00 = g00[1] * xf + g00[2] * yf
+    local n10 = g10[1] * (xf - 1) + g10[2] * yf
+    local n01 = g01[1] * xf + g01[2] * (yf - 1)
+    local n11 = g11[1] * (xf - 1) + g11[2] * (yf - 1)
+    local u = PaletteNoise.PerlinSmoothstep(xf)
+    local v = PaletteNoise.PerlinSmoothstep(yf)
+    local top = PaletteUtils.Lerp(n00, n10, u)
+    local bottom = PaletteUtils.Lerp(n01, n11, u)
+    local result = PaletteUtils.Lerp(top, bottom, v)
+    return result * math.sqrt(2)
+end
+
+-- TODO: Get rid of this module loading sideeffect.
+for i = 0, 255 do
+    table.insert(perm, i)
+end
+
+PaletteUtils.ShuffleTableInPlace(perm)
+
+for i = 0, 255 do
+    table.insert(perm, perm[i + 1])
+end
+
+return PaletteNoise
+
+
+    end,
+
 }
 
 
@@ -1019,24 +2382,46 @@ local PaletteGradient = include("palette_scripts.palette_gradient")
 
 local initialized = false
 
+-- Only available on a dev-branches of REPENTOGON (Project Babylon).
+-- TODO: REMOVE ME WHEN PUBLICLY AVAILABLE.
+---@diagnostic disable-next-line: undefined-field
+local hasPreRoomRenderEntities = ModCallbacks.MC_PRE_ROOM_RENDER_ENTITIES ~= nil
+
 ---@type ParticleEmitter[]
 local emitters = {}
 
-local function onPostRoomRenderEntities()
+local function isRenderModeNormal()
+    local room = Game():GetRoom()
+    return room:GetRenderMode() == RenderMode.RENDER_NORMAL
+end
+
+local function onPreRoomRenderEntities()
+    if not isRenderModeNormal() then
+        return
+    end
+
     for _, particleEmitter in ipairs(emitters) do
-        particleEmitter:_OnPostRoomEntitiesRender()
+        particleEmitter:_OnPreRoomEntitiesRender()
+    end
+end
+
+local function onPostRoomRenderEntities()
+    if not isRenderModeNormal() then
+        return
+    end
+
+    for _, particleEmitter in ipairs(emitters) do
+        particleEmitter:_OnPostRoomEntitiesRender(not hasPreRoomRenderEntities)
     end
 end
 
 local function onPreBackdropRenderWalls()
+    if not isRenderModeNormal() then
+        return
+    end
+
     for _, particleEmitter in ipairs(emitters) do
         particleEmitter:_OnPreBackdropRenderWalls()
-    end
-end
-
-local function onPostUpdate()
-    for _, particleEmitter in ipairs(emitters) do
-        particleEmitter:Update()
     end
 end
 
@@ -1050,8 +2435,62 @@ local function unregisterEmitter(emitter)
     end
 end
 
+local function checkForPendingDestroyedParticles()
+    -- Backwards, since Destroy() calls table.remove on `emitters`.
+    for i = #emitters, 1, -1 do
+        local emitter = emitters[i]
+        if emitter:IsPendingDestroy() then
+            emitter:Destroy()
+        end
+    end
+end
+
+local function onPostUpdate()
+    for _, particleEmitter in ipairs(emitters) do
+        -- In cases where render modei s HUD-related we don't want the update callback to also call
+        -- this.
+        if
+            particleEmitter.RenderMode == "AboveEntities"
+            or particleEmitter.RenderMode == "BehindEntities"
+            or particleEmitter.RenderMode == "Floor"
+        then
+            particleEmitter:Update()
+        end
+    end
+    checkForPendingDestroyedParticles()
+end
+
+local function onPostPauseScreenRender()
+    if not isRenderModeNormal() then
+        return
+    end
+
+    for _, particleEmitter in ipairs(emitters) do
+        particleEmitter:_OnPostPauseScreenRender()
+    end
+    checkForPendingDestroyedParticles()
+end
+
+local function onPostRender()
+    if not isRenderModeNormal() then
+        return
+    end
+
+    for _, particleEmitter in ipairs(emitters) do
+        particleEmitter:_OnPostRender()
+    end
+    checkForPendingDestroyedParticles()
+end
+
+local function onMainMenuRender()
+    for _, particleEmitter in ipairs(emitters) do
+        particleEmitter:_OnMainMenuRender()
+    end
+    checkForPendingDestroyedParticles()
+end
+
 local function destroyNonPersistentEmitters()
-    -- We loop through the emitters backwards since calling :Destroy() on one will cause the 
+    -- We loop through the emitters backwards since calling :Destroy() on one will cause the
     -- `emitters` table to shift due to a call to `table.remove`.
     for i = #emitters, 1, -1 do
         local emitter = emitters[i]
@@ -1065,14 +2504,23 @@ end
 ---@param mod ModReference
 function Palette:Init(mod)
     assert(not initialized, "Palette has already been initialized")
-    
+
     initialized = true
 
     mod:AddCallback(ModCallbacks.MC_PRE_BACKDROP_RENDER_WALLS, onPreBackdropRenderWalls)
     mod:AddCallback(ModCallbacks.MC_POST_ROOM_RENDER_ENTITIES, onPostRoomRenderEntities)
+    mod:AddCallback(ModCallbacks.MC_POST_PAUSE_SCREEN_RENDER, onPostPauseScreenRender)
+    mod:AddCallback(ModCallbacks.MC_POST_RENDER, onPostRender)
+    mod:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, onMainMenuRender)
     mod:AddCallback(ModCallbacks.MC_POST_UPDATE, onPostUpdate)
     mod:AddCallback(ModCallbacks.MC_PRE_NEW_ROOM, destroyNonPersistentEmitters)
     mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, destroyNonPersistentEmitters)
+
+
+    if hasPreRoomRenderEntities then
+        ---@diagnostic disable-next-line: undefined-field
+        mod:AddCallback(ModCallbacks.MC_PRE_ROOM_RENDER_ENTITIES, onPreRoomRenderEntities)
+    end
 end
 
 --- Creates a new `ParticleEmitter`.
@@ -1089,9 +2537,18 @@ function Palette:CreateParticleEmitter(texturePath, position)
     end
 
     ---@cast position Vector
-        
+
     local image = Renderer.LoadImage(texturePath)
     local sourceQuad = SourceQuad.NewFromRectangle(Vector.Zero, image:GetWidth(), image:GetHeight())
+
+    ---@type ForceOverLifetime
+    local forceOverLifetime = PaletteOverLifetime.New(Vector.Zero)
+    forceOverLifetime.Space = "Local"
+
+    local frameOverTime = PaletteOverLifetime.New(0)
+    frameOverTime.Keys[2].Value = 1
+    frameOverTime.KeysMin[2].Value = 1
+    frameOverTime.KeysMax[2].Value = 1
 
     ---@type ParticleEmitter
     local ParticleEmitterInstance = {
@@ -1121,11 +2578,11 @@ function Palette:CreateParticleEmitter(texturePath, position)
         Orientation = 0,
         StartSpeed = 2,
         StartDirection = Vector(0, -1),
-        StartSize = Vector.One,
+        StartScale = Vector.One,
         StartRotation = 0,
         PersistAcrossRooms = false,
         DirectionSpread = 0,
-        SizeOverLifetime = PaletteOverLifetime.New(Vector.One),
+        ScaleOverLifetime = PaletteOverLifetime.New(Vector.One),
         RotationOverLifetime = PaletteOverLifetime.New(0),
         Shape = {
             Type = "Point",
@@ -1140,10 +2597,104 @@ function Palette:CreateParticleEmitter(texturePath, position)
                 Vector(50, 30),
                 Vector(0, -60)
             },
-            Length = 120
+            Points = {
+                Vector(-50, 0),
+                Vector(0, -50),
+                Vector(50, 0)
+            },
+            CurveResolution = 67,
+            Length = 120,
+            Sides = 3,
+            Scale = Vector.One,
+            Closed = false,
+            InnerRadiusRatio = 0.5,
+
+            _BezierCache = {
+                Lookup = {},
+                OriginalPoints = {},
+                Scale = Vector(0, 0),
+                ScaledPoints = {},
+                Resolution = 0,
+                TotalLength = 0,
+            },
+            _PolylineCache = {
+                Lookup = {},
+                OriginalPoints = {},
+                Scale = Vector(0, 0),
+                ScaledPoints = {},
+                Closed = false,
+                TotalLength = 0,
+            },
         },
         RenderMode = "AboveEntities",
+        Shader = nil,
+        ShaderParams = {},
+        GravityModifier = 0,
+        ForceOverLifetime = forceOverLifetime,
+        LimitVelocityOverLifetime = {
+            Enabled = false,
+            Drag = 0,
+            MaxSpeed = math.huge,
+            Dampen = 0.5
+        },
+        Duration = 150,
+        Looping = true,
+        Bursts = {},
+        StartDelay = 0,
+        DestroyOnFinish = false,
+        InheritVelocity = {
+            Enabled = false,
+            Mode = "Initial",
+            Multiplier = 1
+        },
+        RateOverDistance = 0,
+        Noise = {
+            Enabled = false,
+            Strength = 1,
+            ScrollSpeed = 0,
+            Damping = false,
+            Frequency = 0.02,
+            PositionAmount = 1,
+            RotationAmount = 0,
+            ScaleAmount = 0,
+        },
+        SpriteSheet = {
+            Enabled = false,
+            Columns = 1,
+            Rows = 1,
+            AnimationType = "WholeSheet",
+            RowMode = "Random",
+            Row = 0,
+            StartFrame = 0,
+            Cycles = 1,
+            FrameOverTime = frameOverTime,
+        },
+        AlignToVelocity = {
+            Enabled = false,
+            Offset = 0,
+            LengthScale = 1,
+            SpeedScale = 0,
+        },
+        ScaleBySpeed = {
+            Enabled = false,
+            SpeedRange = { Min = 0, Max = 10 },
+            Scale = PaletteOverLifetime.New(Vector.One)
+        },
+        RotationBySpeed = {
+            Enabled = false,
+            SpeedRange = { Min = 0, Max = 10 },
+            Rotation = PaletteOverLifetime.New(0)
+        },
+        ColorBySpeed = {
+            Enabled = false,
+            Mode = "Blend",
+            SpeedRange = { Min = 0, Max = 10 },
+            Gradient = PaletteGradient:New()
+        },
 
+        _DistanceAccumulator = 0,
+        _DelayElapsed = 0,
+        _UpdateAccumilator = 0,
         _IsDestroyed = false,
         _EmissionAccumulator = 0,
         _IsEmitting = true,
@@ -1152,6 +2703,24 @@ function Palette:CreateParticleEmitter(texturePath, position)
         _RenderImage = image,
         _EmitterSourceQuad = sourceQuad,
         _DestroyFun = unregisterEmitter,
+        _EntityFollowOffset = Vector.Zero,
+        _IsPaused = false,
+        _IsFinished = false,
+        _EmitterTime = 0,
+        _BurstCycles = {},
+        _PendingDestroy = false,
+        _Velocity = Vector.Zero,
+
+        -- We're not initializing this to `position` since people may immediately call
+        -- `FollowEntity`, which would cause a huge position jump.
+        _LastPosition = nil,
+
+        _NoiseTime = 0,
+        _SheetColumns = 0,
+        _SheetRows = 0,
+        _SheetQuads = {},
+        _SubEmitters = {},
+        _ParentEmitter = nil
     }
 
     local ParticleEmitterMT = setmetatable(ParticleEmitterInstance, ParticleEmitter)
