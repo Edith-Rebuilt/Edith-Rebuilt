@@ -21,21 +21,27 @@ mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, function (_, npc)
     npc:MultiplyFriction(0.6)
 end)
 
-local SEL = StatusEffectLibrary
-local SELCallbacks = SEL.Callbacks
+local SELCallbacks = StatusEffectLibrary.Callbacks
+
+---@param ent EntityNPC | EntityPlayer
+SELCallbacks.AddCallback(SELCallbacks.ID.PRE_ADD_ENTITY_STATUS_EFFECT, function(_, ent)
+    local npc = ent:ToNPC()
+
+    if not npc then return end
+
+    ent:GetSprite().PlaybackSpeed = 0.6
+
+    local npcData = data(ent)
+    local SaltType = npcData.SaltType --[[@as SaltTypes?]]
+
+    if not SaltType then return end
+
+    npcData.SaltType = mod.Modules.BIT_MASK.RemoveBitFlags(npcData.SaltType, SaltType)    
+end, Status.Flags.Salt)
 
 ---@param ent EntityNPC
 SELCallbacks.AddCallback(SELCallbacks.ID.POST_REMOVE_ENTITY_STATUS_EFFECT, function (_, ent)
     local npcData = data(ent)
-    local SaltType = npcData.SaltType ---@as SaltTypes
-
-    if not SaltType then return end
-
-    npcData.SaltType = mod.Modules.BIT_MASK.RemoveBitFlags(npcData.SaltType, SaltType)
-end, Status.Flags.Salt)
-
----@param ent EntityNPC
-SELCallbacks.AddCallback(SELCallbacks.ID.PRE_ADD_ENTITY_STATUS_EFFECT, function (_, ent)
-    local npcData = data(ent)
     npcData.SaltType = npcData.SaltType or 0
+    ent:GetSprite().PlaybackSpeed = 1
 end, Status.Flags.Salt)
