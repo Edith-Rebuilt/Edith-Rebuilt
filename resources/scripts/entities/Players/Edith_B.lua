@@ -120,12 +120,14 @@ local function SmokeParticles(player, heat, pData)
 	local smokeColor = 1 - (0.5 * heat)
 	local smokeSize = 0.5 + (0.1 * heat)
 
+	local randomSize = modules.RNG.RandomFloat(rng, 0.7, 1.3)
+
 	clouds.ParticleRate = 1 + (5 * heat) + (math.ceil(rng:RandomInt(2, 4) * heat))
-	clouds.StartSpeed = rng:RandomInt(3, 6) + (5 * (heat))
+	clouds.StartSpeed = (rng:RandomInt(3, 6) + (5 * (heat))) * math.min(randomSize, 1)
 	clouds.Position = player.Position - Vector(0, 30 * playerScale.Y)
 	clouds.DirectionSpread = 15
 	clouds.StartColor = KColor(smokeColor, smokeColor, smokeColor, 1)
-	clouds.StartSize = Vector(smokeSize * modules.RNG.RandomFloat(rng, 0.7, 1.3), smokeSize * modules.RNG.RandomFloat(rng, 0.9, 1.1)) * playerScale * modules.RNG.RandomFloat(rng, 0.9, 1.1)
+	clouds.StartScale = Vector(smokeSize * randomSize, smokeSize * modules.RNG.RandomFloat(rng, 0.9, 1.1)) * playerScale * modules.RNG.RandomFloat(rng, 0.9, 1.1)
 	clouds.Lifetime = 20 + (5 * heat)
 	clouds.StartRotation = modules.RNG.RandomFloat(rng, 0, 360)
 	clouds.IsWorldSpace = true
@@ -144,8 +146,8 @@ local function SmokeParticles(player, heat, pData)
 		}
 	}
 
-	clouds.SizeOverLifetime.Enabled = true 
-	clouds.SizeOverLifetime.Keys = {
+	clouds.ScaleOverLifetime.Enabled = true 
+	clouds.ScaleOverLifetime.Keys = {
 		{ Time = 0, Value = Vector(1, 1) },
 		{ Time = 1, Value = Vector(1.5, 1.5) }
 	}
