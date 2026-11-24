@@ -214,13 +214,14 @@ local Cabras = {
 }
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER_CHARACTER_SELECT_PORTRAIT, function(_, PlayerType, sprite, position)
+    if Roll ~= 1 then return end
+
     local cabra = Cabras[PlayerType]
     
     if not cabra then return end
 
     local height = cabra:GetHeight()
     local width = cabra:GetWidth()
-	if Roll ~= 1 then return end
 
 	local scale = sprite.Scale
 
