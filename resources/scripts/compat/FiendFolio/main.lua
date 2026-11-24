@@ -1,4 +1,4 @@
-local fiendFolioPath = "resources.scripts.compat.FiendFolio."
+local fiendFolioPath = "resources.scripts.compat.FiendFolio.scripts."
 
 local function FiendFolioCompat()
 	EdithRebuilt.PatchesLoader.LoadScripts({
