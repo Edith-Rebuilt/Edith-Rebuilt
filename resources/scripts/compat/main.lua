@@ -52,16 +52,20 @@ end
 ---@field priority integer?
 
 ---@param entry CompatCallbackEntry
-function loader.RegisterCallbackEntry(entry)
+---@param modRef? ModReference modreference of the module, defaults to `EdithRebuilt`
+function loader.RegisterCallbackEntry(entry, modRef)
+	modRef = modRef or mod
+
 	if entry.priority then
-		mod:AddPriorityCallback(entry.callback, entry.priority, entry.func, entry.param)
+		modRef:AddPriorityCallback(entry.callback, entry.priority, entry.func, entry.param)
 	else
-		mod:AddCallback(entry.callback, entry.func, entry.param)
+		modRef:AddCallback(entry.callback, entry.func, entry.param)
 	end
 end
 
 ---@param paths string[]
-function loader.LoadScripts(paths)
+---@param modRef? ModReference
+function loader.LoadScripts(paths, modRef)
 	for _, path in ipairs(paths) do
 		local script = include(path)
 
@@ -70,7 +74,7 @@ function loader.LoadScripts(paths)
 		local entries = script.callback and { script } or script
 
 		for _, entry in ipairs(entries) do
-			loader.RegisterCallbackEntry(entry)
+			loader.RegisterCallbackEntry(entry, modRef)
 		end
 
 		::continue::
@@ -81,12 +85,13 @@ EdithRebuilt.PatchesLoader = loader
 
 local patches = {
 	"EID.main",
-	"Birthcake",
-	"RunicTablet",
-	"The Future",
 	"CommunityRemix.main",
 	"Birthwrong.main",
 	"FiendFolio.main",
+	"Epiphany.main",
+	"Birthcake",
+	"RunicTablet",
+	"TheFuture",
 }
 
 for _, fileName in ipairs(patches) do
@@ -95,8 +100,14 @@ end
 
 mod:AddPriorityCallback(ModCallbacks.MC_POST_MODS_LOADED, CallbackPriority.LATE, loader.ApplyPatches)
 
-mod:AddCallback(ModCallbacks.MC_POST_RENDER, function()
-	if not loader.AppliedPatches then
+local reloadCallbacks = {
+	ModCallbacks.MC_POST_RENDER,
+	-- ModCallbacks.MC_MAIN_MENU_RENDER,
+}
+
+for _, callback in ipairs(reloadCallbacks) do
+	mod:AddCallback(callback, function ()
+		if loader.AppliedPatches then return end
 		loader:ApplyPatches()
-	end
-end)
+	end)
+end
